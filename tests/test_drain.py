@@ -20,19 +20,15 @@ def test_drain_processes_one_event(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"hook_event_name": "Stop", "cwd": "/home/user/project", "session_id": "s1"}
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        count = drain(queue=queue)
+    count = drain(queue=queue)
     assert count == 1
-    mock_run.assert_called_once()
-    cmd = mock_run.call_args[0][0]
-    assert cmd[0] == "omega"
+    assert queue.read_text().strip() == ""
 
 
 def test_drain_clears_queue_after_processing(tmp_path):
     queue = tmp_path / "queue.jsonl"
     queue.write_text(json.dumps({"hook_event_name": "Stop", "cwd": "."}) + "\n")
-    with patch("goldfish.drain.subprocess.run"):
-        drain(queue=queue)
+    drain(queue=queue)
     assert queue.read_text() == ""
 
 
@@ -43,26 +39,10 @@ def test_drain_processes_multiple_events(tmp_path):
         {"hook_event_name": "Stop", "cwd": "/p", "session_id": "s2"},
     ]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        count = drain(queue=queue)
+    count = drain(queue=queue)
     assert count == 2
-    assert mock_run.call_count == 2
+    assert queue.read_text().strip() == ""
 
-
-def test_drain_routes_post_tool_use_write_to_semble(tmp_path):
-    queue = tmp_path / "queue.jsonl"
-    event = {
-        "hook_event_name": "PostToolUse",
-        "tool_name": "Write",
-        "tool_input": {"file_path": "/my/project/src/auth.py"},
-        "cwd": "/my/project",
-    }
-    queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        drain(queue=queue)
-    args = mock_run.call_args[0][0]
-    assert args[0] == "semble"
-    assert "/my/project/src/auth.py" in args
 
 
 def test_drain_unknown_event_type_does_nothing(tmp_path):
@@ -115,20 +95,6 @@ def test_session_start_new_project_returns_first_session_message(tmp_path):
     assert "first session" in result.lower() or "new project" in result.lower()
 
 
-def test_session_start_existing_project_calls_omega_mine(tmp_path):
-    from goldfish.config import write_manifest
-    write_manifest("myapp", {
-        "last_byte_offset": 100, "bootstrap_complete": True,
-        "semble_indexed_at": "", "last_jsonl_file": ""
-    }, vaults_root=tmp_path)
-    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
-    with patch("goldfish.drain.subprocess.run") as mock_run, \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
-        handle_session_start(event, vaults_root=tmp_path)
-    cmds = [call[0][0] for call in mock_run.call_args_list]
-    assert any(c[0] == "omega" for c in cmds)
-
 
 def test_pre_compact_writes_checkpoint_note(tmp_path):
     from goldfish.vault import scaffold
@@ -143,64 +109,23 @@ def test_pre_compact_writes_checkpoint_note(tmp_path):
     assert "s1" in checkpoints[0].name
 
 
-from goldfish.drain import _handle_post_tool_use
 
-
-def test_post_tool_use_edit_calls_semble_reindex():
-    event = {
-        "hook_event_name": "PostToolUse",
-        "tool_name": "Edit",
-        "tool_input": {"file_path": "/project/src/main.py"},
-        "cwd": "/project",
-        "session_id": "s1",
-    }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        _handle_post_tool_use(event)
-    cmd = mock_run.call_args[0][0]
-    assert cmd[0] == "semble"
-    assert cmd[1] == "reindex"
-    assert "/project/src/main.py" in cmd
-
-
-def test_post_tool_use_bash_git_commit_calls_omega_note():
-    event = {
-        "hook_event_name": "PostToolUse",
-        "tool_name": "Bash",
-        "tool_input": {"command": "git commit -m 'fix auth'"},
-        "cwd": "/project",
-        "session_id": "s1",
-    }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        _handle_post_tool_use(event)
-    cmd = mock_run.call_args[0][0]
-    assert cmd[0] == "omega"
-    assert "note" in cmd
-
-
-def test_post_tool_use_bash_non_commit_does_nothing():
-    event = {
-        "hook_event_name": "PostToolUse",
-        "tool_name": "Bash",
-        "tool_input": {"command": "ls -la"},
-        "cwd": "/project",
-        "session_id": "s1",
-    }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        _handle_post_tool_use(event)
-    mock_run.assert_not_called()
-
-
-def test_post_tool_use_unknown_tool_does_nothing():
-    event = {
-        "hook_event_name": "PostToolUse",
-        "tool_name": "WebFetch",
-        "tool_input": {},
-        "cwd": "/project",
-        "session_id": "s1",
-    }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
-        _handle_post_tool_use(event)
-    mock_run.assert_not_called()
+def test_session_start_existing_project_calls_omega_query(tmp_path):
+    from unittest.mock import MagicMock
+    from goldfish.config import write_manifest
+    write_manifest("myapp", {
+        "last_byte_offset": 100, "bootstrap_complete": True,
+        "last_jsonl_file": ""
+    }, vaults_root=tmp_path)
+    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.drain.drain"):
+        mock_run.return_value = MagicMock(returncode=0, stdout="some context")
+        handle_session_start(event, vaults_root=tmp_path)
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    assert any(c[0] == "omega" and "query" in c for c in cmds), "omega query must be called for existing project"
 
 
 from goldfish.drain import _handle_task_created, _handle_task_completed
@@ -375,29 +300,6 @@ def test_session_start_includes_recent_decisions(tmp_path):
 
     assert "Use JWT for auth" in result
 
-
-def test_semble_indexed_at_written_after_index(tmp_path):
-    """manifest semble_indexed_at is updated after semble index runs."""
-    from goldfish.drain import handle_session_start
-    from goldfish.config import get_manifest, write_manifest
-    project = "myapp"
-    vaults_root = tmp_path / "vaults"
-    # Bootstrap so handle_session_start takes the existing-project path
-    write_manifest(project, {
-        "last_byte_offset": 0, "bootstrap_complete": True,
-        "semble_indexed_at": "", "last_jsonl_file": ""
-    }, vaults_root=vaults_root)
-
-    event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
-    with patch("goldfish.drain.subprocess.run") as mock_run, \
-         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
-         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
-         patch("goldfish.drain.drain"):
-        mock_run.return_value = __import__("unittest.mock", fromlist=["MagicMock"]).MagicMock(returncode=0)
-        handle_session_start(event, vaults_root=vaults_root)
-
-    manifest = get_manifest(project, vaults_root=vaults_root)
-    assert manifest.get("semble_indexed_at"), "semble_indexed_at must be set after index"
 
 
 def test_session_start_excludes_completed_tasks(tmp_path):
