@@ -1,5 +1,7 @@
 import json
+import sys
 from pathlib import Path
+from unittest.mock import patch
 
 from goldfish.hook import handle
 
@@ -27,3 +29,44 @@ def test_hook_creates_parent_dirs(tmp_path):
     queue = tmp_path / "nested" / "dir" / "queue.jsonl"
     handle({"type": "Stop"}, queue=queue)
     assert queue.exists()
+
+
+def test_async_event_appends_to_queue(tmp_path):
+    queue = tmp_path / "queue.jsonl"
+    event = {"type": "Stop", "session_id": "s1", "cwd": "/p"}
+    from goldfish.hook import main_with_event
+    main_with_event(event, queue=queue)
+    assert queue.exists()
+    assert len(queue.read_text().splitlines()) == 1
+
+
+def test_sync_session_start_writes_stdout_not_queue(tmp_path, capsys):
+    queue = tmp_path / "queue.jsonl"
+    event = {"type": "SessionStart", "session_id": "s1", "cwd": "/project/myapp"}
+    with patch("goldfish.hook.handle_session_start", return_value="wake-up content"):
+        from goldfish.hook import main_with_event
+        main_with_event(event, queue=queue)
+    captured = capsys.readouterr()
+    assert "wake-up content" in captured.out
+    # Sync events do NOT go to the queue
+    assert not queue.exists()
+
+
+def test_sync_pre_compact_calls_handler(tmp_path, capsys):
+    queue = tmp_path / "queue.jsonl"
+    event = {"type": "PreCompact", "session_id": "s1", "cwd": "/p"}
+    with patch("goldfish.hook.handle_pre_compact") as mock_handler:
+        from goldfish.hook import main_with_event
+        main_with_event(event, queue=queue)
+    mock_handler.assert_called_once_with(event)
+    captured = capsys.readouterr()
+    assert captured.out == ""  # PreCompact returns nothing to stdout
+
+
+def test_unknown_event_type_goes_to_queue(tmp_path):
+    queue = tmp_path / "queue.jsonl"
+    event = {"type": "SomeNewEvent", "cwd": "/p"}
+    from goldfish.hook import main_with_event
+    main_with_event(event, queue=queue)
+    assert queue.exists()
+    assert len(queue.read_text().splitlines()) == 1
