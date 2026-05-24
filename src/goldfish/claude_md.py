@@ -1,4 +1,6 @@
 import json
+import shutil
+import sys
 from pathlib import Path
 
 DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
@@ -7,11 +9,24 @@ GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = ["Stop", "SessionEnd"]
 
-_GOLDFISH_HOOK_COMMAND = "goldfish hook"
+
+def _detect_goldfish_bin() -> str:
+    """Return the full path to the goldfish binary, or bare 'goldfish' as fallback."""
+    # Prefer system-level install (production: uv tool install goldfish)
+    found = shutil.which("goldfish")
+    if found:
+        return found
+    # Fall back to venv-sibling binary (dev: uv pip install -e .)
+    venv_bin = Path(sys.executable).parent / "goldfish"
+    if venv_bin.exists():
+        return str(venv_bin)
+    # Last resort: hope it's on PATH at runtime
+    return "goldfish"
 
 
 def _goldfish_hook_entry(async_: bool = False) -> dict:
-    entry: dict = {"type": "command", "command": _GOLDFISH_HOOK_COMMAND}
+    command = f"{_detect_goldfish_bin()} hook"
+    entry: dict = {"type": "command", "command": command}
     if async_:
         entry["async"] = True
     return entry
@@ -19,7 +34,9 @@ def _goldfish_hook_entry(async_: bool = False) -> dict:
 
 def _already_registered(hook_list: list) -> bool:
     return any(
-        isinstance(h, dict) and _GOLDFISH_HOOK_COMMAND in h.get("command", "")
+        isinstance(h, dict)
+        and "goldfish" in h.get("command", "")
+        and "hook" in h.get("command", "")
         for h in hook_list
     )
 
