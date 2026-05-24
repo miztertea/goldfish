@@ -3,8 +3,8 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name
-from goldfish.vault import read_note, write_note
+from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
+from goldfish.vault import read_note, scaffold, write_note
 
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
 
@@ -105,6 +105,104 @@ def _handle_task_completed(event: dict, vaults_root: Path = VAULTS_ROOT) -> None
         write_note(project, task_path, fm, body.rstrip() + "\n\n**Completed.**", vaults_root=vaults_root)
     else:
         _handle_task_created(event, vaults_root=vaults_root)
+
+
+def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
+    cwd = event.get("cwd", ".")
+    session_id = event.get("session_id", "unknown")
+    project = project_name(cwd)
+    manifest = get_manifest(project, vaults_root=vaults_root)
+
+    jsonl_dir = Path.home() / ".claude" / "projects" / cwd.replace("/", "-")
+
+    if not manifest.get("bootstrap_complete", False):
+        # New project — scaffold vault, index code, mine history, write wake-up
+        scaffold(project, vaults_root=vaults_root)
+
+        src_dir = Path(cwd) / "src"
+        index_dir = src_dir if src_dir.exists() else Path(cwd)
+        subprocess.run(["semble", "index", str(index_dir)], capture_output=True, check=False)
+
+        if jsonl_dir.exists():
+            subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+
+        body = (
+            "# Wake-up — First Session\n\n"
+            "This is the first Goldfish session for this project. "
+            "Vault scaffolded and initial index complete.\n"
+        )
+        frontmatter = {
+            "id": f"wake-up-{session_id}",
+            "type": "checkpoint",
+            "valid_from": _today(),
+            "superseded_by": None,
+            "confidence": 1.0,
+            "source_session": session_id,
+            "source_offset": manifest.get("last_byte_offset", 0),
+            "related": [],
+        }
+        write_note(project, "_context/wake-up.md", frontmatter, body, vaults_root=vaults_root)
+        write_manifest(project, {**manifest, "bootstrap_complete": True}, vaults_root=vaults_root)
+        return body
+
+    else:
+        # Existing project — mine incremental history and query OMEGA for context
+        subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+
+        result = subprocess.run(
+            ["omega", "query", "current project state tasks decisions"],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        memory_context = result.stdout.strip() if result.returncode == 0 else ""
+
+        body = "# Wake-up\n\n"
+        if memory_context:
+            body += f"## Memory Context\n\n{memory_context}\n"
+        else:
+            body += "No prior memory context found.\n"
+
+        frontmatter = {
+            "id": f"wake-up-{session_id}",
+            "type": "checkpoint",
+            "valid_from": _today(),
+            "superseded_by": None,
+            "confidence": 1.0,
+            "source_session": session_id,
+            "source_offset": manifest.get("last_byte_offset", 0),
+            "related": [],
+        }
+        write_note(project, "_context/wake-up.md", frontmatter, body, vaults_root=vaults_root)
+        return body
+
+
+def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
+    cwd = event.get("cwd", ".")
+    session_id = event.get("session_id", "unknown")
+    project = project_name(cwd)
+
+    subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
+
+    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    frontmatter = {
+        "id": f"checkpoint-{session_id}-{ts}",
+        "type": "checkpoint",
+        "valid_from": ts[:8],
+        "superseded_by": None,
+        "confidence": 1.0,
+        "source_session": session_id,
+        "source_offset": get_manifest(project, vaults_root=vaults_root).get("last_byte_offset", 0),
+        "related": [],
+    }
+    body = f"# Checkpoint — {session_id}\n\nPre-compact snapshot at {ts}.\n"
+    write_note(
+        project,
+        f"Memory/Checkpoints/{session_id}-{ts}.md",
+        frontmatter,
+        body,
+        vaults_root=vaults_root,
+    )
 
 
 def _today() -> str:

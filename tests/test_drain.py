@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from goldfish.drain import drain
+from goldfish.drain import drain, handle_pre_compact, handle_session_start
 
 
 def test_drain_returns_zero_for_missing_queue(tmp_path):
@@ -93,3 +93,51 @@ def test_drain_preserves_failed_lines_on_queue(tmp_path):
     count = drain(queue=queue)
     assert count == 0
     assert "not-valid-json" in queue.read_text()
+
+
+def test_session_start_new_project_creates_wake_up(tmp_path):
+    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        result = handle_session_start(event, vaults_root=tmp_path)
+    wake_up = tmp_path / "myapp" / "_context" / "wake-up.md"
+    assert wake_up.exists()
+    assert isinstance(result, str) and len(result) > 0
+
+
+def test_session_start_new_project_returns_first_session_message(tmp_path):
+    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        result = handle_session_start(event, vaults_root=tmp_path)
+    assert "first session" in result.lower() or "new project" in result.lower()
+
+
+def test_session_start_existing_project_calls_omega_mine(tmp_path):
+    from goldfish.config import write_manifest
+    write_manifest("myapp", {
+        "last_byte_offset": 100, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=tmp_path)
+    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        handle_session_start(event, vaults_root=tmp_path)
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    assert any(c[0] == "omega" for c in cmds)
+
+
+def test_pre_compact_writes_checkpoint_note(tmp_path):
+    from goldfish.vault import scaffold
+    scaffold("myapp", vaults_root=tmp_path)
+    event = {"type": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        handle_pre_compact(event, vaults_root=tmp_path)
+    checkpoints = list((tmp_path / "myapp" / "Memory" / "Checkpoints").glob("*.md"))
+    assert len(checkpoints) == 1
+    assert "s1" in checkpoints[0].name
