@@ -23,6 +23,8 @@ def _goldfish_stable_path() -> Path:
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
+## Agent Knowledge Tools (managed by goldfish)
+
 ### Before any non-trivial task — query all three layers:
 
 #### Code + Impact Intelligence — GitNexus (MCP)
