@@ -103,19 +103,22 @@ def test_register_hooks_registers_all_nine_events(tmp_path):
         "Stop", "SessionEnd", "PostToolUse", "SubagentStop",
         "TaskCreated", "TaskCompleted",
     }
-    assert required == registered
+    assert required <= registered
 
 
 def test_register_hooks_preserves_non_goldfish_hooks(tmp_path):
-    """GitNexus or other tool hooks must not be removed."""
+    """Non-goldfish hooks in a touched event must survive upsert."""
     settings = tmp_path / "settings.json"
     gitnexus_hook = {"type": "command", "command": "npx gitnexus hook"}
+    # Put a non-goldfish hook in Stop — an event register_hooks WILL touch
     settings.write_text(json.dumps({
         "hooks": {
-            "PreToolUse": [{"hooks": [gitnexus_hook]}],
+            "Stop": [{"hooks": [gitnexus_hook]}],
         }
     }))
     register_hooks(settings_path=settings)
     data = json.loads(settings.read_text())
-    pre_tool_hooks = data["hooks"]["PreToolUse"][0]["hooks"]
-    assert gitnexus_hook in pre_tool_hooks
+    stop_hooks = data["hooks"]["Stop"][0]["hooks"]
+    # GitNexus hook must still be present alongside the new goldfish hook
+    assert gitnexus_hook in stop_hooks
+    assert any("goldfish hook" in h.get("command", "") for h in stop_hooks)

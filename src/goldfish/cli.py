@@ -7,7 +7,7 @@ from pathlib import Path
 import typer
 
 from goldfish import drain, hook
-from goldfish.claude_md import DEFAULT_SETTINGS
+from goldfish.claude_md import DEFAULT_SETTINGS, register_hooks
 from goldfish.config import get_manifest, project_name, write_manifest
 from goldfish.drain import QUEUE_PATH
 
@@ -122,7 +122,6 @@ def doctor() -> None:
 @app.command(name="register-hooks")
 def register_hooks_cmd() -> None:
     """Update Claude Code hook registrations with the correct goldfish binary path."""
-    from goldfish.claude_md import register_hooks
     register_hooks(settings_path=DEFAULT_SETTINGS)
     typer.echo(f"Hooks registered in {DEFAULT_SETTINGS}")
 

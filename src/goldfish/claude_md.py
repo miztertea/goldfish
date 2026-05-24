@@ -35,7 +35,7 @@ def _is_goldfish_hook(h: object) -> bool:
     if not isinstance(h, dict):
         return False
     cmd = h.get("command", "")
-    return "goldfish" in cmd and "hook" in cmd
+    return "goldfish hook" in cmd
 
 
 def _upsert_hook(hooks: dict, event: str, bin_path: str, async_: bool) -> None:
