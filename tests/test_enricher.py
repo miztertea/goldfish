@@ -61,3 +61,35 @@ def test_enrich_formats_context_with_header():
     with patch("goldfish.enricher.subprocess.run", return_value=mock_result):
         result = enrich("fix the authentication middleware", "/project", "myapp")
     assert result.startswith("## Goldfish Context")
+
+
+def test_enrich_calls_omega_query_per_chunk():
+    """enrich() must call omega query for memory hits alongside semble calls."""
+    mock_result = MagicMock()
+    mock_result.stdout = b"relevant result"
+    mock_result.returncode = 0
+    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+        enrich("fix the authentication middleware in the API layer", "/project", "myapp")
+    # At least 3 calls per chunk: semble code, semble docs, omega query
+    assert mock_run.call_count >= 3
+    all_cmds = [call[0][0] for call in mock_run.call_args_list]
+    assert any(cmd[0] == "omega" for cmd in all_cmds)
+
+
+def test_enrich_includes_memory_section_in_output():
+    """When omega returns results, output must contain a Memory section."""
+    def fake_run(cmd, *args, **kwargs):
+        m = MagicMock()
+        if cmd[0] == "omega":
+            m.stdout = b"past decision: use JWT"
+            m.returncode = 0
+        else:
+            m.stdout = b""
+            m.returncode = 0
+        return m
+
+    with patch("goldfish.enricher.subprocess.run", side_effect=fake_run):
+        result = enrich("fix the authentication middleware in the API layer", "/project", "myapp")
+
+    assert "Memory" in result
+    assert "past decision" in result

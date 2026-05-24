@@ -20,10 +20,7 @@ def decompose(prompt: str) -> list[str]:
 
 
 def enrich(prompt: str, cwd: str, project: str) -> str:
-    """
-    Decompose prompt and fan out to Semble (code + vault) per chunk.
-    Returns formatted context block, or "" if prompt is too short or results are empty.
-    """
+    """Decompose prompt and fan out to Semble (code + vault) and OMEGA (memory) per chunk."""
     chunks = decompose(prompt)
     if not chunks:
         return ""
@@ -40,16 +37,23 @@ def enrich(prompt: str, cwd: str, project: str) -> str:
             ["semble", "search", chunk, vault_path, "--content", "docs"],
             capture_output=True, check=False,
         )
+        mem_result = subprocess.run(
+            ["omega", "query", chunk],
+            capture_output=True, check=False,
+        )
 
         code_out = code_result.stdout.decode(errors="replace").strip()
         docs_out = docs_result.stdout.decode(errors="replace").strip()
+        mem_out = mem_result.stdout.decode(errors="replace").strip() if mem_result.returncode == 0 else ""
 
-        if code_out or docs_out:
+        if code_out or docs_out or mem_out:
             section = f"### Query: {chunk}\n"
             if code_out:
                 section += f"\n**Code:**\n{code_out}\n"
             if docs_out:
                 section += f"\n**Vault:**\n{docs_out}\n"
+            if mem_out:
+                section += f"\n**Memory:**\n{mem_out}\n"
             sections.append(section)
 
     if not sections:
