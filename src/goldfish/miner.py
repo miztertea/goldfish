@@ -3,7 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from goldfish.claude_md import DEFAULT_SETTINGS
+from goldfish.config import DEFAULT_SETTINGS
 from goldfish.config import get_manifest, project_name, write_manifest
 
 
@@ -36,6 +36,8 @@ def _pipe_to_hook(cmd: str, payload: dict) -> None:
             capture_output=True,
             timeout=10,
         )
+    except subprocess.TimeoutExpired:
+        raise  # caller skips marking session as mined so it can be retried
     except Exception:
         pass
 
@@ -44,11 +46,13 @@ def mine_project(
     cwd: str,
     settings_path: Path = DEFAULT_SETTINGS,
     _sessions_dir: Path | None = None,
+    _settings: dict | None = None,
 ) -> int:
     """Replay historical JSONL sessions through OMEGA's own hook scripts.
 
     Returns the number of sessions processed.
-    _sessions_dir is injectable for testing; production code computes it from cwd.
+    _sessions_dir and _settings are injectable for testing and to avoid double
+    file reads when the caller already has parsed settings.
     """
     if _sessions_dir is None:
         encoded = Path(cwd).as_posix().replace("/", "-")
@@ -57,9 +61,10 @@ def mine_project(
     if not _sessions_dir.exists():
         return 0
 
-    settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
-    auto_capture_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
-    assistant_capture_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
+    if _settings is None:
+        _settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+    auto_capture_cmd = _find_hook_cmd(_settings, "UserPromptSubmit", "auto_capture")
+    assistant_capture_cmd = _find_hook_cmd(_settings, "Stop", "assistant_capture")
 
     project = project_name(cwd)
     manifest = get_manifest(project)
@@ -71,6 +76,7 @@ def mine_project(
         if session_id in mined:
             continue
 
+        session_ok = True
         for line in jsonl_file.read_text(errors="replace").splitlines():
             line = line.strip()
             if not line:
@@ -81,22 +87,27 @@ def mine_project(
                 continue
 
             msg_type = obj.get("type")
-            if msg_type == "user" and auto_capture_cmd:
-                text = _extract_user_text(obj)
-                if text:
-                    _pipe_to_hook(auto_capture_cmd, {
-                        "prompt": text, "session_id": session_id, "cwd": cwd,
-                    })
-            elif msg_type == "assistant" and assistant_capture_cmd:
-                text = _extract_assistant_text(obj)
-                if text:
-                    _pipe_to_hook(assistant_capture_cmd, {
-                        "last_assistant_message": text, "session_id": session_id, "cwd": cwd,
-                    })
+            try:
+                if msg_type == "user" and auto_capture_cmd:
+                    text = _extract_user_text(obj)
+                    if text:
+                        _pipe_to_hook(auto_capture_cmd, {
+                            "prompt": text, "session_id": session_id, "cwd": cwd,
+                        })
+                elif msg_type == "assistant" and assistant_capture_cmd:
+                    text = _extract_assistant_text(obj)
+                    if text:
+                        _pipe_to_hook(assistant_capture_cmd, {
+                            "last_assistant_message": text, "session_id": session_id, "cwd": cwd,
+                        })
+            except subprocess.TimeoutExpired:
+                session_ok = False
+                break
 
-        mined.add(session_id)
-        processed += 1
-        fresh = get_manifest(project)
-        write_manifest(project, {**fresh, "mined_sessions": list(mined)})
+        if session_ok:
+            mined.add(session_id)
+            processed += 1
+            fresh = get_manifest(project)
+            write_manifest(project, {**fresh, "mined_sessions": list(mined)})
 
     return processed

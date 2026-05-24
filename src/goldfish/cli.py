@@ -255,7 +255,7 @@ def mine() -> None:
         raise typer.Exit(1)
 
     typer.echo(f"Mining sessions from ~/.claude/projects/...")
-    n = mine_project(cwd)
+    n = mine_project(cwd, _settings=settings)
     if n == 0:
         typer.echo("No new sessions to mine.")
     else:

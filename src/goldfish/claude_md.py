@@ -4,7 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
-DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
+from goldfish.config import DEFAULT_SETTINGS
 GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]

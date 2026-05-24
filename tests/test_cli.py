@@ -266,7 +266,8 @@ def test_mine_command_reports_no_new_sessions(tmp_path):
         result = runner.invoke(app, ["mine"])
     assert result.exit_code == 0
     assert "no new sessions" in result.output.lower()
-    mock_mine.assert_called_once_with(str(tmp_path))
+    assert mock_mine.call_args[0][0] == str(tmp_path)  # cwd is correct
+    assert "_settings" in mock_mine.call_args[1]  # pre-parsed settings passed to avoid double read
 
 
 def test_mine_command_fails_without_omega_hooks(tmp_path):

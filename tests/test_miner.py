@@ -169,6 +169,29 @@ def test_mine_project_skips_non_message_entries(tmp_path):
     assert mock_pipe.call_count == 1  # only the user message
 
 
+def test_mine_project_timeout_skips_manifest_write(tmp_path):
+    """If OMEGA times out mid-session, the session is not marked as mined so it can be retried."""
+    import subprocess
+    sessions_dir = tmp_path / "sessions"
+    sessions_dir.mkdir()
+    (sessions_dir / "sess_timeout.jsonl").write_text(
+        json.dumps({"type": "user", "message": {"content": "some prompt"}}) + "\n"
+    )
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
+    written = []
+
+    with patch("goldfish.miner._pipe_to_hook", side_effect=subprocess.TimeoutExpired("cmd", 10)), \
+         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}), \
+         patch("goldfish.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)), \
+         patch("goldfish.miner.project_name", return_value="goldfish"):
+        n = mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+                         _sessions_dir=sessions_dir)
+
+    assert n == 0
+    assert written == []  # manifest never updated for timed-out session
+
+
 def test_mine_project_updates_manifest_with_session_id(tmp_path):
     sessions_dir = tmp_path / "sessions"
     sessions_dir.mkdir()
