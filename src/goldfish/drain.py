@@ -210,7 +210,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
         tasks_dir = vaults_root / project / "Tasks"
         open_tasks = []
         if tasks_dir.exists():
-            for note_file in sorted(tasks_dir.iterdir())[-10:]:  # last 10
+            for note_file in sorted(f for f in tasks_dir.iterdir() if f.suffix == ".md")[-10:]:
                 note_text = note_file.read_text(encoding="utf-8")
                 if "**Completed.**" not in note_text:
                     open_tasks.append(note_file.stem)
@@ -218,16 +218,20 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
         decisions_dir = vaults_root / project / "Memory" / "Decisions"
         recent_decisions = []
         if decisions_dir.exists():
-            files = sorted(decisions_dir.iterdir(), key=lambda f: f.stat().st_mtime, reverse=True)
+            files = sorted(
+                (f for f in decisions_dir.iterdir() if f.suffix == ".md"),
+                key=lambda f: f.stat().st_mtime,
+                reverse=True,
+            )
             for f in files[:3]:
-                lines = f.read_text().splitlines()
+                lines = f.read_text(encoding="utf-8").splitlines()
                 heading = next((l for l in lines if l.startswith("# ")), f.stem)
                 recent_decisions.append(heading.lstrip("# "))
 
         if open_tasks:
-            body += f"\n## Open Tasks\n\n" + "\n".join(f"- {t}" for t in open_tasks) + "\n"
+            body += "\n## Open Tasks\n\n" + "\n".join(f"- {t}" for t in open_tasks) + "\n"
         if recent_decisions:
-            body += f"\n## Recent Decisions\n\n" + "\n".join(f"- {d}" for d in recent_decisions) + "\n"
+            body += "\n## Recent Decisions\n\n" + "\n".join(f"- {d}" for d in recent_decisions) + "\n"
 
         frontmatter = {
             "id": f"wake-up-{session_id}",
