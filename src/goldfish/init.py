@@ -134,6 +134,8 @@ def run(
         except FileNotFoundError:
             print("  note: gitnexus setup not available; skipping")
         try:
+            print("  Downloading OMEGA embedding model (~127 MB, one-time)...")
+            subprocess.run(["omega", "setup", "--download-model"])
             subprocess.run(["omega", "setup", "--client", "claude-code"])
         except FileNotFoundError:
             print("  note: omega setup not available; skipping")
@@ -161,5 +163,4 @@ def run(
         print("✓ CLAUDE.md updated")
 
     print(f"\n✓ goldfish is ready.")
-    print(f"  Vault:    {vaults_root / project}")
-    print(f"  Obsidian: open {vaults_root / project} as a vault (optional, no plugins needed)")
+    print(f"  Vault: {vaults_root / project}")
