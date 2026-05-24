@@ -180,9 +180,7 @@ def test_detect_goldfish_bin_prefers_local_bin(tmp_path):
     local_bin = tmp_path / ".local" / "bin" / "goldfish"
     local_bin.parent.mkdir(parents=True)
     local_bin.touch()
-    with patch("goldfish.claude_md.Path") as mock_path_cls:
-        mock_path_cls.home.return_value = tmp_path
-        mock_path_cls.side_effect = lambda *a: Path(*a)
+    with patch("goldfish.claude_md.Path.home", return_value=tmp_path):
         result = _detect_goldfish_bin()
     assert result == str(local_bin)
 
@@ -190,9 +188,7 @@ def test_detect_goldfish_bin_prefers_local_bin(tmp_path):
 def test_detect_goldfish_bin_falls_back_to_which(tmp_path):
     from goldfish.claude_md import _detect_goldfish_bin
     # tmp_path/.local/bin/goldfish does NOT exist
-    with patch("goldfish.claude_md.Path") as mock_path_cls, \
+    with patch("goldfish.claude_md.Path.home", return_value=tmp_path), \
          patch("goldfish.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"):
-        mock_path_cls.home.return_value = tmp_path
-        mock_path_cls.side_effect = lambda *a: Path(*a)
         result = _detect_goldfish_bin()
     assert result == "/usr/local/bin/goldfish"
