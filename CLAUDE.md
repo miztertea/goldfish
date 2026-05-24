@@ -112,7 +112,7 @@ Test at module boundaries via input/output assertions, not internal function cal
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (255 symbols, 307 relationships, 8 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfish** (667 symbols, 854 relationships, 28 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -152,3 +152,56 @@ This project is indexed by GitNexus as **goldfish** (255 symbols, 307 relationsh
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Agent Knowledge Tools (managed by goldfish)
+
+## Agent Knowledge Tools (managed by goldfish)
+
+### Before any non-trivial task — query all three layers:
+
+#### Code + Impact Intelligence — GitNexus (MCP)
+- `query({query})` — hybrid BM25+semantic search across code graph
+- `context({name})` — 360° view of any symbol (callers, callees, processes)
+- `impact({target}, direction="upstream")` — blast radius before ANY change
+- `detect_changes()` — map staged changes to affected processes pre-commit
+
+#### Episodic Memory — OMEGA (MCP)
+- `omega_query("why did we choose JWT")` — past decisions
+- `omega_query("rate limiter bug")` — known issues
+- `omega_query("Sarah rate limiter")` — person + topic references
+
+#### Semantic Search — Semble (MCP)
+- `semble_search(query, path="./src")` — code search by meaning
+- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
+
+### Mandatory workflow before refactoring:
+1. `gitnexus context({name})` → understand the symbol
+2. `gitnexus impact({target})` → know what breaks
+3. `omega_query(topic)` → check past decisions
+4. Then act.
+
+
+## Agent Knowledge Tools (managed by goldfish)
+
+### Before any non-trivial task — query all three layers:
+
+#### Code + Impact Intelligence — GitNexus (MCP)
+- `query({query})` — hybrid BM25+semantic search across code graph
+- `context({name})` — 360° view of any symbol (callers, callees, processes)
+- `impact({target}, direction="upstream")` — blast radius before ANY change
+- `detect_changes()` — map staged changes to affected processes pre-commit
+
+#### Episodic Memory — OMEGA (MCP)
+- `omega_query("why did we choose JWT")` — past decisions
+- `omega_query("rate limiter bug")` — known issues
+- `omega_query("Sarah rate limiter")` — person + topic references
+
+#### Semantic Search — Semble (MCP)
+- `semble_search(query, path="./src")` — code search by meaning
+- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
+
+### Mandatory workflow before refactoring:
+1. `gitnexus context({name})` → understand the symbol
+2. `gitnexus impact({target})` → know what breaks
+3. `omega_query(topic)` → check past decisions
+4. Then act.
