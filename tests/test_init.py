@@ -48,7 +48,7 @@ def test_run_calls_install_steps_in_order(tmp_path):
 
     assert "npm" in calls        # npm install -g gitnexus
     assert "npx" in calls        # npx gitnexus analyze
-    assert "pip" in calls        # pip install omega-memory
+    assert "omega-memory" in str(calls)  # sys.executable -m pip install omega-memory
 
 
 def test_init_skips_gitnexus_if_already_indexed(tmp_path):
