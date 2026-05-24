@@ -3,11 +3,20 @@ import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
 from goldfish.vault import read_note, scaffold, write_note
 
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+
+
+def _run(cmd: list, **kwargs) -> Optional[subprocess.CompletedProcess]:
+    """Run subprocess, returning None if the binary is not found."""
+    try:
+        return subprocess.run(cmd, **kwargs)
+    except FileNotFoundError:
+        return None
 
 
 def drain(queue: Path = QUEUE_PATH, budget_ms: float = 0) -> int:
@@ -51,7 +60,7 @@ def _route(event: dict) -> None:
 
 def _handle_stop(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     session_id = event.get("session_id", "unknown")
-    subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
+    _run(["omega", "flush", session_id], capture_output=True, check=False)
 
     jsonl_file_path = event.get("jsonl_file", "")
     if jsonl_file_path:
@@ -87,17 +96,17 @@ def _handle_post_tool_use(event: dict) -> None:
     if tool in ("Write", "Edit"):
         file_path = tool_input.get("file_path", "")
         if file_path:
-            subprocess.run(["semble", "reindex", file_path], capture_output=True, check=False)
+            _run(["semble", "reindex", file_path], capture_output=True, check=False)
     elif tool == "Bash":
         cmd = tool_input.get("command", "")
         if cmd.strip().startswith("git commit"):
             session_id = event.get("session_id", "unknown")
-            subprocess.run(["omega", "note", "git_commit", session_id], capture_output=True, check=False)
+            _run(["omega", "note", "git_commit", session_id], capture_output=True, check=False)
 
 
 def _handle_subagent_stop(event: dict) -> None:
     session_id = event.get("session_id", "unknown")
-    subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
+    _run(["omega", "flush", session_id], capture_output=True, check=False)
 
 
 def _handle_task_created(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
@@ -151,10 +160,10 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
         src_dir = Path(cwd) / "src"
         index_dir = src_dir if src_dir.exists() else Path(cwd)
-        subprocess.run(["semble", "index", str(index_dir)], capture_output=True, check=False)
+        _run(["semble", "index", str(index_dir)], capture_output=True, check=False)
 
         if jsonl_dir.exists():
-            subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+            _run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
 
         body = (
             "# Wake-up — First Session\n\n"
@@ -178,19 +187,19 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
     else:
         # Existing project — mine incremental history and query OMEGA for context
         if jsonl_dir.exists():
-            subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+            _run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
 
         src_dir = Path(cwd) / "src"
         reindex_target = str(src_dir) if src_dir.exists() else cwd
-        subprocess.run(["semble", "reindex", reindex_target], capture_output=True, check=False)
+        _run(["semble", "reindex", reindex_target], capture_output=True, check=False)
 
-        result = subprocess.run(
+        result = _run(
             ["omega", "query", "current project state tasks decisions"],
             capture_output=True,
             check=False,
             text=True,
         )
-        memory_context = result.stdout.strip() if result.returncode == 0 else ""
+        memory_context = result.stdout.strip() if result and result.returncode == 0 else ""
 
         body = "# Wake-up\n\n"
         if memory_context:
@@ -218,7 +227,7 @@ def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     session_id = event.get("session_id", "unknown")
     project = project_name(cwd)
 
-    subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
+    _run(["omega", "flush", session_id], capture_output=True, check=False)
 
     ts = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
     frontmatter = {
