@@ -112,7 +112,7 @@ Test at module boundaries via input/output assertions, not internal function cal
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (759 symbols, 930 relationships, 26 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfish** (821 symbols, 1034 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -177,3 +177,4 @@ This project is indexed by GitNexus as **goldfish** (759 symbols, 930 relationsh
 2. `gitnexus impact({target})` → know what breaks
 3. `omega_query(topic)` → check past decisions
 4. Then act.
+
