@@ -53,7 +53,9 @@ Every feature must map to at least one:
 ## Hook Event Routing
 
 Synchronous (Claude waits for stdout): `SessionStart`, `UserPromptSubmit`, `PreCompact`  
-Async (`async: true`): `PostToolUse(Write|Edit)`, `PostToolUse(Bash(git commit*))`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Stop`, `SessionEnd`
+Async (`async: true`): `PostToolUse`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Stop`, `SessionEnd`
+
+Note: goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly, but goldfish's `drain.py` has no PostToolUse handlers — GitNexus handles PostToolUse processing via its own hooks.
 
 GitNexus registers its own `PreToolUse` and `PostToolUse` hooks during `gitnexus analyze` — these coexist, no conflict.
 
@@ -110,7 +112,7 @@ Test at module boundaries via input/output assertions, not internal function cal
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (752 symbols, 939 relationships, 28 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfish** (759 symbols, 930 relationships, 26 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
