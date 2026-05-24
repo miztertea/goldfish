@@ -262,6 +262,26 @@ def test_init_registers_gitnexus_mcp(tmp_path):
     assert gitnexus_setup, "npx gitnexus setup must be called"
 
 
+def test_init_calls_semble_init(tmp_path):
+    """semble init must be called to set up the Claude Code sub-agent."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/semble"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    semble_init_ran = any(
+        isinstance(c, list) and "semble" in c and "init" in c
+        for c in cmds
+    )
+    assert semble_init_ran, "semble init must be called to set up Claude Code sub-agent"
+
+
 def test_init_skips_mcp_registration_if_already_registered(tmp_path):
     """When manifest mcp_registered=True, all MCP registration commands are skipped."""
     from goldfish.config import write_manifest

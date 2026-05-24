@@ -23,8 +23,6 @@ def _goldfish_stable_path() -> Path:
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-## Agent Knowledge Tools (managed by goldfish)
-
 ### Before any non-trivial task — query all three layers:
 
 #### Code + Impact Intelligence — GitNexus (MCP)
@@ -40,7 +38,7 @@ _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
 #### Semantic Search — Semble (MCP)
 - `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
+- `semble_search(query, path="~/.goldfish/vaults/<project>")` — vault notes (markdown indexed automatically)
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({{name}})` → understand the symbol
@@ -114,6 +112,10 @@ def run(
             print("✗ Semble install failed.")
             sys.exit(1)
         print("✓ Semble installed")
+
+    # Semble sub-agent — creates .claude/agents/semble-search.md (idempotent)
+    subprocess.run(["semble", "init"], cwd=cwd, capture_output=True)
+    print("✓ Semble sub-agent configured")
 
     # Vault
     if is_new_project(project, vaults_root=vaults_root):

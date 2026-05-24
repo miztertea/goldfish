@@ -11,8 +11,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Goldfish is a Python CLI tool (`uvx goldfish init`) that wires together existing open-source tools to give Claude Code agents persistent, structured memory across sessions. It is **not** a memory engine — it is an orchestration layer (think Ansible playbook) that installs and connects: GitNexus, OMEGA, Semble, and Chonkie. ~400–600 lines of Python total. No search algorithms, no embeddings, no graph code.
 
-The codebase does not exist yet. The PRD.md and DESIGN-COMPANION.MD are the complete specification. Build from those.
-
 ## Module Structure
 
 ```
@@ -39,9 +37,9 @@ Every feature must map to at least one:
 | Tool | Install | Purpose |
 |------|---------|---------|
 | GitNexus | `npm install -g gitnexus` → `npx gitnexus analyze` | Code graph, blast radius, hooks, skills — do not replicate |
-| OMEGA | `pip install omega-memory` → `omega setup` | Episodic memory, MCP, SQLite+ONNX, no daemon |
-| Semble | `uv tool install semble` | Semantic code search + vault search via `--content docs` |
-| Chonkie | transitive dep of Semble | SentenceChunker decomposes multi-topic prompts before fan-out |
+| OMEGA | `uv tool install "omega-memory[server]"` → `omega setup --download-model && omega setup --client claude-code` | Episodic memory, MCP, SQLite+ONNX, no daemon |
+| Semble | `uv tool install semble` | Semantic code search + vault search via `--include-text-files` |
+| Chonkie | goldfish dependency | SentenceChunker decomposes multi-topic prompts before fan-out |
 
 ## Non-Negotiable Constraints
 
@@ -112,7 +110,7 @@ Test at module boundaries via input/output assertions, not internal function cal
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (667 symbols, 854 relationships, 28 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfish** (752 symbols, 939 relationships, 28 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -155,8 +153,6 @@ This project is indexed by GitNexus as **goldfish** (667 symbols, 854 relationsh
 
 ## Agent Knowledge Tools (managed by goldfish)
 
-## Agent Knowledge Tools (managed by goldfish)
-
 ### Before any non-trivial task — query all three layers:
 
 #### Code + Impact Intelligence — GitNexus (MCP)
@@ -172,33 +168,7 @@ This project is indexed by GitNexus as **goldfish** (667 symbols, 854 relationsh
 
 #### Semantic Search — Semble (MCP)
 - `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
-
-### Mandatory workflow before refactoring:
-1. `gitnexus context({name})` → understand the symbol
-2. `gitnexus impact({target})` → know what breaks
-3. `omega_query(topic)` → check past decisions
-4. Then act.
-
-
-## Agent Knowledge Tools (managed by goldfish)
-
-### Before any non-trivial task — query all three layers:
-
-#### Code + Impact Intelligence — GitNexus (MCP)
-- `query({query})` — hybrid BM25+semantic search across code graph
-- `context({name})` — 360° view of any symbol (callers, callees, processes)
-- `impact({target}, direction="upstream")` — blast radius before ANY change
-- `detect_changes()` — map staged changes to affected processes pre-commit
-
-#### Episodic Memory — OMEGA (MCP)
-- `omega_query("why did we choose JWT")` — past decisions
-- `omega_query("rate limiter bug")` — known issues
-- `omega_query("Sarah rate limiter")` — person + topic references
-
-#### Semantic Search — Semble (MCP)
-- `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
+- `semble_search(query, path="~/.goldfish/vaults/<project>")` — vault notes (markdown indexed automatically)
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({name})` → understand the symbol
