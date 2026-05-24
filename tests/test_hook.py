@@ -70,3 +70,26 @@ def test_unknown_event_type_goes_to_queue(tmp_path):
     main_with_event(event, queue=queue)
     assert queue.exists()
     assert len(queue.read_text().splitlines()) == 1
+
+
+def test_hook_short_prompt_produces_no_stdout(tmp_path, capsys):
+    event = {"type": "UserPromptSubmit", "prompt": "yes", "cwd": "/p", "session_id": "s1"}
+    with patch("goldfish.hook.enrich", return_value=""):
+        from goldfish.hook import main_with_event
+        main_with_event(event, queue=tmp_path / "queue.jsonl")
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
+def test_hook_long_prompt_calls_enrich_and_writes_stdout(tmp_path, capsys):
+    event = {
+        "type": "UserPromptSubmit",
+        "prompt": "fix the authentication middleware and refactor the JWT rotation policy",
+        "cwd": "/project/myapp",
+        "session_id": "s1",
+    }
+    with patch("goldfish.hook.enrich", return_value="## Goldfish Context\n\nsome results"):
+        from goldfish.hook import main_with_event
+        main_with_event(event, queue=tmp_path / "queue.jsonl")
+    captured = capsys.readouterr()
+    assert "Goldfish Context" in captured.out

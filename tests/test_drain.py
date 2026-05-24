@@ -143,6 +143,112 @@ def test_pre_compact_writes_checkpoint_note(tmp_path):
     assert "s1" in checkpoints[0].name
 
 
+from goldfish.drain import _handle_post_tool_use
+
+
+def test_post_tool_use_edit_calls_semble_reindex():
+    event = {
+        "type": "PostToolUse",
+        "tool_name": "Edit",
+        "tool_input": {"file_path": "/project/src/main.py"},
+        "cwd": "/project",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.subprocess.run") as mock_run:
+        _handle_post_tool_use(event)
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "semble"
+    assert cmd[1] == "reindex"
+    assert "/project/src/main.py" in cmd
+
+
+def test_post_tool_use_bash_git_commit_calls_omega_note():
+    event = {
+        "type": "PostToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": "git commit -m 'fix auth'"},
+        "cwd": "/project",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.subprocess.run") as mock_run:
+        _handle_post_tool_use(event)
+    cmd = mock_run.call_args[0][0]
+    assert cmd[0] == "omega"
+    assert "note" in cmd
+
+
+def test_post_tool_use_bash_non_commit_does_nothing():
+    event = {
+        "type": "PostToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": "ls -la"},
+        "cwd": "/project",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.subprocess.run") as mock_run:
+        _handle_post_tool_use(event)
+    mock_run.assert_not_called()
+
+
+def test_post_tool_use_unknown_tool_does_nothing():
+    event = {
+        "type": "PostToolUse",
+        "tool_name": "WebFetch",
+        "tool_input": {},
+        "cwd": "/project",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.subprocess.run") as mock_run:
+        _handle_post_tool_use(event)
+    mock_run.assert_not_called()
+
+
+from goldfish.drain import _handle_task_created, _handle_task_completed
+
+
+def test_task_created_writes_note_to_vault(tmp_path):
+    event = {
+        "type": "TaskCreated",
+        "task_id": "task-abc",
+        "task_description": "Implement auth middleware",
+        "cwd": "/project/myapp",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        _handle_task_created(event, vaults_root=tmp_path)
+    note = tmp_path / "myapp" / "Tasks" / "task-abc.md"
+    assert note.exists()
+    assert "Implement auth middleware" in note.read_text()
+
+
+def test_task_completed_appends_completed_marker(tmp_path):
+    from goldfish.vault import scaffold, write_note
+    scaffold("myapp", vaults_root=tmp_path)
+    write_note(
+        "myapp",
+        "Tasks/task-abc.md",
+        {
+            "id": "task-abc", "type": "task", "valid_from": "2026-05-24",
+            "superseded_by": None, "confidence": 1.0, "source_session": "s1",
+            "source_offset": 0, "related": [],
+        },
+        "Task body.",
+        vaults_root=tmp_path,
+    )
+    event = {
+        "type": "TaskCompleted",
+        "task_id": "task-abc",
+        "cwd": "/project/myapp",
+        "session_id": "s1",
+    }
+    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        _handle_task_completed(event, vaults_root=tmp_path)
+    content = (tmp_path / "myapp" / "Tasks" / "task-abc.md").read_text()
+    assert "Completed" in content
+
+
 def test_stop_advances_manifest_offset(tmp_path):
     from goldfish.config import write_manifest as wm, get_manifest as gm
     # Seed the manifest
