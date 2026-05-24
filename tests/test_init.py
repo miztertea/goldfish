@@ -130,3 +130,27 @@ def test_init_runs_gitnexus_when_not_indexed(tmp_path):
         for c in cmds
     )
     assert gitnexus_analyze_ran, "gitnexus analyze must run when .gitnexus/ does not exist"
+
+
+def test_init_does_not_rescaffold_existing_vault(tmp_path):
+    """On re-run, scaffold must not overwrite the existing vault."""
+    from goldfish.config import write_manifest
+    project_dir = tmp_path / "goldfish"
+    project_dir.mkdir()
+    vaults_root = tmp_path / "vaults"
+    write_manifest("goldfish", {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+    settings = tmp_path / "settings.json"
+
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.init.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.init.scaffold") as mock_scaffold:
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
+
+    mock_scaffold.assert_not_called()

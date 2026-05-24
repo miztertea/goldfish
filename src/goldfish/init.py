@@ -67,7 +67,10 @@ def run(
         result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
         if result.returncode != 0:
             print("  note: global npm install failed; using npx")
-        subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd, check=True)
+        result2 = subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd)
+        if result2.returncode != 0:
+            print("✗ GitNexus analyze failed. Check npm/Node.js installation.")
+            sys.exit(1)
         print("✓ GitNexus indexed")
 
     # OMEGA — skip if already installed
@@ -75,8 +78,14 @@ def run(
         print("✓ OMEGA already installed")
     else:
         print("  Installing OMEGA...")
-        subprocess.run(["pip", "install", "omega-memory"], check=True)
-        subprocess.run(["omega", "setup"], check=True)
+        r1 = subprocess.run(["pip", "install", "omega-memory"])
+        if r1.returncode != 0:
+            print("✗ OMEGA install failed.")
+            sys.exit(1)
+        r2 = subprocess.run(["omega", "setup"])
+        if r2.returncode != 0:
+            print("✗ OMEGA setup failed.")
+            sys.exit(1)
         print("✓ OMEGA installed")
 
     # Semble — skip if already installed
@@ -84,13 +93,18 @@ def run(
         print("✓ Semble already installed")
     else:
         print("  Installing Semble...")
-        subprocess.run(["uv", "tool", "install", "semble"], check=True)
+        r = subprocess.run(["uv", "tool", "install", "semble"])
+        if r.returncode != 0:
+            print("✗ Semble install failed.")
+            sys.exit(1)
         print("✓ Semble installed")
 
     # Vault
     if is_new_project(project, vaults_root=vaults_root):
         scaffold(project, vaults_root=vaults_root)
-        write_manifest(project, get_manifest(project, vaults_root=vaults_root), vaults_root=vaults_root)
+        manifest = get_manifest(project, vaults_root=vaults_root)
+        manifest["bootstrap_complete"] = True
+        write_manifest(project, manifest, vaults_root=vaults_root)
         print(f"✓ Vault scaffolded at {vaults_root / project}")
     else:
         print(f"✓ Vault exists at {vaults_root / project}")
