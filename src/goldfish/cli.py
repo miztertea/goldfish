@@ -1,8 +1,12 @@
 import os
+import shutil
+import subprocess as sp
+from pathlib import Path
 
 import typer
 
 from goldfish import drain, hook
+from goldfish.claude_md import DEFAULT_SETTINGS
 from goldfish.config import get_manifest, project_name
 from goldfish.drain import QUEUE_PATH
 
@@ -46,8 +50,72 @@ def status() -> None:
 
 @app.command()
 def doctor() -> None:
-    """Check goldfish configuration and fix instructions."""
-    typer.echo("doctor: not yet implemented")
+    """Check goldfish configuration. Prints fix instructions for failures."""
+    ok = True
+    cwd = os.getcwd()
+
+    # Node.js check
+    if shutil.which("node"):
+        typer.echo("✓ Node.js found")
+    else:
+        typer.echo("✗ Node.js missing — install from https://nodejs.org")
+        ok = False
+
+    # GitNexus index check
+    gitnexus = Path(cwd) / ".gitnexus"
+    if gitnexus.exists():
+        typer.echo("✓ GitNexus index found")
+    else:
+        typer.echo("✗ .gitnexus/ not found — run: npx gitnexus analyze")
+        ok = False
+
+    # OMEGA check
+    result = sp.run(["omega", "status"], capture_output=True, check=False)
+    if result.returncode == 0:
+        typer.echo("✓ OMEGA responsive")
+    else:
+        typer.echo("✗ OMEGA not responding — run: omega setup")
+        ok = False
+
+    # Hook registration check
+    if DEFAULT_SETTINGS.exists():
+        try:
+            import json as _json
+            data = _json.loads(DEFAULT_SETTINGS.read_text())
+            hooks = data.get("hooks", {})
+            has_goldfish = any(
+                "goldfish" in str(h) and "hook" in str(h)
+                for event_hooks in hooks.values()
+                for group in event_hooks
+                for h in group.get("hooks", [])
+            )
+            if has_goldfish:
+                typer.echo("✓ Hooks registered in settings.json")
+            else:
+                typer.echo("✗ Hooks not registered — run: goldfish init")
+                ok = False
+        except Exception:
+            typer.echo("✗ settings.json malformed — run: goldfish init")
+            ok = False
+    else:
+        typer.echo("✗ ~/.claude/settings.json not found — run: goldfish init")
+        ok = False
+
+    # Queue depth check
+    if QUEUE_PATH.exists():
+        depth = len(QUEUE_PATH.read_text().splitlines())
+        if depth > 100:
+            typer.echo(f"⚠ Queue depth {depth} — run: goldfish drain")
+        else:
+            typer.echo(f"✓ Queue depth {depth}")
+    else:
+        typer.echo("✓ Queue empty")
+
+    if ok:
+        typer.echo("\nAll checks passed.")
+    else:
+        typer.echo("\nSome checks failed. See above for fix instructions.")
+        raise typer.Exit(1)
 
 
 @app.command()
