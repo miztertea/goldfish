@@ -122,3 +122,54 @@ def test_register_hooks_preserves_non_goldfish_hooks(tmp_path):
     # GitNexus hook must still be present alongside the new goldfish hook
     assert gitnexus_hook in stop_hooks
     assert any("goldfish hook" in h.get("command", "") for h in stop_hooks)
+
+
+def test_append_claude_md_block_updates_content_in_place(tmp_path):
+    """Second call with different content must update the block, not duplicate it."""
+    claude_md = tmp_path / "CLAUDE.md"
+    claude_md.write_text("# Project\n\nSome existing content.\n")
+
+    old_block = GOLDFISH_SENTINEL + "\n\nOLD CONTENT HERE\n"
+    new_block = GOLDFISH_SENTINEL + "\n\nNEW CONTENT HERE\n"
+
+    append_claude_md_block(claude_md, old_block)
+    append_claude_md_block(claude_md, new_block)
+
+    content = claude_md.read_text()
+    assert content.count(GOLDFISH_SENTINEL) == 1
+    assert "NEW CONTENT HERE" in content
+    assert "OLD CONTENT HERE" not in content
+
+
+def test_append_claude_md_block_preserves_content_after_block(tmp_path):
+    """Content in sections after the goldfish block must be preserved on update."""
+    claude_md = tmp_path / "CLAUDE.md"
+    claude_md.write_text(
+        "# Project\n\n"
+        + GOLDFISH_SENTINEL + "\n\nOLD CONTENT\n\n"
+        + "## Other Section\n\nKeep this.\n"
+    )
+
+    new_block = GOLDFISH_SENTINEL + "\n\nNEW CONTENT\n"
+    append_claude_md_block(claude_md, new_block)
+
+    content = claude_md.read_text()
+    assert "Keep this." in content
+    assert "NEW CONTENT" in content
+    assert "OLD CONTENT" not in content
+    assert content.count(GOLDFISH_SENTINEL) == 1
+
+
+def test_append_claude_md_block_eof_case(tmp_path):
+    """Block at EOF (no following sections) must be replaced cleanly."""
+    claude_md = tmp_path / "CLAUDE.md"
+    old_block = GOLDFISH_SENTINEL + "\n\nOLD\n"
+    claude_md.write_text("# Header\n\n" + old_block)
+
+    new_block = GOLDFISH_SENTINEL + "\n\nNEW\n"
+    append_claude_md_block(claude_md, new_block)
+
+    content = claude_md.read_text()
+    assert "NEW" in content
+    assert "OLD" not in content
+    assert content.count(GOLDFISH_SENTINEL) == 1
