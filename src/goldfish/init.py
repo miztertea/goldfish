@@ -12,6 +12,7 @@ from goldfish.config import (
     project_name,
     write_manifest,
 )
+from goldfish.miner import mine_project
 from goldfish.vault import scaffold
 
 _PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
@@ -126,6 +127,9 @@ def run(
         print(f"✓ Vault scaffolded at {vaults_root / project}")
     else:
         print(f"✓ Vault exists at {vaults_root / project}")
+        n = mine_project(cwd)
+        if n:
+            print(f"✓ Mined {n} historical session(s) into OMEGA memory.")
 
     # MCP registration — each tool registers its own MCP via its own CLI
     manifest = get_manifest(project, vaults_root=vaults_root)

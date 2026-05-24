@@ -310,3 +310,32 @@ def test_init_skips_mcp_registration_if_already_registered(tmp_path):
     assert not omega_mcp, "omega setup --client must be skipped when mcp_registered=True"
     assert not semble_mcp, "claude mcp add must be skipped when mcp_registered=True"
     assert not gitnexus_setup, "gitnexus setup must be skipped when mcp_registered=True"
+
+
+def test_init_calls_mine_project_for_existing_project(tmp_path):
+    """On re-run for an existing project, mine_project must be called."""
+    from goldfish.config import write_manifest
+    project_dir = tmp_path / "goldfish"
+    project_dir.mkdir()
+    vaults_root = tmp_path / "vaults"
+    # Existing project: manifest already written with bootstrap_complete=True
+    write_manifest("goldfish", {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": "", "mined_sessions": [],
+    }, vaults_root=vaults_root)
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    (project_dir / ".gitnexus").mkdir()
+
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.init.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.init.mine_project") as mock_mine:
+        mock_run.return_value = MagicMock(returncode=0)
+        mock_mine.return_value = 3
+        run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
+
+    mock_mine.assert_called_once_with(str(project_dir))
