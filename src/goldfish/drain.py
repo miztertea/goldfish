@@ -9,15 +9,23 @@ def drain(queue: Path = QUEUE_PATH) -> int:
     if not queue.exists():
         return 0
     lines = queue.read_text().splitlines()
-    queue.write_text("")
     processed = 0
+    failed: list[str] = []
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        event = json.loads(line)
-        _route(event)
-        processed += 1
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            failed.append(line)
+            continue
+        try:
+            _route(event)
+            processed += 1
+        except Exception:
+            failed.append(line)
+    queue.write_text("\n".join(failed) + "\n" if failed else "")
     return processed
 
 

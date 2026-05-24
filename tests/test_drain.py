@@ -53,3 +53,23 @@ def test_drain_calls_semble_with_event_cwd(tmp_path):
     args = mock_run.call_args[0][0]
     assert args[0] == "semble"
     assert "/my/project" in args
+
+
+def test_drain_skips_bad_json_and_continues(tmp_path):
+    queue = tmp_path / "queue.jsonl"
+    events = [
+        "not-valid-json",
+        json.dumps({"type": "Stop", "cwd": "/p"}),
+    ]
+    queue.write_text("\n".join(events) + "\n")
+    with patch("goldfish.drain.subprocess.run"):
+        count = drain(queue=queue)
+    assert count == 1  # only the valid event processed
+
+
+def test_drain_preserves_failed_lines_on_queue(tmp_path):
+    queue = tmp_path / "queue.jsonl"
+    queue.write_text("not-valid-json\n")
+    count = drain(queue=queue)
+    assert count == 0
+    assert "not-valid-json" in queue.read_text()
