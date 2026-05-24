@@ -100,10 +100,6 @@ def run(
         if r1.returncode != 0:
             print("✗ OMEGA install failed.")
             sys.exit(1)
-        r2 = subprocess.run(["omega", "setup"])
-        if r2.returncode != 0:
-            print("✗ OMEGA setup failed.")
-            sys.exit(1)
         print("✓ OMEGA installed")
 
     # Semble — skip if already installed
@@ -126,6 +122,22 @@ def run(
         print(f"✓ Vault scaffolded at {vaults_root / project}")
     else:
         print(f"✓ Vault exists at {vaults_root / project}")
+
+    # MCP registration — each tool registers its own MCP via its own CLI
+    manifest = get_manifest(project, vaults_root=vaults_root)
+    if not manifest.get("mcp_registered"):
+        print("  Registering MCP servers...")
+        subprocess.run(["npx", "gitnexus", "setup"], cwd=cwd)
+        subprocess.run(["omega", "setup", "--client", "claude-code"])
+        subprocess.run([
+            "claude", "mcp", "add", "semble", "-s", "user",
+            "--", "uvx", "--from", "semble[mcp]", "semble"
+        ])
+        manifest["mcp_registered"] = True
+        write_manifest(project, manifest, vaults_root=vaults_root)
+        print("✓ MCPs registered (GitNexus, OMEGA, Semble)")
+    else:
+        print("✓ MCPs already registered")
 
     # Hooks — always upsert (ensures path and events are current)
     register_hooks(settings_path=settings_path)

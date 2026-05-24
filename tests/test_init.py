@@ -200,3 +200,93 @@ def test_init_skips_self_install_when_stable_bin_exists(tmp_path):
         for c in cmds
     )
     assert not self_install_ran, "uv tool install --from must NOT run when stable bin already exists"
+
+
+def test_init_registers_omega_mcp(tmp_path):
+    """omega setup --client claude-code must be called (not bare omega setup)."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    omega_mcp = any(
+        isinstance(c, list) and "omega" in c and "setup" in c and "--client" in c and "claude-code" in c
+        for c in cmds
+    )
+    assert omega_mcp, "omega setup --client claude-code must be called"
+
+
+def test_init_registers_semble_mcp(tmp_path):
+    """claude mcp add semble must be called during init."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    semble_mcp = any(
+        isinstance(c, list) and "claude" in c and "mcp" in c and "add" in c and "semble" in c
+        for c in cmds
+    )
+    assert semble_mcp, "claude mcp add semble must be called"
+
+
+def test_init_registers_gitnexus_mcp(tmp_path):
+    """npx gitnexus setup must be called during init."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    gitnexus_setup = any(
+        isinstance(c, list) and "gitnexus" in c and "setup" in c
+        for c in cmds
+    )
+    assert gitnexus_setup, "npx gitnexus setup must be called"
+
+
+def test_init_skips_mcp_registration_if_already_registered(tmp_path):
+    """When manifest mcp_registered=True, all MCP registration commands are skipped."""
+    from goldfish.config import write_manifest
+    project_dir = tmp_path / "myapp"
+    project_dir.mkdir()
+    vaults_root = tmp_path / "vaults"
+    write_manifest("myapp", {
+        "mcp_registered": True, "bootstrap_complete": True,
+        "last_byte_offset": 0, "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    (project_dir / ".gitnexus").mkdir()
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.init.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    omega_mcp = any(isinstance(c, list) and "omega" in c and "--client" in c for c in cmds)
+    semble_mcp = any(isinstance(c, list) and "claude" in c and "mcp" in c for c in cmds)
+    gitnexus_setup = any(isinstance(c, list) and "gitnexus" in c and "setup" in c for c in cmds)
+    assert not omega_mcp, "omega setup --client must be skipped when mcp_registered=True"
+    assert not semble_mcp, "claude mcp add must be skipped when mcp_registered=True"
+    assert not gitnexus_setup, "gitnexus setup must be skipped when mcp_registered=True"
