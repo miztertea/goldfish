@@ -267,3 +267,16 @@ def test_mine_command_reports_no_new_sessions(tmp_path):
     assert result.exit_code == 0
     assert "no new sessions" in result.output.lower()
     mock_mine.assert_called_once_with(str(tmp_path))
+
+
+def test_mine_command_fails_without_omega_hooks(tmp_path):
+    """mine exits 1 and does not call mine_project when no OMEGA hooks are found."""
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({"hooks": {}}))
+    with patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfish.cli.mine_project") as mock_mine:
+        result = runner.invoke(app, ["mine"])
+    assert result.exit_code == 1
+    assert "OMEGA hooks not registered" in result.output
+    mock_mine.assert_not_called()
