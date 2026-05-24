@@ -33,7 +33,7 @@ def test_hook_creates_parent_dirs(tmp_path):
 
 def test_async_event_appends_to_queue(tmp_path):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "Stop", "session_id": "s1", "cwd": "/p"}
+    event = {"hook_event_name": "Stop", "session_id": "s1", "cwd": "/p"}
     from goldfish.hook import main_with_event
     main_with_event(event, queue=queue)
     assert queue.exists()
@@ -42,7 +42,7 @@ def test_async_event_appends_to_queue(tmp_path):
 
 def test_sync_session_start_writes_stdout_not_queue(tmp_path, capsys):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "SessionStart", "session_id": "s1", "cwd": "/project/myapp"}
+    event = {"hook_event_name": "SessionStart", "session_id": "s1", "cwd": "/project/myapp"}
     with patch("goldfish.hook.handle_session_start", return_value="wake-up content"):
         from goldfish.hook import main_with_event
         main_with_event(event, queue=queue)
@@ -54,7 +54,7 @@ def test_sync_session_start_writes_stdout_not_queue(tmp_path, capsys):
 
 def test_sync_pre_compact_calls_handler(tmp_path, capsys):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "PreCompact", "session_id": "s1", "cwd": "/p"}
+    event = {"hook_event_name": "PreCompact", "session_id": "s1", "cwd": "/p"}
     with patch("goldfish.hook.handle_pre_compact") as mock_handler:
         from goldfish.hook import main_with_event
         main_with_event(event, queue=queue)
@@ -65,7 +65,7 @@ def test_sync_pre_compact_calls_handler(tmp_path, capsys):
 
 def test_unknown_event_type_goes_to_queue(tmp_path):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "SomeNewEvent", "cwd": "/p"}
+    event = {"hook_event_name": "SomeNewEvent", "cwd": "/p"}
     from goldfish.hook import main_with_event
     main_with_event(event, queue=queue)
     assert queue.exists()
@@ -73,7 +73,7 @@ def test_unknown_event_type_goes_to_queue(tmp_path):
 
 
 def test_hook_short_prompt_produces_no_stdout(tmp_path, capsys):
-    event = {"type": "UserPromptSubmit", "prompt": "yes", "cwd": "/p", "session_id": "s1"}
+    event = {"hook_event_name": "UserPromptSubmit", "prompt": "yes", "cwd": "/p", "session_id": "s1"}
     with patch("goldfish.hook.enrich", return_value=""):
         from goldfish.hook import main_with_event
         main_with_event(event, queue=tmp_path / "queue.jsonl")
@@ -83,7 +83,7 @@ def test_hook_short_prompt_produces_no_stdout(tmp_path, capsys):
 
 def test_hook_long_prompt_calls_enrich_and_writes_stdout(tmp_path, capsys):
     event = {
-        "type": "UserPromptSubmit",
+        "hook_event_name": "UserPromptSubmit",
         "prompt": "fix the authentication middleware and refactor the JWT rotation policy",
         "cwd": "/project/myapp",
         "session_id": "s1",

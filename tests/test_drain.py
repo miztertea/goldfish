@@ -18,7 +18,7 @@ def test_drain_returns_zero_for_empty_queue(tmp_path):
 
 def test_drain_processes_one_event(tmp_path):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "Stop", "cwd": "/home/user/project", "session_id": "s1"}
+    event = {"hook_event_name": "Stop", "cwd": "/home/user/project", "session_id": "s1"}
     queue.write_text(json.dumps(event) + "\n")
     with patch("goldfish.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
@@ -30,7 +30,7 @@ def test_drain_processes_one_event(tmp_path):
 
 def test_drain_clears_queue_after_processing(tmp_path):
     queue = tmp_path / "queue.jsonl"
-    queue.write_text(json.dumps({"type": "Stop", "cwd": "."}) + "\n")
+    queue.write_text(json.dumps({"hook_event_name": "Stop", "cwd": "."}) + "\n")
     with patch("goldfish.drain.subprocess.run"):
         drain(queue=queue)
     assert queue.read_text() == ""
@@ -39,8 +39,8 @@ def test_drain_clears_queue_after_processing(tmp_path):
 def test_drain_processes_multiple_events(tmp_path):
     queue = tmp_path / "queue.jsonl"
     events = [
-        {"type": "Stop", "cwd": "/p", "session_id": "s1"},
-        {"type": "Stop", "cwd": "/p", "session_id": "s2"},
+        {"hook_event_name": "Stop", "cwd": "/p", "session_id": "s1"},
+        {"hook_event_name": "Stop", "cwd": "/p", "session_id": "s2"},
     ]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
     with patch("goldfish.drain.subprocess.run") as mock_run:
@@ -52,7 +52,7 @@ def test_drain_processes_multiple_events(tmp_path):
 def test_drain_routes_post_tool_use_write_to_semble(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {
-        "type": "PostToolUse",
+        "hook_event_name": "PostToolUse",
         "tool_name": "Write",
         "tool_input": {"file_path": "/my/project/src/auth.py"},
         "cwd": "/my/project",
@@ -67,7 +67,7 @@ def test_drain_routes_post_tool_use_write_to_semble(tmp_path):
 
 def test_drain_unknown_event_type_does_nothing(tmp_path):
     queue = tmp_path / "queue.jsonl"
-    event = {"type": "UnknownEvent", "cwd": "/p"}
+    event = {"hook_event_name": "UnknownEvent", "cwd": "/p"}
     queue.write_text(json.dumps(event) + "\n")
     with patch("goldfish.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
@@ -79,7 +79,7 @@ def test_drain_skips_bad_json_and_continues(tmp_path):
     queue = tmp_path / "queue.jsonl"
     events = [
         "not-valid-json",
-        json.dumps({"type": "Stop", "cwd": "/p"}),
+        json.dumps({"hook_event_name": "Stop", "cwd": "/p"}),
     ]
     queue.write_text("\n".join(events) + "\n")
     with patch("goldfish.drain.subprocess.run"):
@@ -96,7 +96,7 @@ def test_drain_preserves_failed_lines_on_queue(tmp_path):
 
 
 def test_session_start_new_project_creates_wake_up(tmp_path):
-    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path):
@@ -107,7 +107,7 @@ def test_session_start_new_project_creates_wake_up(tmp_path):
 
 
 def test_session_start_new_project_returns_first_session_message(tmp_path):
-    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path):
@@ -121,7 +121,7 @@ def test_session_start_existing_project_calls_omega_mine(tmp_path):
         "last_byte_offset": 100, "bootstrap_complete": True,
         "semble_indexed_at": "", "last_jsonl_file": ""
     }, vaults_root=tmp_path)
-    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
+    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
     with patch("goldfish.drain.subprocess.run") as mock_run, \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path):
@@ -133,7 +133,7 @@ def test_session_start_existing_project_calls_omega_mine(tmp_path):
 def test_pre_compact_writes_checkpoint_note(tmp_path):
     from goldfish.vault import scaffold
     scaffold("myapp", vaults_root=tmp_path)
-    event = {"type": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
+    event = {"hook_event_name": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path):
@@ -148,7 +148,7 @@ from goldfish.drain import _handle_post_tool_use
 
 def test_post_tool_use_edit_calls_semble_reindex():
     event = {
-        "type": "PostToolUse",
+        "hook_event_name": "PostToolUse",
         "tool_name": "Edit",
         "tool_input": {"file_path": "/project/src/main.py"},
         "cwd": "/project",
@@ -164,7 +164,7 @@ def test_post_tool_use_edit_calls_semble_reindex():
 
 def test_post_tool_use_bash_git_commit_calls_omega_note():
     event = {
-        "type": "PostToolUse",
+        "hook_event_name": "PostToolUse",
         "tool_name": "Bash",
         "tool_input": {"command": "git commit -m 'fix auth'"},
         "cwd": "/project",
@@ -179,7 +179,7 @@ def test_post_tool_use_bash_git_commit_calls_omega_note():
 
 def test_post_tool_use_bash_non_commit_does_nothing():
     event = {
-        "type": "PostToolUse",
+        "hook_event_name": "PostToolUse",
         "tool_name": "Bash",
         "tool_input": {"command": "ls -la"},
         "cwd": "/project",
@@ -192,7 +192,7 @@ def test_post_tool_use_bash_non_commit_does_nothing():
 
 def test_post_tool_use_unknown_tool_does_nothing():
     event = {
-        "type": "PostToolUse",
+        "hook_event_name": "PostToolUse",
         "tool_name": "WebFetch",
         "tool_input": {},
         "cwd": "/project",
@@ -208,7 +208,7 @@ from goldfish.drain import _handle_task_created, _handle_task_completed
 
 def test_task_created_writes_note_to_vault(tmp_path):
     event = {
-        "type": "TaskCreated",
+        "hook_event_name": "TaskCreated",
         "task_id": "task-abc",
         "task_description": "Implement auth middleware",
         "cwd": "/project/myapp",
@@ -237,7 +237,7 @@ def test_task_completed_appends_completed_marker(tmp_path):
         vaults_root=tmp_path,
     )
     event = {
-        "type": "TaskCompleted",
+        "hook_event_name": "TaskCompleted",
         "task_id": "task-abc",
         "cwd": "/project/myapp",
         "session_id": "s1",
@@ -262,10 +262,10 @@ def test_stop_advances_manifest_offset(tmp_path):
 
     from goldfish.drain import _handle_stop
     event = {
-        "type": "Stop",
+        "hook_event_name": "Stop",
         "cwd": "/project/myapp",
         "session_id": "s1",
-        "jsonl_file": str(jsonl_file),
+        "transcript_path": str(jsonl_file),
     }
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
@@ -280,7 +280,7 @@ def test_stop_advances_manifest_offset(tmp_path):
 def test_drain_budget_zero_processes_all(tmp_path):
     """budget_ms=0 (default) means no time limit — all events processed."""
     queue = tmp_path / "queue.jsonl"
-    events = [{"type": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
+    events = [{"hook_event_name": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
     with patch("goldfish.drain.subprocess.run"):
         count = drain(queue=queue, budget_ms=0)
@@ -291,7 +291,7 @@ def test_drain_budget_zero_processes_all(tmp_path):
 def test_drain_budget_ms_leaves_unprocessed_events(tmp_path):
     """When budget expires, remaining events stay in queue for next cycle."""
     queue = tmp_path / "queue.jsonl"
-    events = [{"type": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
+    events = [{"hook_event_name": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
     # Make deadline expire immediately: first call sets deadline, second check returns huge value
@@ -306,7 +306,7 @@ def test_drain_budget_ms_leaves_unprocessed_events(tmp_path):
 
 def test_session_start_auto_drains_queue(tmp_path):
     """handle_session_start must call drain(budget_ms=200) before processing."""
-    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path), \
@@ -320,7 +320,7 @@ def test_pre_compact_auto_drains_queue(tmp_path):
     """handle_pre_compact must call drain(budget_ms=200) before snapshotting."""
     from goldfish.vault import scaffold
     scaffold("myapp", vaults_root=tmp_path)
-    event = {"type": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
+    event = {"hook_event_name": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
     with patch("goldfish.drain.subprocess.run"), \
          patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path), \
