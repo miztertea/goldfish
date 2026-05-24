@@ -274,7 +274,7 @@ def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
 
     _run(["omega", "flush", session_id], capture_output=True, check=False)
 
-    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     frontmatter = {
         "id": f"checkpoint-{session_id}-{ts}",
         "type": "checkpoint",
@@ -296,7 +296,7 @@ def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
 
 
 def _today() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%d")
+    return datetime.now(UTC).strftime("%Y-%m-%d")
 
 
 _HANDLERS: dict = {
