@@ -108,16 +108,71 @@ def test_replay_processes_jsonl_events(tmp_path):
     jsonl_file = jsonl_dir / "session1.jsonl"
     jsonl_file.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
+    vaults_root = tmp_path / ".goldfish" / "vaults"
     with patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
          patch("goldfish.cli.Path.home", return_value=tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
+         patch("goldfish.cli.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
          patch("goldfish.drain._route") as mock_route:
         result = runner.invoke(app, ["replay"])
 
     assert result.exit_code == 0
     assert "processed" in result.output.lower()
     mock_route.assert_called_once_with(events[0])
+
+
+def test_replay_resumes_from_offset(tmp_path):
+    """replay skips lines before last_byte_offset in the resume file."""
+    import json as json_mod
+    from goldfish.config import write_manifest, get_manifest
+
+    project = "myapp"
+    vaults_root = tmp_path / "vaults"
+    # cwd encodes to "-home-myapp" when slashes are replaced with dashes
+    fake_cwd = "/home/myapp"
+    encoded = fake_cwd.replace("/", "-")
+    jsonl_dir = tmp_path / ".claude" / "projects" / encoded
+    jsonl_dir.mkdir(parents=True)
+
+    # Write a JSONL file with 3 lines; resume offset after line 1
+    line1 = json_mod.dumps({"type": "Stop", "session_id": "s1"}) + "\n"
+    line2 = json_mod.dumps({"type": "Stop", "session_id": "s2"}) + "\n"
+    line3 = json_mod.dumps({"type": "Stop", "session_id": "s3"}) + "\n"
+    jsonl_file = jsonl_dir / "20260101T000000.jsonl"
+    jsonl_file.write_text(line1 + line2 + line3)
+
+    # Resume after line 1
+    write_manifest(project, {
+        "last_byte_offset": len(line1.encode()),
+        "last_jsonl_file": jsonl_file.name,
+        "bootstrap_complete": True,
+        "semble_indexed_at": "",
+    }, vaults_root=vaults_root)
+
+    routed_events = []
+
+    def fake_route(event):
+        routed_events.append(event)
+
+    with patch("goldfish.cli.drain._route", side_effect=fake_route), \
+         patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.cli.os.getcwd", return_value=fake_cwd), \
+         patch("goldfish.cli.project_name", return_value=project), \
+         patch("goldfish.cli.VAULTS_ROOT", vaults_root):
+        result = runner.invoke(app, ["replay"])
+
+    assert result.exit_code == 0, result.output
+
+    # Only lines 2 and 3 should have been routed (line 1 was before the offset)
+    assert len(routed_events) == 2
+    assert routed_events[0]["session_id"] == "s2"
+    assert routed_events[1]["session_id"] == "s3"
+
+    # Manifest updated to end of file
+    updated = get_manifest(project, vaults_root=vaults_root)
+    assert updated["last_jsonl_file"] == jsonl_file.name
+    assert updated["last_byte_offset"] == jsonl_file.stat().st_size
 
 
 def test_register_hooks_command(tmp_path):

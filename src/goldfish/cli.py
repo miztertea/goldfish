@@ -181,29 +181,60 @@ def replay() -> None:
         typer.echo(f"No transcript directory found at {jsonl_dir}")
         raise typer.Exit(1)
 
-    manifest = get_manifest(project)
+    manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
+    resume_file = manifest.get("last_jsonl_file", "")
+    resume_offset = manifest.get("last_byte_offset", 0)
+
+    # Sort by mtime so we process oldest transcripts first
+    jsonl_files = sorted(
+        jsonl_dir.glob("*.jsonl"),
+        key=lambda f: f.stat().st_mtime,
+    )
+
+    resume_path = jsonl_dir / resume_file if resume_file else None
+    # If no resume file recorded, process everything; otherwise skip until we
+    # reach the resume file.
+    past_resume = resume_path is None
+
     total = 0
 
-    for jsonl_file in sorted(jsonl_dir.glob("*.jsonl")):
-        typer.echo(f"Replaying {jsonl_file.name}...")
-        with jsonl_file.open() as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    event = json.loads(line)
-                    drain._route(event)
-                    total += 1
-                except Exception:
-                    pass
-            offset = f.tell()
+    for jsonl_file in jsonl_files:
+        if not past_resume:
+            if jsonl_file == resume_path:
+                past_resume = True
+            else:
+                # File is older than the resume point — already fully processed
+                continue
 
+        start = 0
+        if resume_path and jsonl_file == resume_path:
+            start = resume_offset
+
+        typer.echo(f"Replaying {jsonl_file.name} (offset {start})...")
+
+        with open(jsonl_file, "rb") as f:
+            f.seek(start)
+            content = f.read().decode("utf-8", errors="replace")
+
+        for line in content.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+                drain._route(event)
+                total += 1
+            except Exception:
+                pass
+
+        new_offset = jsonl_file.stat().st_size
+        manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
         write_manifest(
             project,
-            {**manifest, "last_byte_offset": offset, "last_jsonl_file": jsonl_file.name,
+            {**manifest, "last_byte_offset": new_offset, "last_jsonl_file": jsonl_file.name,
              "bootstrap_complete": True},
+            vaults_root=VAULTS_ROOT,
         )
-        manifest = get_manifest(project)
+        manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
 
     typer.echo(f"Replay complete. Processed {total} events.")
