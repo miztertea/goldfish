@@ -71,11 +71,15 @@ def doctor() -> None:
         ok = False
 
     # OMEGA check
-    result = sp.run(["omega", "status"], capture_output=True, check=False)
-    if result.returncode == 0:
-        typer.echo("✓ OMEGA responsive")
-    else:
-        typer.echo("✗ OMEGA not responding — run: omega setup")
+    try:
+        result = sp.run(["omega", "status"], capture_output=True, check=False)
+        if result.returncode == 0:
+            typer.echo("✓ OMEGA responsive")
+        else:
+            typer.echo("✗ OMEGA not responding — run: omega setup")
+            ok = False
+    except FileNotFoundError:
+        typer.echo("✗ OMEGA not found — run: uv tool install omega-memory")
         ok = False
 
     # Hook registration check
