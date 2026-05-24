@@ -15,6 +15,9 @@ _ASYNC_HOOKS = [
 
 
 def _detect_goldfish_bin() -> str:
+    stable = Path.home() / ".local" / "bin" / "goldfish"
+    if stable.exists():
+        return str(stable)
     found = shutil.which("goldfish")
     if found:
         return found
