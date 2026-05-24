@@ -104,3 +104,15 @@ def test_replay_processes_jsonl_events(tmp_path):
     assert result.exit_code == 0
     assert "processed" in result.output.lower()
     mock_route.assert_called_once_with(events[0])
+
+
+def test_register_hooks_command(tmp_path):
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({}))
+    with patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfish.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"):
+        result = runner.invoke(app, ["register-hooks"])
+    assert result.exit_code == 0
+    assert "hooks" in result.output.lower() or "registered" in result.output.lower()
+    data = json.loads(settings.read_text())
+    assert "Stop" in data.get("hooks", {})

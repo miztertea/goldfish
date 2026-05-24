@@ -119,6 +119,14 @@ def doctor() -> None:
         raise typer.Exit(1)
 
 
+@app.command(name="register-hooks")
+def register_hooks_cmd() -> None:
+    """Update Claude Code hook registrations with the correct goldfish binary path."""
+    from goldfish.claude_md import register_hooks
+    register_hooks(settings_path=DEFAULT_SETTINGS)
+    typer.echo(f"Hooks registered in {DEFAULT_SETTINGS}")
+
+
 @app.command()
 def replay() -> None:
     """Rebuild vault from Claude Code JSONL transcripts. Resumable."""
