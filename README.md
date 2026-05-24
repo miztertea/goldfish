@@ -31,7 +31,7 @@ goldfish is an orchestration layer (~500 lines of Python), not a memory engine. 
 | Tool | Install | Purpose |
 |------|---------|---------|
 | **GitNexus** | `npm install -g gitnexus` | Code graph, blast radius, execution flows |
-| **OMEGA** | `pip install omega-memory` | Episodic memory, SQLite, offline |
+| **OMEGA** | `uv tool install omega-memory` | Episodic memory, SQLite, offline |
 | **Semble** | `uv tool install semble` | Semantic search over code and vault notes |
 | **Chonkie** | transitive dep of Semble | Splits multi-topic prompts into search queries |
 
@@ -125,7 +125,7 @@ goldfish init
 
 The wizard:
 1. Checks for Node.js, installs GitNexus (`npm install -g gitnexus`) if needed
-2. Installs OMEGA (`pip install omega-memory`) if needed
+2. Installs OMEGA (`uv tool install omega-memory`) if needed — downloads embedding model (~127 MB, one-time)
 3. Installs Semble (`uv tool install semble`) if needed
 4. Runs `npx gitnexus analyze` to build the code graph (skipped if `.gitnexus/` exists)
 5. Scaffolds `~/.goldfish/vaults/{project}/`
