@@ -249,3 +249,21 @@ def test_doctor_checks_vault_structure(tmp_path):
         result = runner.invoke(app, ["doctor"])
 
     assert "✗ vault/Tasks" in result.output
+
+
+def test_mine_command_reports_no_new_sessions(tmp_path):
+    """mine prints 'no new sessions' and exits 0 when mine_project returns 0."""
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({
+        "hooks": {
+            "UserPromptSubmit": [{"hooks": [{"command": "/python fast_hook.py auto_capture"}]}],
+            "Stop": [{"hooks": [{"command": "/python fast_hook.py assistant_capture"}]}],
+        }
+    }))
+    with patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfish.cli.mine_project", return_value=0) as mock_mine:
+        result = runner.invoke(app, ["mine"])
+    assert result.exit_code == 0
+    assert "no new sessions" in result.output.lower()
+    mock_mine.assert_called_once_with(str(tmp_path))

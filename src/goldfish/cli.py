@@ -10,6 +10,7 @@ from goldfish import drain, hook
 from goldfish.claude_md import DEFAULT_SETTINGS, register_hooks
 from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
 from goldfish.drain import QUEUE_PATH
+from goldfish.miner import mine_project
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -238,3 +239,24 @@ def replay() -> None:
         manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
 
     typer.echo(f"Replay complete. Processed {total} events.")
+
+
+@app.command()
+def mine() -> None:
+    """Seed OMEGA episodic memory from historical JSONL session logs."""
+    import json as _json
+    cwd = os.getcwd()
+    settings = _json.loads(DEFAULT_SETTINGS.read_text()) if DEFAULT_SETTINGS.exists() else {}
+    from goldfish.miner import _find_hook_cmd
+    auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
+    asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
+    if not auto_cmd and not asst_cmd:
+        typer.echo("OMEGA hooks not registered — run: goldfish init")
+        raise typer.Exit(1)
+
+    typer.echo(f"Mining sessions from ~/.claude/projects/...")
+    n = mine_project(cwd)
+    if n == 0:
+        typer.echo("No new sessions to mine.")
+    else:
+        typer.echo(f"Done. {n} session(s) mined into OMEGA memory.")
