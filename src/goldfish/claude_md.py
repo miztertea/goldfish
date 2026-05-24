@@ -24,9 +24,8 @@ def _detect_goldfish_bin() -> str:
     return "goldfish"
 
 
-def _goldfish_hook_entry(async_: bool = False) -> dict:
-    command = f"{_detect_goldfish_bin()} hook"
-    entry: dict = {"type": "command", "command": command}
+def _goldfish_hook_entry(bin_path: str, async_: bool = False) -> dict:
+    entry: dict = {"type": "command", "command": f"{bin_path} hook"}
     if async_:
         entry["async"] = True
     return entry
@@ -34,9 +33,7 @@ def _goldfish_hook_entry(async_: bool = False) -> dict:
 
 def _already_registered(hook_list: list) -> bool:
     return any(
-        isinstance(h, dict)
-        and "goldfish" in h.get("command", "")
-        and "hook" in h.get("command", "")
+        isinstance(h, dict) and "goldfish hook" in h.get("command", "")
         for h in hook_list
     )
 
@@ -44,18 +41,19 @@ def _already_registered(hook_list: list) -> bool:
 def register_hooks(settings_path: Path = DEFAULT_SETTINGS) -> None:
     data = json.loads(settings_path.read_text()) if settings_path.exists() else {}
     hooks = data.setdefault("hooks", {})
+    bin_path = _detect_goldfish_bin()  # detect once
 
     for event in _SYNC_HOOKS:
         hook_list = hooks.setdefault(event, [{"hooks": []}])
         inner = hook_list[0].setdefault("hooks", [])
         if not _already_registered(inner):
-            inner.append(_goldfish_hook_entry(async_=False))
+            inner.append(_goldfish_hook_entry(bin_path, async_=False))
 
     for event in _ASYNC_HOOKS:
         hook_list = hooks.setdefault(event, [{"hooks": []}])
         inner = hook_list[0].setdefault("hooks", [])
         if not _already_registered(inner):
-            inner.append(_goldfish_hook_entry(async_=True))
+            inner.append(_goldfish_hook_entry(bin_path, async_=True))
 
     settings_path.write_text(json.dumps(data, indent=2))
 
