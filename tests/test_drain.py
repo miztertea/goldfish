@@ -376,6 +376,30 @@ def test_session_start_includes_recent_decisions(tmp_path):
     assert "Use JWT for auth" in result
 
 
+def test_semble_indexed_at_written_after_index(tmp_path):
+    """manifest semble_indexed_at is updated after semble index runs."""
+    from goldfish.drain import handle_session_start
+    from goldfish.config import get_manifest, write_manifest
+    project = "myapp"
+    vaults_root = tmp_path / "vaults"
+    # Bootstrap so handle_session_start takes the existing-project path
+    write_manifest(project, {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+
+    event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.drain.drain"):
+        mock_run.return_value = __import__("unittest.mock", fromlist=["MagicMock"]).MagicMock(returncode=0)
+        handle_session_start(event, vaults_root=vaults_root)
+
+    manifest = get_manifest(project, vaults_root=vaults_root)
+    assert manifest.get("semble_indexed_at"), "semble_indexed_at must be set after index"
+
+
 def test_session_start_excludes_completed_tasks(tmp_path):
     """Tasks marked **Completed.** must not appear in the wake-up body."""
     from goldfish.config import write_manifest

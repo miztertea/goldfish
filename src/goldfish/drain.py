@@ -160,7 +160,14 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
         src_dir = Path(cwd) / "src"
         index_dir = src_dir if src_dir.exists() else Path(cwd)
-        _run(["semble", "index", str(index_dir)], capture_output=True, check=False)
+        result = _run(["semble", "index", str(index_dir)], capture_output=True, check=False)
+        if result is not None and result.returncode == 0:
+            manifest = get_manifest(project, vaults_root=vaults_root)
+            write_manifest(
+                project,
+                {**manifest, "semble_indexed_at": datetime.utcnow().isoformat()},
+                vaults_root=vaults_root,
+            )
 
         if jsonl_dir.exists():
             _run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
@@ -191,7 +198,14 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
         src_dir = Path(cwd) / "src"
         reindex_target = str(src_dir) if src_dir.exists() else cwd
-        _run(["semble", "reindex", reindex_target], capture_output=True, check=False)
+        reindex_result = _run(["semble", "reindex", reindex_target], capture_output=True, check=False)
+        if reindex_result is not None and reindex_result.returncode == 0:
+            manifest = get_manifest(project, vaults_root=vaults_root)
+            write_manifest(
+                project,
+                {**manifest, "semble_indexed_at": datetime.utcnow().isoformat()},
+                vaults_root=vaults_root,
+            )
 
         result = _run(
             ["omega", "query", "current project state tasks decisions"],
