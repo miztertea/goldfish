@@ -42,7 +42,7 @@ def enrich(prompt: str, cwd: str, project: str) -> str:
             capture_output=True, check=False,
         )
         docs_result = _run(
-            ["semble", "search", chunk, vault_path, "--content", "docs"],
+            ["semble", "search", chunk, vault_path, "--include-text-files"],
             capture_output=True, check=False,
         )
         mem_result = _run(

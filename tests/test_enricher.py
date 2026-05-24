@@ -76,6 +76,21 @@ def test_enrich_calls_omega_query_per_chunk():
     assert any(cmd[0] == "omega" for cmd in all_cmds)
 
 
+def test_enrich_vault_search_uses_include_text_files():
+    """semble vault search must use --include-text-files, not --content docs."""
+    mock_result = MagicMock()
+    mock_result.stdout = b"some result"
+    mock_result.returncode = 0
+    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+        enrich("fix the authentication middleware and refactor JWT", "/project", "myapp")
+
+    calls = [call[0][0] for call in mock_run.call_args_list]
+    vault_calls = [c for c in calls if "--include-text-files" in c or "--content" in c]
+    assert vault_calls, "semble vault search must be called"
+    assert all("--content" not in c for c in vault_calls), "--content flag must not be used"
+    assert any("--include-text-files" in c for c in vault_calls), "--include-text-files must be used"
+
+
 def test_enrich_includes_memory_section_in_output():
     """When omega returns results, output must contain a Memory section."""
     def fake_run(cmd, *args, **kwargs):

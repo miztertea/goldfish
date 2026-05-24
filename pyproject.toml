@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "goldfish"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["tomli-w", "PyYAML", "typer"]
+dependencies = ["tomli-w", "PyYAML", "typer", "chonkie"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
@@ -19,3 +19,8 @@ testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/goldfish"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
