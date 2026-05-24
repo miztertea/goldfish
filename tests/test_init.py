@@ -29,10 +29,10 @@ def test_run_exits_early_if_node_missing(tmp_path):
 
 
 def test_run_calls_install_steps_in_order(tmp_path):
-    calls = []
+    all_cmds = []
 
     def fake_run(cmd, **kwargs):
-        calls.append(cmd[0] if isinstance(cmd, list) else cmd)
+        all_cmds.append(cmd if isinstance(cmd, list) else [cmd])
         class R:
             returncode = 0
         return R()
@@ -46,9 +46,10 @@ def test_run_calls_install_steps_in_order(tmp_path):
          patch("goldfish.init.subprocess.run", side_effect=fake_run):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
 
-    assert "npm" in calls        # npm install -g gitnexus
-    assert "npx" in calls        # npx gitnexus analyze
-    assert "omega-memory" in str(calls)  # sys.executable -m pip install omega-memory
+    flat = [tok for cmd in all_cmds for tok in cmd]
+    assert "npm" in flat          # npm install -g gitnexus
+    assert "npx" in flat          # npx gitnexus analyze
+    assert "omega-memory" in flat # sys.executable -m pip install omega-memory
 
 
 def test_init_skips_gitnexus_if_already_indexed(tmp_path):
