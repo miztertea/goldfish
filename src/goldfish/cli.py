@@ -120,5 +120,42 @@ def doctor() -> None:
 
 @app.command()
 def replay() -> None:
-    """Rebuild vault from Claude Code JSONL transcripts."""
-    typer.echo("replay: not yet implemented")
+    """Rebuild vault from Claude Code JSONL transcripts. Resumable."""
+    from goldfish.config import get_manifest, write_manifest
+    import json as _json
+
+    cwd = os.getcwd()
+    project = project_name(cwd)
+    encoded = cwd.replace("/", "-")
+    jsonl_dir = Path.home() / ".claude" / "projects" / encoded
+
+    if not jsonl_dir.exists():
+        typer.echo(f"No transcript directory found at {jsonl_dir}")
+        raise typer.Exit(1)
+
+    manifest = get_manifest(project)
+    total = 0
+
+    for jsonl_file in sorted(jsonl_dir.glob("*.jsonl")):
+        typer.echo(f"Replaying {jsonl_file.name}...")
+        with jsonl_file.open() as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = _json.loads(line)
+                    drain._route(event)
+                    total += 1
+                except Exception:
+                    pass
+            offset = f.tell()
+
+        write_manifest(
+            project,
+            {**manifest, "last_byte_offset": offset, "last_jsonl_file": jsonl_file.name,
+             "bootstrap_complete": True},
+        )
+        manifest = get_manifest(project)
+
+    typer.echo(f"Replay complete. Processed {total} events.")

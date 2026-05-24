@@ -82,3 +82,24 @@ def test_doctor_flags_missing_node(tmp_path):
         result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 1
     assert "node" in result.output.lower() or "nodejs" in result.output.lower()
+
+
+def test_replay_processes_jsonl_events(tmp_path):
+    # Create a fake JSONL transcript
+    encoded = "/project/myapp".replace("/", "-")
+    jsonl_dir = tmp_path / ".claude" / "projects" / encoded
+    jsonl_dir.mkdir(parents=True)
+    events = [
+        {"type": "TaskCreated", "task_id": "t1", "task_description": "auth", "cwd": "/project/myapp", "session_id": "s1"},
+    ]
+    jsonl_file = jsonl_dir / "session1.jsonl"
+    jsonl_file.write_text("\n".join(json.dumps(e) for e in events) + "\n")
+
+    with patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
+         patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"):
+        result = runner.invoke(app, ["replay"])
+
+    assert result.exit_code == 0
+    assert "processed" in result.output.lower()
