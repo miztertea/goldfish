@@ -4,6 +4,7 @@ import tomli_w
 
 VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
 CONFIG_PATH = Path.home() / ".goldfish" / "config.toml"
+DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
 
 _MANIFEST_DEFAULTS = {
     "last_byte_offset": 0,

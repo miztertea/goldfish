@@ -19,7 +19,9 @@ def drain_cmd() -> None:
 @app.command()
 def init() -> None:
     """Install and configure all goldfish dependencies."""
-    typer.echo("init: not yet implemented")
+    import os
+    from goldfish.init import run as _init
+    _init(cwd=os.getcwd())
 
 
 @app.command()
