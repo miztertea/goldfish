@@ -28,7 +28,7 @@ def main_with_event(event: dict, queue: Path = QUEUE_PATH) -> None:
     """Process one event. Exported for testing."""
     event_type = event.get("type", "")
 
-    if event_type in _ASYNC_EVENTS or event_type not in _SYNC_EVENTS:
+    if event_type not in _SYNC_EVENTS:
         handle(event, queue=queue)
         return
 
