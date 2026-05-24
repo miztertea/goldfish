@@ -141,3 +141,31 @@ def test_pre_compact_writes_checkpoint_note(tmp_path):
     checkpoints = list((tmp_path / "myapp" / "Memory" / "Checkpoints").glob("*.md"))
     assert len(checkpoints) == 1
     assert "s1" in checkpoints[0].name
+
+
+def test_stop_advances_manifest_offset(tmp_path):
+    from goldfish.config import write_manifest as wm, get_manifest as gm
+    # Seed the manifest
+    wm("myapp", {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=tmp_path)
+    # Create a fake JSONL file with some content
+    jsonl_file = tmp_path / "session1.jsonl"
+    jsonl_file.write_text('{"type":"Stop"}\n{"type":"Stop"}\n')
+
+    from goldfish.drain import _handle_stop
+    event = {
+        "type": "Stop",
+        "cwd": "/project/myapp",
+        "session_id": "s1",
+        "jsonl_file": str(jsonl_file),
+    }
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+        _handle_stop(event, vaults_root=tmp_path)
+
+    manifest = gm("myapp", vaults_root=tmp_path)
+    assert manifest["last_byte_offset"] == jsonl_file.stat().st_size
+    assert manifest["last_jsonl_file"] == "session1.jsonl"

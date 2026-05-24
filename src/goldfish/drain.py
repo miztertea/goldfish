@@ -39,9 +39,28 @@ def _route(event: dict) -> None:
         handler(event)
 
 
-def _handle_stop(event: dict) -> None:
+def _handle_stop(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     session_id = event.get("session_id", "unknown")
     subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
+
+    jsonl_file_path = event.get("jsonl_file", "")
+    if jsonl_file_path:
+        try:
+            cwd = event.get("cwd", ".")
+            project = project_name(cwd)
+            offset = Path(jsonl_file_path).stat().st_size
+            manifest = get_manifest(project, vaults_root=vaults_root)
+            write_manifest(
+                project,
+                {**manifest, "last_byte_offset": offset, "last_jsonl_file": Path(jsonl_file_path).name},
+                vaults_root=vaults_root,
+            )
+        except OSError:
+            pass
+
+
+def _handle_stop_event(event: dict) -> None:
+    _handle_stop(event)
 
 
 def _handle_session_end(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
@@ -215,7 +234,7 @@ def _today() -> str:
 
 
 _HANDLERS: dict = {
-    "Stop": _handle_stop,
+    "Stop": _handle_stop_event,
     "SessionEnd": _handle_session_end,
     "PostToolUse": _handle_post_tool_use,
     "SubagentStop": _handle_subagent_stop,
