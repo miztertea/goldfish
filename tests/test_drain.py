@@ -277,9 +277,6 @@ def test_stop_advances_manifest_offset(tmp_path):
     assert manifest["last_jsonl_file"] == "session1.jsonl"
 
 
-import time as _time
-
-
 def test_drain_budget_zero_processes_all(tmp_path):
     """budget_ms=0 (default) means no time limit — all events processed."""
     queue = tmp_path / "queue.jsonl"
