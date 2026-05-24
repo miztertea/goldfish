@@ -33,7 +33,7 @@ goldfish is an orchestration layer (~500 lines of Python), not a memory engine. 
 | **GitNexus** | `npm install -g gitnexus` | Code graph, blast radius, execution flows |
 | **OMEGA** | `uv tool install omega-memory` | Episodic memory, SQLite, offline |
 | **Semble** | `uv tool install semble` | Semantic search over code and vault notes |
-| **Chonkie** | transitive dep of Semble | Splits multi-topic prompts into search queries |
+| **Chonkie** | goldfish dependency | Splits multi-topic prompts into search queries |
 
 ### The flow
 
@@ -59,10 +59,10 @@ When you work in Claude Code, goldfish responds to lifecycle events:
 | `SessionStart` | Drains queue, generates wake-up context from vault |
 | `UserPromptSubmit` | Decomposes prompt → fans out to Semble (code + vault) + OMEGA (memory) → injects context |
 | `PreCompact` | Drains queue, writes checkpoint note to vault |
-| `PostToolUse(Write\|Edit)` | Re-indexes changed file with Semble |
-| `PostToolUse(Bash git commit*)` | Records commit note in OMEGA |
 | `TaskCreated` / `TaskCompleted` | Writes task notes to vault |
 | `Stop` / `SessionEnd` | Advances JSONL offset in manifest |
+
+Run `goldfish mine` once after setup to seed OMEGA with history from past sessions.
 
 All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so Claude never blocks.
 
@@ -108,7 +108,7 @@ To supersede a note, set `superseded_by` instead of deleting it. Semble excludes
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.13+ (required by chonkie's native dependencies; `uvx` downloads it automatically)
 - Node.js 18+
 - [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
@@ -134,6 +134,17 @@ The wizard:
 
 Re-running `goldfish init` is safe — it reports health and skips already-installed tools.
 
+### Onboarding an existing project
+
+If you have prior Claude Code sessions in this project, seed OMEGA from them:
+
+```bash
+goldfish init          # sets up hooks for future sessions
+goldfish mine          # seeds OMEGA from all past sessions (run once, inside a Claude session)
+```
+
+`goldfish mine` is also called automatically on subsequent `goldfish init` runs.
+
 ---
 
 ## CLI reference
@@ -146,6 +157,7 @@ goldfish register-hooks    Re-register hooks with the correct binary path
 goldfish status            Show current configuration and sync state
 goldfish doctor            Check all dependencies are installed and reachable
 goldfish replay            Re-process JSONL events from a session file
+goldfish mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
 ```
 
 ---
@@ -161,6 +173,7 @@ enricher.py   Chonkie decompose → Semble (code + vault) + OMEGA (memory) fan-o
 vault.py      pathlib-only file writes: write_note(), read_note(), scaffold()
 claude_md.py  Upserts goldfish hooks in settings.json; updates CLAUDE.md block in-place
 config.py     Reads/writes ~/.goldfish/config.toml and per-project .manifest.toml
+miner.py      replay historical JSONL → pipes user/assistant text to OMEGA's own hooks (auto_capture, assistant_capture)
 ```
 
 ### Non-negotiable constraints
@@ -181,7 +194,7 @@ uv sync
 uv run pytest
 ```
 
-Tests stub all subprocess calls and run without live tool installations. 78 tests, ~0.3s.
+Tests stub all subprocess calls and run without live tool installations. ~100 tests, ~0.3s.
 
 ```bash
 uv run pytest -v          # run all tests
