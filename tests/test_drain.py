@@ -328,3 +328,74 @@ def test_pre_compact_auto_drains_queue(tmp_path):
         mock_drain.return_value = 0
         handle_pre_compact(event, vaults_root=tmp_path)
     mock_drain.assert_called_once_with(budget_ms=200)
+
+
+def test_session_start_includes_open_tasks_in_wakeup(tmp_path):
+    """Tasks/ with an incomplete note → body contains the task stem."""
+    from goldfish.config import write_manifest
+    project = "myapp"
+    vaults_root = tmp_path / "vaults"
+    tasks_dir = vaults_root / project / "Tasks"
+    tasks_dir.mkdir(parents=True)
+    (tasks_dir / "implement-auth.md").write_text("# implement-auth\n\nDo the thing.\n")
+    write_manifest(project, {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+
+    event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = None
+        result = handle_session_start(event, vaults_root=vaults_root)
+
+    assert "implement-auth" in result
+
+
+def test_session_start_includes_recent_decisions(tmp_path):
+    """Decisions/ with files → body lists their headings."""
+    from goldfish.config import write_manifest
+    project = "myapp"
+    vaults_root = tmp_path / "vaults"
+    decisions_dir = vaults_root / project / "Memory" / "Decisions"
+    decisions_dir.mkdir(parents=True)
+    (decisions_dir / "use-jwt.md").write_text("# Use JWT for auth\n\nBecause stateless.\n")
+    write_manifest(project, {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+
+    event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = None
+        result = handle_session_start(event, vaults_root=vaults_root)
+
+    assert "Use JWT for auth" in result
+
+
+def test_session_start_excludes_completed_tasks(tmp_path):
+    """Tasks marked **Completed.** must not appear in the wake-up body."""
+    from goldfish.config import write_manifest
+    project = "myapp"
+    vaults_root = tmp_path / "vaults"
+    tasks_dir = vaults_root / project / "Tasks"
+    tasks_dir.mkdir(parents=True)
+    (tasks_dir / "done-task.md").write_text("# done-task\n\n**Completed.**\n")
+    (tasks_dir / "open-task.md").write_text("# open-task\n\nStill to do.\n")
+    write_manifest(project, {
+        "last_byte_offset": 0, "bootstrap_complete": True,
+        "semble_indexed_at": "", "last_jsonl_file": ""
+    }, vaults_root=vaults_root)
+
+    event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
+    with patch("goldfish.drain.subprocess.run") as mock_run, \
+         patch("goldfish.drain.VAULTS_ROOT", vaults_root), \
+         patch("goldfish.config.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = None
+        result = handle_session_start(event, vaults_root=vaults_root)
+
+    assert "done-task" not in result
+    assert "open-task" in result
