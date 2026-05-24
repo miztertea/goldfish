@@ -275,3 +275,59 @@ def test_stop_advances_manifest_offset(tmp_path):
     manifest = gm("myapp", vaults_root=tmp_path)
     assert manifest["last_byte_offset"] == jsonl_file.stat().st_size
     assert manifest["last_jsonl_file"] == "session1.jsonl"
+
+
+import time as _time
+
+
+def test_drain_budget_zero_processes_all(tmp_path):
+    """budget_ms=0 (default) means no time limit — all events processed."""
+    queue = tmp_path / "queue.jsonl"
+    events = [{"type": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
+    queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
+    with patch("goldfish.drain.subprocess.run"):
+        count = drain(queue=queue, budget_ms=0)
+    assert count == 3
+    assert queue.read_text().strip() == ""
+
+
+def test_drain_budget_ms_leaves_unprocessed_events(tmp_path):
+    """When budget expires, remaining events stay in queue for next cycle."""
+    queue = tmp_path / "queue.jsonl"
+    events = [{"type": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
+    queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
+
+    # Make deadline expire immediately: first call sets deadline, second check returns huge value
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.time.monotonic", side_effect=[0, 100]):
+        count = drain(queue=queue, budget_ms=1)
+
+    assert count == 0
+    remaining = [l for l in queue.read_text().splitlines() if l.strip()]
+    assert len(remaining) == 3
+
+
+def test_session_start_auto_drains_queue(tmp_path):
+    """handle_session_start must call drain(budget_ms=200) before processing."""
+    event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.drain.drain") as mock_drain:
+        mock_drain.return_value = 0
+        handle_session_start(event, vaults_root=tmp_path)
+    mock_drain.assert_called_once_with(budget_ms=200)
+
+
+def test_pre_compact_auto_drains_queue(tmp_path):
+    """handle_pre_compact must call drain(budget_ms=200) before snapshotting."""
+    from goldfish.vault import scaffold
+    scaffold("myapp", vaults_root=tmp_path)
+    event = {"type": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
+    with patch("goldfish.drain.subprocess.run"), \
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path), \
+         patch("goldfish.drain.drain") as mock_drain:
+        mock_drain.return_value = 0
+        handle_pre_compact(event, vaults_root=tmp_path)
+    mock_drain.assert_called_once_with(budget_ms=200)

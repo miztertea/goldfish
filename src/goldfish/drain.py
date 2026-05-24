@@ -1,5 +1,6 @@
 import json
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -9,27 +10,36 @@ from goldfish.vault import read_note, scaffold, write_note
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
 
 
-def drain(queue: Path = QUEUE_PATH) -> int:
+def drain(queue: Path = QUEUE_PATH, budget_ms: float = 0) -> int:
+    """Process queued events. budget_ms=0 means no time limit."""
     if not queue.exists():
         return 0
     lines = queue.read_text().splitlines()
     processed = 0
     failed: list[str] = []
-    for line in lines:
-        line = line.strip()
+    unprocessed: list[str] = []
+    deadline = time.monotonic() + budget_ms / 1000 if budget_ms > 0 else None
+
+    for i, raw_line in enumerate(lines):
+        if deadline and time.monotonic() >= deadline:
+            unprocessed = lines[i:]
+            break
+        line = raw_line.strip()
         if not line:
             continue
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
-            failed.append(line)
+            failed.append(raw_line)
             continue
         try:
             _route(event)
             processed += 1
         except Exception:
-            failed.append(line)
-    queue.write_text("\n".join(failed) + "\n" if failed else "")
+            failed.append(raw_line)
+
+    leftover = failed + unprocessed
+    queue.write_text("\n".join(leftover) + "\n" if leftover else "")
     return processed
 
 
@@ -127,6 +137,7 @@ def _handle_task_completed(event: dict, vaults_root: Path = VAULTS_ROOT) -> None
 
 
 def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
+    drain(budget_ms=200)
     cwd = event.get("cwd", ".")
     session_id = event.get("session_id", "unknown")
     project = project_name(cwd)
@@ -202,6 +213,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
 
 def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
+    drain(budget_ms=200)
     cwd = event.get("cwd", ".")
     session_id = event.get("session_id", "unknown")
     project = project_name(cwd)
