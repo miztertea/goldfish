@@ -11,6 +11,7 @@ _MANIFEST_DEFAULTS = {
     "last_jsonl_file": "",
     "bootstrap_complete": False,
     "semble_indexed_at": "",
+    "mined_sessions": [],
 }
 
 
