@@ -98,7 +98,7 @@ def run(
         print("✓ OMEGA already installed")
     else:
         print("  Installing OMEGA...")
-        r1 = subprocess.run(["uv", "tool", "install", "omega-memory"])
+        r1 = subprocess.run(["uv", "tool", "install", "omega-memory[server]"])
         if r1.returncode != 0:
             print("✗ OMEGA install failed.")
             sys.exit(1)
