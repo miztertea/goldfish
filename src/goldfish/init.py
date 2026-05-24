@@ -1,18 +1,37 @@
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from goldfish.claude_md import register_hooks, append_claude_md_block, GOLDFISH_SENTINEL
-from goldfish.config import project_name, write_manifest, get_manifest, is_new_project, VAULTS_ROOT, DEFAULT_SETTINGS
+from goldfish.claude_md import GOLDFISH_SENTINEL, append_claude_md_block, register_hooks
+from goldfish.config import (
+    DEFAULT_SETTINGS,
+    VAULTS_ROOT,
+    get_manifest,
+    is_new_project,
+    project_name,
+    write_manifest,
+)
 from goldfish.vault import scaffold
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
 ### Before any non-trivial task — query all three layers:
 
-**GitNexus (MCP):** `query`, `context`, `impact`, `detect_changes`
-**OMEGA (MCP):** `omega_query("why did we choose X")`
-**Semble (MCP):** `semble_search(query, path=./src)`
+#### Code + Impact Intelligence — GitNexus (MCP)
+- `query({{query}})` — hybrid BM25+semantic search across code graph
+- `context({{name}})` — 360° view of any symbol (callers, callees, processes)
+- `impact({{target}}, direction="upstream")` — blast radius before ANY change
+- `detect_changes()` — map staged changes to affected processes pre-commit
+
+#### Episodic Memory — OMEGA (MCP)
+- `omega_query("why did we choose JWT")` — past decisions
+- `omega_query("rate limiter bug")` — known issues
+- `omega_query("Sarah rate limiter")` — person + topic references
+
+#### Semantic Search — Semble (MCP/CLI)
+- `semble search <query> ./src` — code search by meaning
+- `semble search <query> ~/.goldfish/vaults/<project> --content docs` — vault notes
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({{name}})` → understand the symbol
@@ -35,35 +54,57 @@ def run(
     project = project_name(cwd)
 
     if not check_dependency("node"):
-        print("ERROR: Node.js is required for GitNexus. Install from https://nodejs.org")
+        print("✗ Node.js missing — required for GitNexus. Install from https://nodejs.org")
         sys.exit(1)
+    print("✓ Node.js found")
 
-    print("Installing GitNexus...")
-    result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
-    if result.returncode != 0:
-        print("  note: global npm install failed (permission?); gitnexus still available via npx")
-    subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd, check=True)
+    # GitNexus — skip if already indexed
+    gitnexus_index = Path(cwd) / ".gitnexus"
+    if gitnexus_index.exists():
+        print("✓ GitNexus already indexed")
+    else:
+        print("  Installing GitNexus...")
+        result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
+        if result.returncode != 0:
+            print("  note: global npm install failed; using npx")
+        subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd, check=True)
+        print("✓ GitNexus indexed")
 
-    print("Installing OMEGA...")
-    subprocess.run(["pip", "install", "omega-memory"], check=True)
-    subprocess.run(["omega", "setup"], check=True)
+    # OMEGA — skip if already installed
+    if shutil.which("omega"):
+        print("✓ OMEGA already installed")
+    else:
+        print("  Installing OMEGA...")
+        subprocess.run(["pip", "install", "omega-memory"], check=True)
+        subprocess.run(["omega", "setup"], check=True)
+        print("✓ OMEGA installed")
 
-    print("Installing Semble...")
-    subprocess.run(["uv", "tool", "install", "semble"], check=True)
+    # Semble — skip if already installed
+    if shutil.which("semble"):
+        print("✓ Semble already installed")
+    else:
+        print("  Installing Semble...")
+        subprocess.run(["uv", "tool", "install", "semble"], check=True)
+        print("✓ Semble installed")
 
+    # Vault
     if is_new_project(project, vaults_root=vaults_root):
         scaffold(project, vaults_root=vaults_root)
         write_manifest(project, get_manifest(project, vaults_root=vaults_root), vaults_root=vaults_root)
-        print(f"Vault scaffolded at {vaults_root / project}")
+        print(f"✓ Vault scaffolded at {vaults_root / project}")
     else:
-        print(f"Vault already exists at {vaults_root / project} — skipping scaffold")
+        print(f"✓ Vault exists at {vaults_root / project}")
 
+    # Hooks — always upsert (ensures path and events are current)
     register_hooks(settings_path=settings_path)
+    print("✓ Hooks registered")
 
+    # CLAUDE.md
     claude_md = Path(cwd) / "CLAUDE.md"
     if claude_md.exists():
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
+        print("✓ CLAUDE.md updated")
 
-    print(f"\ngoldfish is ready. Launch Claude Code to begin.")
-    print(f"Vault: {vaults_root / project}")
-    print(f"Open {vaults_root / project} in Obsidian for a visual knowledge graph (optional).")
+    print(f"\n✓ goldfish is ready.")
+    print(f"  Vault:    {vaults_root / project}")
+    print(f"  Obsidian: open {vaults_root / project} as a vault (optional, no plugins needed)")
