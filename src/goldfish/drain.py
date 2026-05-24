@@ -1,7 +1,7 @@
 import json
 import subprocess
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -90,13 +90,18 @@ def _handle_session_end(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
         wake_up.unlink()
 
 
-def _handle_post_tool_use(event: dict) -> None:
+def _handle_post_tool_use(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     tool = event.get("tool_name", "")
     tool_input = event.get("tool_input", {})
     if tool in ("Write", "Edit"):
         file_path = tool_input.get("file_path", "")
         if file_path:
-            _run(["semble", "reindex", file_path], capture_output=True, check=False)
+            r = _run(["semble", "reindex", file_path], capture_output=True, check=False)
+            if r is not None and r.returncode == 0:
+                cwd = event.get("cwd", ".")
+                p = project_name(cwd)
+                m = get_manifest(p, vaults_root=vaults_root)
+                write_manifest(p, {**m, "semble_indexed_at": datetime.now(UTC).isoformat()}, vaults_root=vaults_root)
     elif tool == "Bash":
         cmd = tool_input.get("command", "")
         if cmd.strip().startswith("git commit"):
@@ -165,7 +170,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
             manifest = get_manifest(project, vaults_root=vaults_root)
             write_manifest(
                 project,
-                {**manifest, "semble_indexed_at": datetime.utcnow().isoformat()},
+                {**manifest, "semble_indexed_at": datetime.now(UTC).isoformat()},
                 vaults_root=vaults_root,
             )
 
@@ -203,7 +208,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
             manifest = get_manifest(project, vaults_root=vaults_root)
             write_manifest(
                 project,
-                {**manifest, "semble_indexed_at": datetime.utcnow().isoformat()},
+                {**manifest, "semble_indexed_at": datetime.now(UTC).isoformat()},
                 vaults_root=vaults_root,
             )
 
