@@ -1,5 +1,10 @@
+import os
+
 import typer
-from goldfish import hook, drain
+
+from goldfish import drain, hook
+from goldfish.config import get_manifest, project_name
+from goldfish.drain import QUEUE_PATH
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -26,8 +31,17 @@ def init() -> None:
 
 @app.command()
 def status() -> None:
-    """Show queue depth and tool health."""
-    typer.echo("status: not yet implemented")
+    """Show queue depth, manifest state, and sync timestamps."""
+    queue = QUEUE_PATH
+    depth = len(queue.read_text().splitlines()) if queue.exists() else 0
+    project = project_name(os.getcwd())
+    manifest = get_manifest(project)
+
+    typer.echo(f"Project:          {project}")
+    typer.echo(f"Queue depth:      {depth} events")
+    typer.echo(f"Bootstrap:        {'complete' if manifest.get('bootstrap_complete') else 'pending'}")
+    typer.echo(f"Semble indexed:   {manifest.get('semble_indexed_at') or 'never'}")
+    typer.echo(f"Last JSONL offset: {manifest.get('last_byte_offset', 0)}")
 
 
 @app.command()
