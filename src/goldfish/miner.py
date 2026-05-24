@@ -17,6 +17,7 @@ def _find_hook_cmd(settings: dict, event: str, script_name: str) -> str | None:
 
 def _extract_user_text(obj: dict) -> str:
     content = obj.get("message", {}).get("content", "")
+    # content is a list when the user turn contains tool_result blocks; skip to avoid piping raw tool JSON to OMEGA
     return content if isinstance(content, str) else ""
 
 
@@ -95,6 +96,7 @@ def mine_project(
 
         mined.add(session_id)
         processed += 1
-        write_manifest(project, {**manifest, "mined_sessions": list(mined)})
+        fresh = get_manifest(project)
+        write_manifest(project, {**fresh, "mined_sessions": list(mined)})
 
     return processed
