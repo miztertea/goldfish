@@ -8,7 +8,7 @@ import typer
 
 from goldfish import drain, hook
 from goldfish.claude_md import DEFAULT_SETTINGS, register_hooks
-from goldfish.config import get_manifest, project_name, write_manifest
+from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
 from goldfish.drain import QUEUE_PATH
 
 app = typer.Typer(no_args_is_help=True)
@@ -111,6 +111,49 @@ def doctor() -> None:
             typer.echo(f"✓ Queue depth {depth}")
     else:
         typer.echo("✓ Queue empty")
+
+    # Semble check
+    try:
+        semble_result = sp.run(["semble", "--version"], capture_output=True, check=False)
+        if semble_result.returncode == 0:
+            typer.echo("✓ Semble")
+        else:
+            typer.echo("✗ Semble not found — run: uv tool install semble")
+            ok = False
+    except FileNotFoundError:
+        typer.echo("✗ Semble not found — run: uv tool install semble")
+        ok = False
+
+    # MCP registration check
+    claude_json = Path.home() / ".claude.json"
+    if claude_json.exists():
+        try:
+            mcp_data = json.loads(claude_json.read_text())
+            mcp = mcp_data.get("mcpServers", {})
+            for name in ("omega", "semble", "gitnexus"):
+                status = "✓" if name in mcp else "✗"
+                if status == "✗":
+                    typer.echo(f"{status} {name} MCP  — run: goldfish init to register")
+                    ok = False
+                else:
+                    typer.echo(f"{status} {name} MCP")
+        except Exception:
+            typer.echo("✗ ~/.claude.json malformed — run: goldfish init")
+            ok = False
+    else:
+        typer.echo("  ~/.claude.json not found — run: goldfish init")
+
+    # Vault health check
+    project = project_name(cwd)
+    vault = VAULTS_ROOT / project
+    expected_dirs = ["Memory/Decisions", "Memory/Lessons", "Memory/Errors", "Tasks", "Specs", "_context"]
+    for d in expected_dirs:
+        exists = (vault / d).exists()
+        if exists:
+            typer.echo(f"✓ vault/{d}")
+        else:
+            typer.echo(f"✗ vault/{d}")
+            ok = False
 
     if ok:
         typer.echo("\nAll checks passed.")

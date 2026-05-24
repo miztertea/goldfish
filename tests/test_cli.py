@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
@@ -58,12 +58,22 @@ def test_doctor_all_healthy(tmp_path):
             "Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]
         }
     }))
+    # Create ~/.claude.json with all three MCPs registered
+    claude_json = tmp_path / ".claude.json"
+    claude_json.write_text(json.dumps({"mcpServers": {"omega": {}, "semble": {}, "gitnexus": {}}}))
+    # Create full vault structure
+    project = tmp_path.name
+    vaults_root = tmp_path / "vaults"
+    for d in ["Memory/Decisions", "Memory/Lessons", "Memory/Errors", "Tasks", "Specs", "_context"]:
+        (vaults_root / project / d).mkdir(parents=True)
     with patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"), \
          patch("goldfish.cli.sp.run") as mock_run, \
          patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
          patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
-         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"):
-        mock_run.return_value.returncode = 0  # omega status succeeds
+         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"), \
+         patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.cli.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 0
     assert "All checks passed" in result.output
@@ -73,12 +83,16 @@ def test_doctor_flags_missing_node(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(json.dumps({"hooks": {}}))
     (tmp_path / ".gitnexus").mkdir()
+    # Provide minimal claude.json and vaults so only node check fails
+    (tmp_path / ".claude.json").write_text(json.dumps({"mcpServers": {}}))
     with patch("goldfish.cli.shutil.which", return_value=None), \
          patch("goldfish.cli.sp.run") as mock_run, \
          patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
          patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
-         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"):
-        mock_run.return_value.returncode = 0
+         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"), \
+         patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.cli.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 1
     assert "node" in result.output.lower() or "nodejs" in result.output.lower()
@@ -116,3 +130,67 @@ def test_register_hooks_command(tmp_path):
     assert "hooks" in result.output.lower() or "registered" in result.output.lower()
     data = json.loads(settings.read_text())
     assert "Stop" in data.get("hooks", {})
+
+
+def test_doctor_checks_mcp_registration(tmp_path):
+    """~/.claude.json missing omega → prints ✗ omega MCP."""
+    claude_json = tmp_path / ".claude.json"
+    claude_json.write_text(json.dumps({"mcpServers": {"semble": {}, "gitnexus": {}}}))
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({
+        "hooks": {
+            "Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]
+        }
+    }))
+    (tmp_path / ".gitnexus").mkdir()
+
+    with patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.cli.sp.run") as mock_run, \
+         patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"), \
+         patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"), \
+         patch("goldfish.cli.project_name", return_value="myapp"), \
+         patch("goldfish.cli.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        result = runner.invoke(app, ["doctor"])
+
+    assert "✗ omega MCP" in result.output
+    assert "✓ semble MCP" in result.output
+
+
+def test_doctor_checks_vault_structure(tmp_path):
+    """Missing Tasks/ directory → prints ✗ vault/Tasks."""
+    vaults_root = tmp_path / "vaults"
+    # Create vault but omit Tasks/
+    (vaults_root / "myapp" / "Memory" / "Decisions").mkdir(parents=True)
+    (vaults_root / "myapp" / "Memory" / "Lessons").mkdir(parents=True)
+    (vaults_root / "myapp" / "Memory" / "Errors").mkdir(parents=True)
+    (vaults_root / "myapp" / "Specs").mkdir(parents=True)
+    (vaults_root / "myapp" / "_context").mkdir(parents=True)
+    # No Tasks/ dir
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({
+        "hooks": {
+            "Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]
+        }
+    }))
+    (tmp_path / ".gitnexus").mkdir()
+
+    claude_json = tmp_path / ".claude.json"
+    claude_json.write_text(json.dumps({"mcpServers": {"omega": {}, "semble": {}, "gitnexus": {}}}))
+
+    with patch("goldfish.cli.Path.home", return_value=tmp_path), \
+         patch("goldfish.cli.sp.run") as mock_run, \
+         patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"), \
+         patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"), \
+         patch("goldfish.cli.project_name", return_value="myapp"), \
+         patch("goldfish.cli.VAULTS_ROOT", vaults_root):
+        mock_run.return_value = MagicMock(returncode=0)
+        result = runner.invoke(app, ["doctor"])
+
+    assert "✗ vault/Tasks" in result.output
