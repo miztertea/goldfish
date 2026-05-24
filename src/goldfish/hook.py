@@ -26,7 +26,7 @@ def handle(event: dict, queue: Path = QUEUE_PATH) -> None:
 
 def main_with_event(event: dict, queue: Path = QUEUE_PATH) -> None:
     """Process one event. Exported for testing."""
-    event_type = event.get("hook_event_name", event.get("type", ""))
+    event_type = event.get("hook_event_name", "")
 
     if event_type not in _SYNC_EVENTS:
         handle(event, queue=queue)
