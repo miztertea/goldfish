@@ -49,7 +49,7 @@ def test_run_calls_install_steps_in_order(tmp_path):
     flat = [tok for cmd in all_cmds for tok in cmd]
     assert "npm" in flat          # npm install -g gitnexus
     assert "npx" in flat          # npx gitnexus analyze
-    assert "omega-memory" in flat # sys.executable -m pip install omega-memory
+    assert "omega-memory" in flat # uv tool install omega-memory
 
 
 def test_init_skips_gitnexus_if_already_indexed(tmp_path):
