@@ -147,7 +147,12 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
     else:
         # Existing project — mine incremental history and query OMEGA for context
-        subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+        if jsonl_dir.exists():
+            subprocess.run(["omega", "mine", str(jsonl_dir)], capture_output=True, check=False)
+
+        src_dir = Path(cwd) / "src"
+        reindex_target = str(src_dir) if src_dir.exists() else cwd
+        subprocess.run(["semble", "reindex", reindex_target], capture_output=True, check=False)
 
         result = subprocess.run(
             ["omega", "query", "current project state tasks decisions"],
@@ -188,7 +193,7 @@ def handle_pre_compact(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     frontmatter = {
         "id": f"checkpoint-{session_id}-{ts}",
         "type": "checkpoint",
-        "valid_from": ts[:8],
+        "valid_from": _today(),
         "superseded_by": None,
         "confidence": 1.0,
         "source_session": session_id,
