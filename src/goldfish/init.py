@@ -14,6 +14,13 @@ from goldfish.config import (
 )
 from goldfish.vault import scaffold
 
+_PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
+
+
+def _goldfish_stable_path() -> Path:
+    return Path.home() / ".local" / "bin" / "goldfish"
+
+
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
 ### Before any non-trivial task — query all three layers:
@@ -51,6 +58,17 @@ def run(
     settings_path: Path = DEFAULT_SETTINGS,
     vaults_root: Path = VAULTS_ROOT,
 ) -> None:
+    # Self-install for stable hook path
+    stable = _goldfish_stable_path()
+    if stable.exists():
+        print("✓ goldfish installed (stable path)")
+    else:
+        r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfish"])
+        if r.returncode != 0:
+            print("  note: goldfish self-install failed; hook path may be unstable")
+        else:
+            print("✓ goldfish installed at ~/.local/bin/goldfish")
+
     project = project_name(cwd)
 
     if not check_dependency("node"):

@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock, call
 import pytest
 
-from goldfish.init import check_dependency, run
+from goldfish.init import check_dependency, run, _goldfish_stable_path
 
 
 def test_check_dependency_returns_true_when_found():
@@ -21,7 +21,10 @@ def test_check_dependency_returns_false_when_not_found():
 def test_run_exits_early_if_node_missing(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
+    stable = tmp_path / "goldfish"
+    stable.touch()
     with patch("goldfish.init.check_dependency", return_value=False), \
+         patch("goldfish.init._goldfish_stable_path", return_value=stable), \
          patch("goldfish.init.subprocess.run") as mock_run, \
          pytest.raises(SystemExit):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
@@ -155,3 +158,45 @@ def test_init_does_not_rescaffold_existing_vault(tmp_path):
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
 
     mock_scaffold.assert_not_called()
+
+
+def test_init_self_installs_goldfish_when_not_at_stable_path(tmp_path):
+    """When ~/.local/bin/goldfish doesn't exist, self-install must be called."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    self_install_ran = any(
+        isinstance(c, list) and "uv" in c and "tool" in c and "install" in c and "--from" in c
+        for c in cmds
+    )
+    assert self_install_ran, "uv tool install --from ... goldfish must run when stable bin missing"
+
+
+def test_init_skips_self_install_when_stable_bin_exists(tmp_path):
+    """When ~/.local/bin/goldfish exists, skip self-install."""
+    stable = tmp_path / "goldfish"  # stands in for the stable path
+    stable.touch()
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=stable), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+    cmds = [call[0][0] for call in mock_run.call_args_list]
+    self_install_ran = any(
+        isinstance(c, list) and "uv" in c and "tool" in c and "install" in c and "--from" in c
+        for c in cmds
+    )
+    assert not self_install_ran, "uv tool install --from must NOT run when stable bin already exists"
