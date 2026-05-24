@@ -1,9 +1,10 @@
 import json
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
-from goldfish.vault import write_note
+from goldfish.config import VAULTS_ROOT, get_manifest, project_name
+from goldfish.vault import read_note, write_note
 
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
 
@@ -38,7 +39,7 @@ def _route(event: dict) -> None:
         handler(event)
 
 
-def _handle_stop(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
+def _handle_stop(event: dict) -> None:
     session_id = event.get("session_id", "unknown")
     subprocess.run(["omega", "flush", session_id], capture_output=True, check=False)
 
@@ -100,7 +101,6 @@ def _handle_task_completed(event: dict, vaults_root: Path = VAULTS_ROOT) -> None
     task_path = f"Tasks/{task_id}.md"
     note_file = vaults_root / project / task_path
     if note_file.exists():
-        from goldfish.vault import read_note
         fm, body = read_note(project, task_path, vaults_root=vaults_root)
         write_note(project, task_path, fm, body.rstrip() + "\n\n**Completed.**", vaults_root=vaults_root)
     else:
@@ -108,34 +108,16 @@ def _handle_task_completed(event: dict, vaults_root: Path = VAULTS_ROOT) -> None
 
 
 def _today() -> str:
-    from datetime import datetime
     return datetime.utcnow().strftime("%Y-%m-%d")
 
 
-# Wrappers for _HANDLERS (queue dispatch uses default vaults_root)
-def _handle_stop_event(event: dict) -> None:
-    _handle_stop(event)
-
-
-def _handle_session_end_event(event: dict) -> None:
-    _handle_session_end(event)
-
-
-def _handle_task_created_event(event: dict) -> None:
-    _handle_task_created(event)
-
-
-def _handle_task_completed_event(event: dict) -> None:
-    _handle_task_completed(event)
-
-
 _HANDLERS: dict = {
-    "Stop": _handle_stop_event,
-    "SessionEnd": _handle_session_end_event,
+    "Stop": _handle_stop,
+    "SessionEnd": _handle_session_end,
     "PostToolUse": _handle_post_tool_use,
     "SubagentStop": _handle_subagent_stop,
-    "TaskCreated": _handle_task_created_event,
-    "TaskCompleted": _handle_task_completed_event,
+    "TaskCreated": _handle_task_created,
+    "TaskCompleted": _handle_task_completed,
 }
 
 
