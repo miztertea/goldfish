@@ -85,7 +85,6 @@ def test_doctor_flags_missing_node(tmp_path):
 
 
 def test_replay_processes_jsonl_events(tmp_path):
-    # Create a fake JSONL transcript
     encoded = "/project/myapp".replace("/", "-")
     jsonl_dir = tmp_path / ".claude" / "projects" / encoded
     jsonl_dir.mkdir(parents=True)
@@ -98,8 +97,10 @@ def test_replay_processes_jsonl_events(tmp_path):
     with patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
          patch("goldfish.cli.Path.home", return_value=tmp_path), \
          patch("goldfish.config.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"):
+         patch("goldfish.drain.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
+         patch("goldfish.drain._route") as mock_route:
         result = runner.invoke(app, ["replay"])
 
     assert result.exit_code == 0
     assert "processed" in result.output.lower()
+    mock_route.assert_called_once_with(events[0])

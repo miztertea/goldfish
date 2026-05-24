@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess as sp
@@ -7,7 +8,7 @@ import typer
 
 from goldfish import drain, hook
 from goldfish.claude_md import DEFAULT_SETTINGS
-from goldfish.config import get_manifest, project_name
+from goldfish.config import get_manifest, project_name, write_manifest
 from goldfish.drain import QUEUE_PATH
 
 app = typer.Typer(no_args_is_help=True)
@@ -121,9 +122,6 @@ def doctor() -> None:
 @app.command()
 def replay() -> None:
     """Rebuild vault from Claude Code JSONL transcripts. Resumable."""
-    from goldfish.config import get_manifest, write_manifest
-    import json as _json
-
     cwd = os.getcwd()
     project = project_name(cwd)
     encoded = cwd.replace("/", "-")
@@ -144,7 +142,7 @@ def replay() -> None:
                 if not line:
                     continue
                 try:
-                    event = _json.loads(line)
+                    event = json.loads(line)
                     drain._route(event)
                     total += 1
                 except Exception:
