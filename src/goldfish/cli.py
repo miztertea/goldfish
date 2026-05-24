@@ -192,8 +192,9 @@ def replay() -> None:
     )
 
     resume_path = jsonl_dir / resume_file if resume_file else None
-    # If no resume file recorded, process everything; otherwise skip until we
-    # reach the resume file.
+    # If resume file no longer exists (e.g., logs rotated), start from the beginning.
+    if resume_path and not resume_path.exists():
+        resume_path = None
     past_resume = resume_path is None
 
     total = 0
