@@ -36,9 +36,9 @@ _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 - `omega_query("rate limiter bug")` — known issues
 - `omega_query("Sarah rate limiter")` — person + topic references
 
-#### Semantic Search — Semble (MCP/CLI)
-- `semble search <query> ./src` — code search by meaning
-- `semble search <query> ~/.goldfish/vaults/<project> --content docs` — vault notes
+#### Semantic Search — Semble (MCP)
+- `semble_search(query, path="./src")` — code search by meaning
+- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({{name}})` → understand the symbol
