@@ -127,12 +127,21 @@ def run(
     manifest = get_manifest(project, vaults_root=vaults_root)
     if not manifest.get("mcp_registered"):
         print("  Registering MCP servers...")
-        subprocess.run(["npx", "gitnexus", "setup"], cwd=cwd)
-        subprocess.run(["omega", "setup", "--client", "claude-code"])
-        subprocess.run([
-            "claude", "mcp", "add", "semble", "-s", "user",
-            "--", "uvx", "--from", "semble[mcp]", "semble"
-        ])
+        try:
+            subprocess.run(["npx", "gitnexus", "setup"], cwd=cwd)
+        except FileNotFoundError:
+            print("  note: gitnexus setup not available; skipping")
+        try:
+            subprocess.run(["omega", "setup", "--client", "claude-code"])
+        except FileNotFoundError:
+            print("  note: omega setup not available; skipping")
+        try:
+            subprocess.run([
+                "claude", "mcp", "add", "semble", "-s", "user",
+                "--", "uvx", "--from", "semble[mcp]", "semble"
+            ])
+        except FileNotFoundError:
+            print("  note: claude CLI not available; skipping semble MCP registration")
         manifest["mcp_registered"] = True
         write_manifest(project, manifest, vaults_root=vaults_root)
         print("✓ MCPs registered (GitNexus, OMEGA, Semble)")
