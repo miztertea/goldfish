@@ -53,7 +53,7 @@ def drain(queue: Path = QUEUE_PATH, budget_ms: float = 0) -> int:
 
 
 def _route(event: dict) -> None:
-    handler = _HANDLERS.get(event.get("type", ""))
+    handler = _HANDLERS.get(event.get("hook_event_name", event.get("type", "")))
     if handler:
         handler(event)
 
@@ -62,7 +62,7 @@ def _handle_stop(event: dict, vaults_root: Path = VAULTS_ROOT) -> None:
     session_id = event.get("session_id", "unknown")
     _run(["omega", "flush", session_id], capture_output=True, check=False)
 
-    jsonl_file_path = event.get("jsonl_file", "")
+    jsonl_file_path = event.get("transcript_path", event.get("jsonl_file", ""))
     if jsonl_file_path:
         try:
             cwd = event.get("cwd", ".")
