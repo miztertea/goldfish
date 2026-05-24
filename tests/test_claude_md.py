@@ -58,7 +58,8 @@ def test_register_hooks_uses_venv_bin_path(tmp_path):
 
     # shutil.which returns None → fall back to venv sibling
     with patch("goldfish.claude_md.shutil.which", return_value=None), \
-         patch("goldfish.claude_md.sys.executable", fake_executable):
+         patch("goldfish.claude_md.sys.executable", fake_executable), \
+         patch("goldfish.claude_md.Path.home", return_value=tmp_path):
         register_hooks(settings_path=settings)
 
     data = json.loads(settings.read_text())
