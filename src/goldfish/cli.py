@@ -134,7 +134,7 @@ def doctor() -> None:
         try:
             mcp_data = json.loads(claude_json.read_text())
             mcp = mcp_data.get("mcpServers", {})
-            for name in ("omega", "semble", "gitnexus"):
+            for name in ("omega-memory", "semble", "gitnexus"):
                 status = "✓" if name in mcp else "✗"
                 if status == "✗":
                     typer.echo(f"{status} {name} MCP  — run: goldfish init to register")

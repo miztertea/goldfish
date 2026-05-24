@@ -60,7 +60,7 @@ def test_doctor_all_healthy(tmp_path):
     }))
     # Create ~/.claude.json with all three MCPs registered
     claude_json = tmp_path / ".claude.json"
-    claude_json.write_text(json.dumps({"mcpServers": {"omega": {}, "semble": {}, "gitnexus": {}}}))
+    claude_json.write_text(json.dumps({"mcpServers": {"omega-memory": {}, "semble": {}, "gitnexus": {}}}))
     # Create full vault structure
     project = tmp_path.name
     vaults_root = tmp_path / "vaults"
@@ -188,7 +188,7 @@ def test_register_hooks_command(tmp_path):
 
 
 def test_doctor_checks_mcp_registration(tmp_path):
-    """~/.claude.json missing omega → prints ✗ omega MCP."""
+    """~/.claude.json missing omega-memory → prints ✗ omega-memory MCP."""
     claude_json = tmp_path / ".claude.json"
     claude_json.write_text(json.dumps({"mcpServers": {"semble": {}, "gitnexus": {}}}))
 
@@ -211,7 +211,7 @@ def test_doctor_checks_mcp_registration(tmp_path):
         mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
 
-    assert "✗ omega MCP" in result.output
+    assert "✗ omega-memory MCP" in result.output
     assert "✓ semble MCP" in result.output
 
 
