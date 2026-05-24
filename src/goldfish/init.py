@@ -39,7 +39,9 @@ def run(
         sys.exit(1)
 
     print("Installing GitNexus...")
-    subprocess.run(["npm", "install", "-g", "gitnexus"], check=True)
+    result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
+    if result.returncode != 0:
+        print("  note: global npm install failed (permission?); gitnexus still available via npx")
     subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd, check=True)
 
     print("Installing OMEGA...")
