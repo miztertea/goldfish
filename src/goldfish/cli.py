@@ -117,14 +117,9 @@ def doctor() -> None:
         typer.echo("✓ Queue empty")
 
     # Semble check
-    try:
-        semble_result = sp.run(["semble", "--version"], capture_output=True, check=False)
-        if semble_result.returncode == 0:
-            typer.echo("✓ Semble")
-        else:
-            typer.echo("✗ Semble not found — run: uv tool install semble")
-            ok = False
-    except FileNotFoundError:
+    if shutil.which("semble"):
+        typer.echo("✓ Semble")
+    else:
         typer.echo("✗ Semble not found — run: uv tool install semble")
         ok = False
 
