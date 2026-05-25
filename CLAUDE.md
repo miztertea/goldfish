@@ -55,11 +55,22 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
 | Layer 0 — MEMORY.md | File-based: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
-| Layer 1 — Tool blocks | GitNexus (code graph), OMEGA (episodic memory), Semble (semantic search) | MCP on demand; OMEGA via omega_welcome() |
+| Layer 1 — OMEGA | Episodic memory: decisions, sessions, known issues | Required at session start (step 2) |
+| Layer 1 — GitNexus / Semble | Code graph + semantic search | MCP on demand |
 | Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
-Layer 0 is static (loads automatically); Layer 1 tools are dynamic (called on demand).
+### Memory Router
+
+| Content type | System | How |
+|---|---|---|
+| User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
+| Session decisions, lessons, known issues | OMEGA | `omega_store()` |
+| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+
+Vault = human-readable architectural summaries; OMEGA = machine-queryable decision records. The same decision can produce both — one for reading, one for querying.
+
+Before acting on a project memory that makes code-specific claims (file paths, function names, shipped state), verify against `git log` or a file read.
 
 ### Session Start (required)
 
@@ -67,7 +78,7 @@ Steps 2–3 are initialization calls, not task responses. The skill-check in ste
 
 1. MEMORY.md loads automatically — no action needed
 2. Call `omega_welcome()` — context briefing and recent activity
-3. Call `omega_protocol()` — operating rules for this session
+3. Call `omega_protocol()` — supplements CLAUDE.md with any session-specific rules; on free tier this is minimal, CLAUDE.md is the authoritative protocol
 4. Check for applicable skills before responding to the user's first request
 5. Work begins
 
