@@ -1,3 +1,5 @@
+<!-- layer 3: project — maintained by project team -->
+
 # CLAUDE.md
 
 ## What this is
@@ -49,6 +51,10 @@ goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus reg
 | Design decisions log | [docs/design-decisions.md](docs/design-decisions.md) |
 | Obsidian optional viewer | [docs/obsidian.md](docs/obsidian.md) |
 
+---
+
+<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+
 ## Agent Knowledge Tools (managed by goldfish)
 
 goldfish wires together three intelligence layers. Query all three before any non-trivial task.
@@ -67,12 +73,10 @@ goldfish wires together three intelligence layers. Query all three before any no
 
 Each tool's full usage instructions are in its own maintained section in this file.
 
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (1017 symbols, 1247 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+---
 
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+<!-- layer 1: tool blocks — do not edit, maintained by each tool -->
 
 ## Always Do
 
