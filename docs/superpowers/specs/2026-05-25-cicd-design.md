@@ -48,7 +48,12 @@ Semantic-release reads conventional commit prefixes to determine the next versio
 | `chore:`, `docs:`, `refactor:`, `test:` | no release |
 | `BREAKING CHANGE:` in footer | major (0.1.0 → 1.0.0) |
 
-Semantic-release creates a tag and GitHub Release automatically after all gates pass on `main`. It never pushes a version-bump commit (because hatch-vcs reads the tag, not a file), so no branch protection bypass is required.
+Semantic-release runs after all gates pass on `main`. It:
+1. Determines the next version from conventional commits since the last tag
+2. Commits an updated `CHANGELOG.md` to `main`
+3. Creates a git tag and GitHub Release
+
+Because it pushes the CHANGELOG.md commit directly to `main`, it requires a branch protection bypass. A Personal Access Token (PAT) with `repo` scope is stored as `GH_TOKEN` in repo secrets and configured as a bypass actor in the branch protection ruleset.
 
 ---
 
@@ -101,11 +106,49 @@ Semantic-release reads commit messages to determine version bumps. All commits m
 
 This is already in use — git history confirms compliance.
 
-### Branch protection on `main` (configure in GitHub repo settings)
+### Branch protection and rulesets
 
-- Require pull request before merging
-- Required passing status checks: `quality`, `test`
-- No direct pushes (semantic-release token gets a bypass rule)
+Configure via GitHub API after Phase 1 CI is green. The following `gh api` calls set the required rules:
+
+```bash
+# Set branch protection on main
+gh api repos/miztertea/goldfish/branches/main/protection \
+  -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  -f 'required_status_checks={"strict":true,"contexts":["quality","test"]}' \
+  -f 'enforce_admins=false' \
+  -f 'required_pull_request_reviews=null' \
+  -f 'restrictions=null' \
+  -f 'allow_force_pushes=false' \
+  -f 'allow_deletions=false'
+```
+
+The semantic-release PAT (stored as `GH_TOKEN`) must be added as a bypass actor in the GitHub repo settings UI (Settings → Branches → Edit rule → Bypass list). This cannot be set via the API on the free plan.
+
+Rules enforced:
+- Required status checks (`quality`, `test`) must pass before merging
+- Force pushes blocked
+- Branch deletions blocked
+- No required approving reviews (solo project — CI is the gate)
+- Semantic-release PAT bypasses the rule to push the CHANGELOG.md commit
+
+### CHANGELOG.md
+
+Semantic-release writes and commits `CHANGELOG.md` to `main` on every release. Entries are grouped by version and auto-generated from conventional commit messages. The file accumulates over time and becomes the canonical public changelog — no manual maintenance required.
+
+Each entry looks like:
+
+```
+## [0.2.0] - 2026-06-01
+
+### Features
+- add Claude Code detection to goldfish init (#12)
+
+### Bug Fixes
+- fix hook routing for PreCompact events (#11)
+```
+
+`CHANGELOG.md` is committed to the repo root and published on the GitHub Release page.
 
 ### PR template
 
@@ -276,8 +319,52 @@ This is the real integration test — it validates the full new-user onboarding 
 - PyPI Trusted Publisher setup (in PyPI account — one-time)
 - `ANTHROPIC_API_KEY` secret added to repo (for Claude PR review)
 
-### Phase 3 — In-repo docs
+### Phase 3 — In-repo docs + roadmap
 - `CONTRIBUTING.md` (branch naming, worktree workflow, commit conventions)
+- `ROADMAP.md` (high-level public intent — see Roadmap section below)
+- GitHub Issues labels configured (bug, enhancement, idea, breaking, good first issue)
+- GitHub Milestones created for next two planned releases
+
+### Phase 4 — Dev containers (future spec)
+Local dev containers give agents and contributors a pre-configured environment with all external tools installed. Deferred — separate design session required. Will cover:
+- `.devcontainer/devcontainer.json` with Node.js, uv, Claude Code, GitNexus, OMEGA, Semble pre-installed
+- Container used for local agent development (consistent environment)
+- CI can optionally run matrix tests inside the container instead of bare runners
+- Particularly valuable for Windows: agents on Linux can develop against a Linux container rather than needing a Windows machine
+
+---
+
+## Roadmap and Feature Tracking
+
+### Tools
+
+| Purpose | Tool |
+|---------|------|
+| Bugs and feature requests | GitHub Issues |
+| Release planning | GitHub Milestones (one per upcoming version) |
+| Public intent and direction | `ROADMAP.md` in repo root |
+| Community discussion (once public) | GitHub Discussions |
+| Session decisions and agent context | OMEGA + goldfish vault |
+
+### Issue labels
+
+Configure at repo setup:
+- `bug` — something is broken
+- `enhancement` — new capability
+- `idea` — not yet committed, open for discussion
+- `breaking` — will require major version bump
+- `chore` — maintenance, deps, CI
+- `good first issue` — small, well-scoped, good for new contributors
+
+### ROADMAP.md
+
+A file in the repo root, updated manually by the human at each milestone. Covers:
+- Current focus (what's being built now)
+- Near-term goals (next 1-2 releases)
+- Long-term direction (no dates — intent only)
+- Explicitly out of scope
+
+This is the public-facing "where is this going" document. Agents should read it before proposing new features. OMEGA and vault handle tactical session tracking; ROADMAP.md handles strategic intent.
 
 ---
 
@@ -285,6 +372,6 @@ This is the real integration test — it validates the full new-user onboarding 
 
 1. **PyPI package name:** verify `goldfish` is available on PyPI before Phase 2. If taken, choose an alternative (e.g., `goldfish-agent`) and update `pyproject.toml`.
 2. **PyPI Trusted Publisher:** configure in PyPI account settings after Phase 1 CI is green.
-3. **Branch protection bypass:** configure semantic-release token bypass in GitHub repo branch protection settings.
+3. **Branch protection bypass:** create a PAT with `repo` scope, store as `GH_TOKEN` secret, add as bypass actor in GitHub branch protection settings UI. Run the `gh api` protection command from the spec after Phase 1 CI is green.
 4. **`ANTHROPIC_API_KEY` secret:** add to GitHub repo secrets for Claude PR review.
 5. **Verify `anthropics/claude-code-action` version tag** at implementation time — use the latest published release tag, not `@main`.
