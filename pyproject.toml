@@ -8,6 +8,10 @@ version = "0.1.0"
 requires-python = "==3.13.*"
 dependencies = ["tomli-w", "PyYAML", "typer", "chonkie"]
 
+[project.urls]
+Homepage = "https://github.com/miztertea/goldfish"
+Repository = "https://github.com/miztertea/goldfish"
+
 [project.optional-dependencies]
 dev = ["pytest"]
 
