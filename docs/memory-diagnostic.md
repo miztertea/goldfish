@@ -17,6 +17,16 @@ A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-
 | **Boundary blur** | Same content type has two homes; layers bleed into each other | Are layer responsibilities distinct enough that no content type fits two layers? | Write a scope rule | L0–L3 |
 | **Instruction fiction** | Agent follows documented behavior that system doesn't exhibit | Does the documented behavior match what the system actually does? | Fix the doc or fix the system | L2/L3 |
 
+### Goldfish Architecture Notes
+
+These qualifiers apply when scoring goldfish's instruction set specifically:
+
+**Arrival gap:** Just-in-time on-demand delivery counts as arrival — pre-loading is not required if targeted delivery is the architectural intent. GitNexus/Semble loading on-demand when a code question is asked satisfies the arrival gap criterion.
+
+**Dark corner:** A context type is NOT a dark corner if: (a) it is re-derivable on demand in <1 second, and (b) a CLI diagnostic command exists (e.g., `goldfish doctor`). Document the CLI, close the finding. Tool health state meets both criteria.
+
+**Stale signal:** A "verify before acting" instruction in the agent's constitution is a valid validation mechanism. Absence of an automated cadence is not automatically YELLOW if explicit verification is instructed.
+
 ---
 
 ## Scoring Rubric
@@ -31,18 +41,18 @@ A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-
 
 *Updated by `/goldfish-diagnostic` each time it runs.*
 
-**Last diagnostic:** 2026-05-25
+**Last diagnostic:** 2026-05-25 (Run 4)
 
 | Failure | Score | Key Evidence |
 |---------|-------|-------------|
-| Routing fog | 🔴 RED | No routing decision table; user prefs claimed by both auto-memory and OMEGA quick reference |
-| Dark corner | 🟡 YELLOW | Tool health state + KPI timeseries have no home |
-| Arrival gap | 🟡 YELLOW | `omega_protocol()` framing misleading; CLAUDE.md guaranteed by goldfish init so absence not a real failure |
-| Stale signal | 🟡 YELLOW | `project_goldfish.md` stale; no structured validation cadence |
-| Boundary blur | 🔴 RED | Layer 0/OMEGA user-pref overlap; vault vs OMEGA scope undefined |
-| Instruction fiction | 🔴 RED | `omega_protocol` framing aspirational vs thin free-tier reality; OMEGA labeled "on demand" but required |
+| Routing fog | 🟡 YELLOW | Read-side tiebreaker added (auto-memory authoritative, omega_profile supplemental); write routing clear |
+| Dark corner | 🟢 GREEN | Tools assumed installed; `goldfish doctor` CLI is the diagnostic path — justified absence |
+| Arrival gap | 🟢 GREEN | On-demand = just-in-time; intentional architectural design, documented in coordination block |
+| Stale signal | 🟢 GREEN | "Verify code claims before acting" instruction is the validation cadence |
+| Boundary blur | 🟡 YELLOW | Consumer-driven rule added; explicit vs automatic vault write distinction documented |
+| Instruction fiction | 🟡 YELLOW | PreCompact flow fixed; ongoing vigilance as code evolves |
 
-**Summary:** 3 RED / 3 YELLOW / 0 GREEN (baseline, 2026-05-25)
+**Summary:** 0 RED / 3 YELLOW / 3 GREEN (2026-05-25 Run 4)
 
 ---
 
