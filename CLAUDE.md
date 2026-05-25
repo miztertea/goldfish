@@ -27,13 +27,6 @@ goldfish is an orchestration layer (~500 lines of Python) that installs and wire
 - **Hook handlers return in <10ms.** Write to queue.jsonl and exit. Never block Claude.
 - **GitNexus is PolyForm Noncommercial.** Install via `npm install -g gitnexus` only. Never bundle.
 
-## Hook event routing
-
-Synchronous (Claude waits for stdout): `SessionStart`, `UserPromptSubmit`, `PreCompact`
-Async (`async: true`): `PostToolUse`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Stop`, `SessionEnd`
-
-goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus registers its own `PreToolUse` and `PostToolUse` during `gitnexus analyze` — both sets coexist without conflict.
-
 ## Testing approach
 
 - Test at module boundaries: input/output assertions, not internal calls
@@ -57,26 +50,45 @@ goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus reg
 
 ## Agent Knowledge Tools (managed by goldfish)
 
-goldfish wires together three intelligence layers. Query all three before any non-trivial task.
+goldfish coordinates four layers of agent intelligence. All four are available from session start.
 
-| Layer | Tool | What it knows |
-|-------|------|---------------|
-| Code + impact | GitNexus (MCP) | Call graph, execution flows, blast radius, pre-commit diff |
-| Episodic memory | OMEGA (MCP) | Past decisions, session history, known issues |
-| Semantic search | Semble (MCP) | Code by meaning, vault notes and decisions |
+| Layer | What it is | When it loads |
+|-------|-----------|--------------|
+| Layer 0 — MEMORY.md | File-based: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
+| Layer 1 — Tool blocks | GitNexus (code graph), OMEGA (episodic memory), Semble (semantic search) | MCP on demand; OMEGA via omega_welcome() |
+| Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
+| Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
-### Before any refactor or architecture change:
-1. GitNexus context — understand the symbol and its callers
-2. GitNexus impact — know the blast radius before touching anything
-3. OMEGA query — check prior decisions and known issues on this topic
-4. Then act.
+Layer 0 is static (loads automatically); Layer 1 tools are dynamic (called on demand).
 
-Each tool's full usage instructions are in its own maintained section in this file.
+### Session Start (required)
 
+Steps 2–3 are initialization calls, not task responses. The skill-check in step 4 applies to the user's first request.
+
+1. MEMORY.md loads automatically — no action needed
+2. Call `omega_welcome()` — context briefing and recent activity
+3. Call `omega_protocol()` — operating rules for this session
+4. Check for applicable skills before responding to the user's first request
+5. Work begins
+
+### Before Any Non-Trivial Task
+
+Query all three intelligence tools:
+- **GitNexus** — call graph, blast radius, execution flows
+- **OMEGA** — prior decisions, session history, known issues
+- **Semble** — code by meaning, vault notes
+
+Each tool's full usage instructions are in its own auto-maintained block below (Layer 1).
 
 ---
 
 <!-- layer 1: tool blocks — do not edit, maintained by each tool -->
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **goldfish** (1079 symbols, 1309 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
 ## Always Do
 
