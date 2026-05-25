@@ -409,7 +409,13 @@ act -j matrix         # run the matrix job (Linux container, macOS/Windows mappe
 
 Phase 4 deliverable: add `act` to CONTRIBUTING.md with the local workflow commands above.
 
-**Limitation:** `act` maps all runner types to Linux containers — macOS/Windows-specific path behavior still requires real GitHub CI runners. For goldfish's init flow, pytest, and CLI smoke tests, Linux is sufficient for local validation.
+**Why Linux-only local testing is sufficient:**
+goldfish is orchestration — a thin Python layer that installs and configures already-cross-platform-tested tools (Claude Code, GitNexus, OMEGA, Semble). The actual cross-platform risk surface is narrow:
+- Python logic: same binary everywhere (`pathlib.Path`, `subprocess` with list args, all deps cross-platform)
+- External tools: they handle their own platform concerns
+- The one genuine risk: `settings.json` hook entries must resolve to the correct binary path format on each OS (Windows needs `.exe` path with Windows separators)
+
+This risk surfaces immediately when `goldfish init` runs on a real runner, which is exactly what the macOS/Windows CI gate on `main` tests. Linux-local covers all the logic; GitHub runners catch the narrow shell/path integration issues before any release.
 
 **Researched and ruled out — local Windows/macOS container testing:**
 The idea of testing uvbox-built binaries in local containers (dockur/windows, docker-osx) was evaluated and found impractical:
