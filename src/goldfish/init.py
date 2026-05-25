@@ -29,16 +29,17 @@ goldfish wires together four layers of agent intelligence. All four activate at 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
 | Layer 0 — MEMORY.md | Static baseline: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
-| Layer 1 — Tool blocks | GitNexus (code), OMEGA (episodic), Semble (semantic) — auto-maintained | Call omega_welcome() |
+| Layer 1 — Tool blocks | GitNexus (code), OMEGA (episodic), Semble (semantic) — auto-maintained | On demand (MCP); OMEGA via omega_welcome() |
 | Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
 ### Session Start (required)
 
 1. MEMORY.md loads automatically — no action needed
-2. Call `omega_welcome()` → `omega_protocol()` — activates episodic context
-3. Check for applicable skills before any response
-4. Work begins
+2. Call `omega_welcome()` — briefing and recent activity
+3. Call `omega_protocol()` — operating instructions
+4. Check for applicable skills before any response
+5. Work begins
 
 ### Before Any Non-Trivial Task
 
