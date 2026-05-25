@@ -339,3 +339,14 @@ def test_init_calls_mine_project_for_existing_project(tmp_path):
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
 
     mock_mine.assert_called_once_with(str(project_dir))
+
+
+def test_claude_md_block_describes_four_layer_stack():
+    from goldfish.init import _CLAUDE_MD_BLOCK
+    assert "Layer 0" in _CLAUDE_MD_BLOCK, "Must reference Layer 0 (MEMORY.md)"
+    assert "MEMORY.md" in _CLAUDE_MD_BLOCK, "Must name MEMORY.md explicitly"
+    assert "omega_welcome()" in _CLAUDE_MD_BLOCK, "Session start must call omega_welcome()"
+    assert "Session Start" in _CLAUDE_MD_BLOCK, "Must have Session Start section"
+    assert "Layer 1" in _CLAUDE_MD_BLOCK, "Must reference Layer 1 (tool blocks)"
+    assert "Layer 2" in _CLAUDE_MD_BLOCK, "Must reference Layer 2 (goldfish)"
+    assert "Layer 3" in _CLAUDE_MD_BLOCK, "Must reference Layer 3 (project)"
