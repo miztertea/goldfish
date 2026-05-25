@@ -66,9 +66,11 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfish vault | explicit `write_note()` when human audience warrants it |
 
-Vault = human-readable architectural summaries; OMEGA = machine-queryable decision records. The same decision can produce both — one for reading, one for querying.
+For reads: auto-memory is authoritative for user preferences; `omega_profile()` is supplemental — additional signal, not ground truth.
+
+Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this note. Architectural decisions may warrant both; session facts warrant OMEGA only. Goldfish hooks automatically write vault notes for task events and session checkpoints — architectural summaries require explicit agent writes.
 
 Before acting on a project memory that makes code-specific claims (file paths, function names, shipped state), verify against `git log` or a file read.
 
@@ -82,12 +84,16 @@ Steps 2–3 are initialization calls, not task responses. The skill-check in ste
 4. Check for applicable skills before responding to the user's first request
 5. Work begins
 
+> GitNexus/Semble load on-demand — intentional just-in-time delivery, not a gap. Targeted context arrives exactly when the relevant question is asked.
+
 ### Before Any Non-Trivial Task
 
 Query all three intelligence tools:
 - **GitNexus** — call graph, blast radius, execution flows
 - **OMEGA** — prior decisions, session history, known issues
 - **Semble** — code by meaning, vault notes
+
+> **GitNexus staleness:** The stale warning fires after every commit — expected during active development. Re-analyze (`npx gitnexus analyze`) before code intelligence tasks (impact analysis, exploration), not after every commit. Prefer worktrees for feature development — each worktree has its own `.gitnexus/` index. See `superpowers:using-git-worktrees`.
 
 Before spawning subagents: `omega_query()` first, inject results into agent prompt — subagents cannot call MCP tools (OMEGA, GitNexus, Semble).
 
