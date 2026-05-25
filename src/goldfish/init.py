@@ -63,6 +63,8 @@ Query all three intelligence tools:
 - **OMEGA** — prior decisions, session history, known issues
 - **Semble** — code by meaning, vault notes
 
+Before spawning subagents: `omega_query()` first, inject results into agent prompt — subagents cannot call MCP tools (OMEGA, GitNexus, Semble).
+
 GitNexus usage instructions are in the auto-maintained block below. OMEGA and Semble deliver their instructions via MCP server context at session start.
 """
 

@@ -46,17 +46,18 @@ goldfish is an orchestration layer (~500 lines of Python). Every function is a s
 | `config.py` | Reads/writes ~/.goldfish/config.toml and per-project .manifest.toml |
 | `miner.py` | Replays historical JSONL sessions through OMEGA's own hooks |
 
-## Three-layer agent instruction model
+## Four-layer agent instruction model
 
-goldfish installs agent instructions at three layers. Understanding the layers prevents duplication and drift:
+goldfish installs agent instructions at four layers. Understanding the layers prevents duplication and drift:
 
 | Layer | Maintained by | Where | Content |
 |-------|--------------|-------|---------|
+| Layer 0 — File-based memory | Auto-memory system | `memory/*.md` loaded at session start | User preferences, behavioral feedback, reference pointers — zero latency |
 | Layer 1 — Tool-native | GitNexus, OMEGA, Semble | `<!-- gitnexus:start/end -->` in project files; `~/.claude/CLAUDE.md` for OMEGA; `.claude/agents/semble-search.md` | Each tool's specific MCP tool signatures and usage examples |
-| Layer 2 — Coordination | goldfish (`init.py` → `claude_md.py`) | `## Agent Knowledge Tools (managed by goldfish)` sentinel | Cross-tool orchestration: query all three layers before acting |
+| Layer 2 — Coordination | goldfish (`init.py` → `claude_md.py`) | `## Agent Knowledge Tools (managed by goldfish)` sentinel | Cross-tool orchestration: query all layers before acting |
 | Layer 3 — Project-specific | Human or agent | Above maintained blocks in `CLAUDE.md` and `AGENTS.md` | Codebase-specific guardrails, module map, contributor workflow |
 
-Rule: Layer 3 and 2 authored content says WHY and WHAT. Layer 1 blocks say HOW.
+Rule: Layer 3 and 2 authored content says WHY and WHAT. Layer 1 blocks say HOW. Layer 0 loads automatically at zero latency.
 
 ## Project identity and vault location
 
