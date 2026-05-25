@@ -132,7 +132,7 @@ Each tool's full usage instructions are in its own maintained section in this fi
 | File | Change |
 |------|--------|
 | `CLAUDE.md` | Layer 2 section (goldfish block) updated to describe four-layer stack. Layer 3 (project constitution) separated by a `---` rule and a `<!-- layer 3: project -->` comment so the boundary is visible without being a code sentinel. Layer 1 tool blocks remain tool-maintained and untouched. |
-| `AGENTS.md` | Stripped to Layers 2-3 only. Duplicated GitNexus block removed. Pointer added: "Tool-specific blocks (GitNexus, OMEGA, Semble) are auto-maintained in CLAUDE.md." |
+| `AGENTS.md` | Layer boundary markers added (matching CLAUDE.md). GitNexus auto-manages its block in AGENTS.md too — block kept. "Tool-Specific Instructions (Layer 1)" section updated to say blocks are auto-maintained in this file. |
 | `src/goldfish/init.py` | `_CLAUDE_MD_BLOCK` updated to four-layer table + session sequence. No other Python changes. |
 | `~/.claude/CLAUDE.md` (global, manual) | User updates their own global CLAUDE.md: session start sequence simplified to defer to the Layer 2 block in each project. goldfish does NOT write to this file — it is the user's private global config. |
 
@@ -150,3 +150,9 @@ Each tool's full usage instructions are in its own maintained section in this fi
 - This does not change any goldfish Python code beyond `_CLAUDE_MD_BLOCK` in `init.py`. The sentinel string (`GOLDFISH_SENTINEL`) in `claude_md.py` is unchanged.
 - This does not change GitNexus, OMEGA, or Semble — they continue to maintain their own blocks.
 - This does not add a goldfish sync command to mirror tool blocks from CLAUDE.md to AGENTS.md (accepted limitation — AGENTS.md gets a pointer instead).
+
+## Post-Implementation Notes
+
+**GitNexus manages both CLAUDE.md and AGENTS.md.** The original design assumed GitNexus only wrote its block to CLAUDE.md. In practice, `gitnexus analyze` also maintains its block in AGENTS.md. This means AGENTS.md is fully self-contained for any agent framework — no pointer to CLAUDE.md is needed for Layer 1. The layer marker approach was applied to both files identically.
+
+**Global `~/.claude/CLAUDE.md` (manual, optional).** The OMEGA startup rule in the global CLAUDE.md is now reinforced by the Layer 2 goldfish block in every project. No breaking change. The global rule may be simplified to remove redundancy, but is not required for the system to work correctly.
