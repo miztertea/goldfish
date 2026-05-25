@@ -325,12 +325,21 @@ This is the real integration test — it validates the full new-user onboarding 
 - GitHub Issues labels configured (bug, enhancement, idea, breaking, good first issue)
 - GitHub Milestones created for next two planned releases
 
-### Phase 4 — Dev containers (future spec)
-Local dev containers give agents and contributors a pre-configured environment with all external tools installed. Deferred — separate design session required. Will cover:
-- `.devcontainer/devcontainer.json` with Node.js, uv, Claude Code, GitNexus, OMEGA, Semble pre-installed
-- Container used for local agent development (consistent environment)
-- CI can optionally run matrix tests inside the container instead of bare runners
-- Particularly valuable for Windows: agents on Linux can develop against a Linux container rather than needing a Windows machine
+### Phase 4 — Local CI with `act`
+`act` (github.com/nektos/act) runs GitHub Actions workflows locally using Docker, pulling the same runner images GitHub uses. No custom devcontainer required.
+
+```bash
+brew install act      # or apt-get / scoop on Windows
+
+act push              # simulate a full push event locally
+act -j quality        # run just the quality job
+act -j test           # run just the test job
+act -j matrix         # run the matrix job (Linux container, macOS/Windows mapped to Linux)
+```
+
+Phase 4 deliverable: add `act` to CONTRIBUTING.md with the local workflow commands above.
+
+**Limitation:** `act` maps all runner types to Linux containers — macOS/Windows-specific path behavior still requires real GitHub CI runners. For goldfish's init flow, pytest, and CLI smoke tests, Linux is sufficient for local validation.
 
 ---
 
