@@ -979,7 +979,7 @@ gh api repos/miztertea/goldfish/milestones \
   -f title="v0.1.0 — CI/CD pipeline" \
   -f description="First public release with full CI/CD pipeline"
 
-gh api repos/miztertee/goldfish/milestones \
+gh api repos/miztertea/goldfish/milestones \
   -X POST \
   -f title="v0.2.0 — Platform validation" \
   -f description="Windows hook path fix, full cross-platform green CI"
