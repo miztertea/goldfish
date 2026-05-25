@@ -52,7 +52,7 @@ Query all three intelligence tools:
 - **OMEGA** — prior decisions, session history, known issues
 - **Semble** — code by meaning, vault notes
 
-Each tool's full usage instructions are in its own auto-maintained block below (Layer 1).
+GitNexus usage instructions are in the auto-maintained block below. OMEGA and Semble deliver their instructions via MCP server context at session start.
 """
 
 
