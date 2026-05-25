@@ -84,9 +84,45 @@ Add one line in the session start sequence:
 
 **Summary: 0 RED / 3 YELLOW / 3 GREEN**
 
+## Section 4 — GitNexus Staleness UX
+
+### Problem
+
+GitNexus registers a PostToolUse hook that fires after **every** tool call and compares git HEAD to the last analyzed commit. When HEAD has changed (i.e., after any commit), it injects a stale warning. During active development this fires constantly — after every `git commit` — creating noise and a false obligation to re-analyze.
+
+The current instruction ("If any GitNexus tool warns the index is stale, run `npx gitnexus analyze`") is correct in intent but creates the wrong reflex: re-analyze reactively after every commit rather than proactively before code intelligence tasks.
+
+### Fix: Instruction clarity
+
+Add a note to the GitNexus section of the goldfish coordination block (layer 2, editable):
+
+> "The stale warning fires after every commit — this is expected during active development. Re-analyze before code intelligence tasks (impact analysis, exploration), not after every commit. One `npx gitnexus analyze` at the start of a work session is sufficient."
+
+### Fix: Worktree workflow guidance
+
+GitNexus stores its index at `{cwd}/.gitnexus/`. Each git worktree has its own working directory, so each worktree gets its own independent `.gitnexus/` index. This means:
+
+- Main branch index stays clean while feature work happens in a worktree
+- Stale warnings in a worktree don't affect the main branch analysis
+- Re-analyze per worktree when code intelligence is needed for that feature
+
+Add guidance to the coordination block:
+
+> "Prefer worktrees for feature development — each worktree has its own `.gitnexus/` index, keeping the main branch analysis clean. Use `superpowers:using-git-worktrees` for the workflow."
+
+### Files to modify
+
+Add both notes to `goldfish/CLAUDE.md` coordination block (layer 2) and sync `src/goldfish/init.py` `_CLAUDE_MD_BLOCK`.
+
+### OMEGA decision to store (add to Section 3)
+
+6. **GitNexus staleness is expected during commits**: The stale warning fires after every commit via PostToolUse hook. This is correct behavior, not a problem. Re-analyze before code intelligence tasks (impact analysis, exploration) — not reactively after every commit. One analyze per work session is the right cadence. Worktrees isolate `.gitnexus/` indices, so prefer worktrees for feature work.
+
+---
+
 ## Section 3 — OMEGA Decision Reinforcement
 
-Store five decisions with type `"decision"`:
+Store six decisions with type `"decision"` (decision #6 is defined in Section 4):
 
 1. **Arrival gap closed**: GitNexus/Semble load on-demand by design — just-in-time delivery of targeted context, not a gap. Arrival gap diagnostic scores GREEN for this architecture.
 
@@ -98,10 +134,17 @@ Store five decisions with type `"decision"`:
 
 5. **Instruction fiction guard**: PreCompact no longer calls `omega flush` — removed in goldfish v1.0 polish. PreCompact writes vault checkpoint via `vault.write()` only. Any doc showing `omega flush` in PreCompact flow is stale.
 
+Also add `goldfish/CLAUDE.md` to scope table:
+
+| File | Change |
+|------|--------|
+| `goldfish/CLAUDE.md` | Add GitNexus staleness note + worktree guidance to coordination block |
+| `src/goldfish/init.py` | Sync `_CLAUDE_MD_BLOCK` |
+
 ## Success Criteria
 
 - `/goldfish-diagnostic` Run 4 scores 0 RED / 3 YELLOW / 3 GREEN
 - No `omega flush` references remain in docs or instruction blocks
 - `_CLAUDE_MD_BLOCK` in `init.py` matches `goldfish/CLAUDE.md` exactly
-- Five OMEGA decisions stored and queryable
+- Six OMEGA decisions stored and queryable
 - Stale reference sweep complete, findings documented or fixed
