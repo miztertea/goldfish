@@ -1,16 +1,19 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "goldfish"
-version = "0.9.6"
+dynamic = ["version"]
 requires-python = "==3.13.*"
 dependencies = ["tomli-w", "PyYAML", "typer", "chonkie"]
 
 [project.urls]
 Homepage = "https://github.com/miztertea/goldfish"
 Repository = "https://github.com/miztertea/goldfish"
+
+[tool.hatch.version]
+source = "vcs"
 
 [project.optional-dependencies]
 dev = ["pytest"]
