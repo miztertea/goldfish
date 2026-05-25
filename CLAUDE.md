@@ -1,113 +1,71 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## What this is
 
-## Read these first — every session, no exceptions
+goldfish is an orchestration layer (~500 lines of Python) that installs and wires together GitNexus, OMEGA, and Semble. It does not build search, embeddings, or graphs — those problems are solved by dedicated tools. Every function is a subprocess call, a file write, or a config read.
 
-- **PRD.md** — specification and architecture
-- **DESIGN-COMPANION.MD** — every decision and why it was made
+## Module map
 
-## What This Is
+| File | Responsibility |
+|------|---------------|
+| `cli.py` | Typer CLI: init, hook, drain, register-hooks, status, doctor, replay, mine |
+| `init.py` | Setup wizard: detects/installs deps, scaffolds vault, registers hooks |
+| `hook.py` | Reads stdin event → appends to queue.jsonl; enriches UserPromptSubmit synchronously |
+| `drain.py` | Time-budgeted queue processor: routes events to subprocess/OMEGA API/file writes |
+| `enricher.py` | Chonkie decompose → Semble + OMEGA fan-out per prompt chunk |
+| `vault.py` | pathlib-only file writes: write_note(), read_note(), scaffold() |
+| `claude_md.py` | Upserts goldfish block in CLAUDE.md; registers hooks in settings.json |
+| `config.py` | Reads/writes ~/.goldfish/config.toml and per-project .manifest.toml |
+| `miner.py` | Replays historical JSONL sessions through OMEGA's own hooks |
 
-Goldfish is a Python CLI tool (`uvx goldfish init`) that wires together existing open-source tools to give Claude Code agents persistent, structured memory across sessions. It is **not** a memory engine — it is an orchestration layer (think Ansible playbook) that installs and connects: GitNexus, OMEGA, Semble, and Chonkie. ~400–600 lines of Python total. No search algorithms, no embeddings, no graph code.
+## Non-negotiable constraints
 
-## Module Structure
+- **Never write search, embedding, or graph code.** Find the right tool and call it.
+- **No always-on processes.** Every tool opens, executes, and closes. No daemons.
+- **Hook handlers return in <10ms.** Write to queue.jsonl and exit. Never block Claude.
+- **GitNexus is PolyForm Noncommercial.** Install via `npm install -g gitnexus` only. Never bundle.
 
-```
-cli.py       — typer CLI: init, hook, process, status, doctor, replay
-init.py      — wizard: detects/installs all deps, runs gitnexus analyze + omega setup, scaffolds vault
-hook.py      — reads stdin JSON event, appends to queue.jsonl, exits (<10ms); synchronously enriches UserPromptSubmit only
-drain.py     — reads queue with 200ms budget, routes by event type to subprocess/OMEGA API/file writes
-vault.py     — pathlib-only file writes: write_note(), read_note(), scaffold(); YAML frontmatter; no network
-claude_md.py — surgically appends/updates CLAUDE.md and ~/.claude/settings.json; never overwrites
-config.py    — reads/writes ~/.goldfish/config.toml and per-project .manifest.toml
-```
+## Hook event routing
 
-## The Five Failures (drives every decision)
-
-Every feature must map to at least one:
-1. **Session amnesia** → OMEGA (SQLite episodic memory)
-2. **Codebase blindness** → GitNexus (code graph, `npx gitnexus analyze`)
-3. **Decision blindness** → OMEGA + vault markdown notes
-4. **Impact blindness** → GitNexus (`gitnexus impact()`)
-5. **Prompt deafness** → Chonkie (decompose prompt) + Semble (search code + vault) + OMEGA
-
-## Tool Stack
-
-| Tool | Install | Purpose |
-|------|---------|---------|
-| GitNexus | `npm install -g gitnexus` → `npx gitnexus analyze` | Code graph, blast radius, hooks, skills — do not replicate |
-| OMEGA | `uv tool install "omega-memory[server]"` → `omega setup --download-model && omega setup --client claude-code` | Episodic memory, MCP, SQLite+ONNX, no daemon |
-| Semble | `uv tool install semble` | Semantic code search + vault search via `--include-text-files` |
-| Chonkie | goldfish dependency | SentenceChunker decomposes multi-topic prompts before fan-out |
-
-## Non-Negotiable Constraints
-
-- **Never write search, embedding, or graph code.** If you're writing a search algorithm, stop and find the right tool.
-- **No always-on processes.** Every tool opens, executes, and closes. No daemons, no Docker.
-- **Hook handlers must return in <10ms.** Write to queue.jsonl and exit. Never block Claude.
-- **GitNexus license:** PolyForm Noncommercial. Install via `npm install -g gitnexus` only. Never bundle or redistribute.
-- **Obsidian is optional.** Write markdown files with pathlib. That's the entire Obsidian integration. No plugins, no API keys, no REST client.
-- **init.py is idempotent.** Re-running reports health, does not overwrite working config.
-
-## Hook Event Routing
-
-Synchronous (Claude waits for stdout): `SessionStart`, `UserPromptSubmit`, `PreCompact`  
+Synchronous (Claude waits for stdout): `SessionStart`, `UserPromptSubmit`, `PreCompact`
 Async (`async: true`): `PostToolUse`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Stop`, `SessionEnd`
 
-Note: goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly, but goldfish's `drain.py` has no PostToolUse handlers — GitNexus handles PostToolUse processing via its own hooks.
+goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus registers its own `PreToolUse` and `PostToolUse` during `gitnexus analyze` — both sets coexist without conflict.
 
-GitNexus registers its own `PreToolUse` and `PostToolUse` hooks during `gitnexus analyze` — these coexist, no conflict.
+## Testing approach
 
-## Queue Design
+- Test at module boundaries: input/output assertions, not internal calls
+- Stub subprocess calls and the OMEGA API — tests run without live tool installations
+- ~100 tests, ~0.3s
+- See `tests/` for patterns per module
 
-`~/.goldfish/queue.jsonl` — atomic JSONL appends, no locking. Drain prioritizes: session-lifecycle > tool events > file-change events. Partial drains leave remaining lines for the next cycle.
+## Docs
 
-## Vault Layout
+| Topic | File |
+|-------|------|
+| System architecture + runtime flows | [docs/architecture.md](docs/architecture.md) |
+| Five failures framework | [docs/five-failures.md](docs/five-failures.md) |
+| Tool selection rationale | [docs/tool-selection.md](docs/tool-selection.md) |
+| Design decisions log | [docs/design-decisions.md](docs/design-decisions.md) |
+| Obsidian optional viewer | [docs/obsidian.md](docs/obsidian.md) |
 
-```
-~/.goldfish/vaults/{project-name}/
-├── .manifest.toml       ← last_byte_offset, bootstrap_complete, semble_indexed_at
-├── Memory/
-│   ├── Decisions/
-│   ├── Lessons/
-│   ├── Errors/
-│   └── Checkpoints/
-├── Specs/
-├── Tasks/
-└── _context/            ← ephemeral wake-up.md, refreshed each session
-```
+## Agent Knowledge Tools (managed by goldfish)
 
-Project identity = `cwd`. Vault name = `Path(cwd).name`. No Code/ directory — GitNexus owns code intelligence in `.gitnexus/`.
+goldfish wires together three intelligence layers. Query all three before any non-trivial task.
 
-## Vault Note Frontmatter Schema
+| Layer | Tool | What it knows |
+|-------|------|---------------|
+| Code + impact | GitNexus (MCP) | Call graph, execution flows, blast radius, pre-commit diff |
+| Episodic memory | OMEGA (MCP) | Past decisions, session history, known issues |
+| Semantic search | Semble (MCP) | Code by meaning, vault notes and decisions |
 
-```yaml
----
-id: decision-{slug}-{date}
-type: decision | lesson | error | checkpoint
-valid_from: 2026-03-01
-superseded_by: null          # set this instead of deleting old notes
-confidence: 0.94
-source_session: abc123
-source_offset: 48291
-related:
-  - "[[Specs/auth-spec]]"
----
-```
+### Before any refactor or architecture change:
+1. GitNexus context — understand the symbol and its callers
+2. GitNexus impact — know the blast radius before touching anything
+3. OMEGA query — check prior decisions and known issues on this topic
+4. Then act.
 
-Semble search excludes notes where `superseded_by` is non-null (by not indexing them).
-
-## Testing Approach
-
-Test at module boundaries via input/output assertions, not internal function calls. Stub subprocess calls and the OMEGA API — tests run without live tool installations.
-
-- **hook.py:** Any event payload → exactly one line added to queue.jsonl
-- **drain.py:** Five queued events, 200ms budget for three → two remain in priority order
-- **vault.py:** Decision payload → correct file at correct path with all frontmatter fields
-- **config.py:** No manifest → `is_new_project()` returns true; manifest with offset → correct sync state
-- **init.py:** Node.js absent → reports gap before touching any files; existing config → health check only
-- **claude_md.py:** Existing CLAUDE.md → block appended, existing content unchanged; second run → block updated in place, not duplicated
+Each tool's full usage instructions are in its own maintained section in this file.
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
@@ -152,29 +110,3 @@ This project is indexed by GitNexus as **goldfish** (821 symbols, 1034 relations
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
-
-## Agent Knowledge Tools (managed by goldfish)
-
-### Before any non-trivial task — query all three layers:
-
-#### Code + Impact Intelligence — GitNexus (MCP)
-- `query({query})` — hybrid BM25+semantic search across code graph
-- `context({name})` — 360° view of any symbol (callers, callees, processes)
-- `impact({target}, direction="upstream")` — blast radius before ANY change
-- `detect_changes()` — map staged changes to affected processes pre-commit
-
-#### Episodic Memory — OMEGA (MCP)
-- `omega_query("why did we choose JWT")` — past decisions
-- `omega_query("rate limiter bug")` — known issues
-- `omega_query("Sarah rate limiter")` — person + topic references
-
-#### Semantic Search — Semble (MCP)
-- `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>")` — vault notes (markdown indexed automatically)
-
-### Mandatory workflow before refactoring:
-1. `gitnexus context({name})` → understand the symbol
-2. `gitnexus impact({target})` → know what breaks
-3. `omega_query(topic)` → check past decisions
-4. Then act.
-
