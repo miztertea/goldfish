@@ -19,25 +19,11 @@ Designed for the GitHub free tier while private; once the repo goes public, macO
 
 Current version `0.9.6` carries no semantic meaning. Reset to `0.1.0` at pipeline launch to signal pre-stable development. The `0.x.y` range means "no API stability guarantees" — no pressure to hit 1.0 until the API is genuinely stable.
 
-### hatch-vcs: version from git tags
-
-Replace the hardcoded version in `pyproject.toml` with tag-derived versioning:
-
-```toml
-[build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
-
-[project]
-dynamic = ["version"]
-
-[tool.hatch.version]
-source = "vcs"
-```
-
-The version is derived from the nearest git tag at build time. No version number lives in any source file — the tag IS the version. This eliminates stale version references in docs and code.
-
 ### python-semantic-release: automated bumping
+
+PSR manages the version in `pyproject.toml` directly. Keep `version = "0.1.0"` as a static field — PSR reads it, bumps it, commits the change, then tags and creates a GitHub Release. No `hatch-vcs` or `dynamic = ["version"]` — those conflict with PSR because PSR requires a static field to write to.
+
+> **Why not hatch-vcs?** hatch-vcs replaces the static version field with `dynamic = ["version"]`. PSR needs a static field to read the current version and write the next one. The two tools are architecturally incompatible. PSR automation already achieves the "no manual version management" goal — hatch-vcs adds no value here.
 
 Semantic-release reads conventional commit prefixes to determine the next version:
 
@@ -48,12 +34,29 @@ Semantic-release reads conventional commit prefixes to determine the next versio
 | `chore:`, `docs:`, `refactor:`, `test:` | no release |
 | `BREAKING CHANGE:` in footer | major (0.1.0 → 1.0.0) |
 
+Required `pyproject.toml` configuration block:
+
+```toml
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+tag_format = "v{version}"
+commit_message = "chore(release): v{version}"
+
+[tool.semantic_release.changelog]
+changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.remote]
+type = "github"
+```
+
 Semantic-release runs after all gates pass on `main`. It:
 1. Determines the next version from conventional commits since the last tag
-2. Commits an updated `CHANGELOG.md` to `main`
-3. Creates a git tag and GitHub Release
+2. Bumps `version` in `pyproject.toml`
+3. Commits updated `pyproject.toml` + `CHANGELOG.md` to `main`
+4. Creates a git tag and GitHub Release
 
-Because it pushes the CHANGELOG.md commit directly to `main`, it requires a branch protection bypass. A Personal Access Token (PAT) with `repo` scope is stored as `GH_TOKEN` in repo secrets and configured as a bypass actor in the branch protection ruleset.
+Because it pushes a commit directly to `main`, it requires a branch protection bypass. A Personal Access Token (PAT) with `repo` scope is stored as `GH_TOKEN` in repo secrets and configured as a bypass actor in the branch protection ruleset.
 
 ---
 
@@ -61,7 +64,7 @@ Because it pushes the CHANGELOG.md commit directly to `main`, it requires a bran
 
 ### Branch naming
 
-All work lives on a branch. Direct pushes to `main` are prohibited (with one exception: the semantic-release tag push, which uses a configured token bypass).
+All work lives on a branch. Direct pushes to `main` are prohibited (with one exception: the semantic-release release commit, which uses a configured token bypass).
 
 Branch names match conventional commit prefixes:
 
@@ -106,31 +109,44 @@ Semantic-release reads commit messages to determine version bumps. All commits m
 
 This is already in use — git history confirms compliance.
 
-### Branch protection and rulesets
+### Branch protection (GitHub Rulesets API)
 
-Configure via GitHub API after Phase 1 CI is green. The following `gh api` calls set the required rules:
+Configure via GitHub Rulesets API after Phase 1 CI is green. Rulesets are the forward-looking approach (protection rules API is not deprecated but receives no new features).
 
 ```bash
-# Set branch protection on main
-gh api repos/miztertea/goldfish/branches/main/protection \
-  -X PUT \
+gh api repos/miztertea/goldfish/rulesets \
+  -X POST \
   -H "Accept: application/vnd.github+json" \
-  -f 'required_status_checks={"strict":true,"contexts":["quality","test"]}' \
-  -f 'enforce_admins=false' \
-  -f 'required_pull_request_reviews=null' \
-  -f 'restrictions=null' \
-  -f 'allow_force_pushes=false' \
-  -f 'allow_deletions=false'
+  --input - <<'EOF'
+{
+  "name": "main branch protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {"type": "pull_request", "parameters": {"required_approving_review_count": 0, "dismiss_stale_reviews_on_push": false, "require_code_owner_review": false, "require_last_push_approval": false, "required_review_thread_resolution": false}},
+    {"type": "required_status_checks", "parameters": {"strict_required_status_checks_policy": true, "required_status_checks": [{"context": "quality"}, {"context": "test"}]}}
+  ],
+  "bypass_actors": []
+}
+EOF
 ```
 
-The semantic-release PAT (stored as `GH_TOKEN`) must be added as a bypass actor in the GitHub repo settings UI (Settings → Branches → Edit rule → Bypass list). This cannot be set via the API on the free plan.
+The semantic-release PAT (stored as `GH_TOKEN`) must be added as a bypass actor manually in GitHub repo settings UI after the ruleset is created (Settings → Rules → Edit → Bypass list). Rulesets support bypass actors but the actor must exist before it can be referenced by ID in the API.
 
 Rules enforced:
 - Required status checks (`quality`, `test`) must pass before merging
-- Force pushes blocked
+- Force pushes blocked (non_fast_forward rule)
 - Branch deletions blocked
 - No required approving reviews (solo project — CI is the gate)
-- Semantic-release PAT bypasses the rule to push the CHANGELOG.md commit
+- Semantic-release PAT bypasses the rule for its release commit
 
 ### CHANGELOG.md
 
@@ -148,7 +164,7 @@ Each entry looks like:
 - fix hook routing for PreCompact events (#11)
 ```
 
-`CHANGELOG.md` is committed to the repo root and published on the GitHub Release page.
+`CHANGELOG.md` is committed to the repo root and also included on the GitHub Release page.
 
 ### PR template
 
@@ -174,39 +190,47 @@ Checklist prompts contributors to identify the commit type (which determines the
 quality (ubuntu-latest)                     ← runs on every push + PR
   ruff check .
   ruff format --check .
-  mypy src/ (lenient config — see below)
-  bandit -r src/
-  pip-audit
-        ↓
+  mypy src/goldfish/ (lenient — see below)
+  bandit -r src/ -ll                        ← medium+ severity only (skips B603/B607)
+  uv run pip-audit                          ← run inside uv venv
+
+claude-review (ubuntu-latest)               ← runs on pull_request events only (parallel)
+  anthropics/claude-code-action@v1
+  → posts inline review comments
+  → responds to @claude mentions
+  continue-on-error: true                   ← never gates merge
+
 test (ubuntu-latest, needs: quality)
   uv run pytest
-        ↓ conditional: push to main only
-matrix (macos-latest + windows-latest, parallel, needs: test)
-  uv run pytest                             ← full suite on each OS
-  uv build
-  uv tool install dist/goldfish-*.whl
-  goldfish --help
-  goldfish init                             ← installs Claude Code, GitNexus, OMEGA, Semble
-  goldfish status
-  goldfish doctor
-        ↓ conditional: push to main only, after matrix
+
+matrix (needs: test)
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  strategy.matrix.os: [macos-latest, windows-latest]
+  steps (all use shell: bash for cross-platform glob/path compatibility):
+    uv sync --group dev
+    uv run pytest                           ← full suite
+    actions/setup-node@v4                   ← npm required for goldfish init
+    uv build
+    uv tool install dist/goldfish-*.whl     ← shell: bash ensures glob works on Windows
+    goldfish --help
+    goldfish init                           ← requires ANTHROPIC_API_KEY secret injected
+    goldfish status
+    goldfish doctor
+
 release (ubuntu-latest, needs: matrix)
-  python-semantic-release
-  → determines next version from commits since last tag
-  → creates git tag + GitHub Release
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  python-semantic-release version --push    ← bumps version, commits CHANGELOG.md, tags
+  python-semantic-release publish           ← creates GitHub Release
   → GitHub Release event triggers publish.yml
 ```
 
-**Claude PR review** runs in parallel with `quality` (not a gate — advisory only):
-
-```
-claude-review (ubuntu-latest)               ← runs on pull_request events only
-  anthropics/claude-code-action
-  → posts inline review comments on the PR diff
-  → responds to @claude mentions in PR comments
-```
-
-Requires `ANTHROPIC_API_KEY` secret in repo settings. Burns Anthropic API credits (~cents per review). Non-blocking — does not gate merge.
+**Key job-level notes:**
+- `matrix` has an explicit `if:` guard — macOS/Windows runners only fire on push to `main`, never on PRs
+- `claude-review` has `continue-on-error: true` — it cannot accidentally become a required gate
+- All matrix steps use `shell: bash` so glob patterns and path separators work identically on Windows
+- Matrix job injects `ANTHROPIC_API_KEY` from repo secrets so `goldfish init` can configure OMEGA
+- `uv run pip-audit` runs inside the uv-managed venv so goldfish's actual dependencies are audited
+- `bandit -r src/ -ll` skips low-severity findings (B603/B607 subprocess patterns are expected in this codebase)
 
 ### `publish.yml` — PyPI Trusted Publisher
 
@@ -219,21 +243,37 @@ build (ubuntu-latest)
 
 publish (ubuntu-latest, environment: pypi)
   permissions: id-token: write    ← OIDC, no API token needed
-  pypa/gh-action-pypi-publish
+  pypa/gh-action-pypi-publish@release/v1
   → uploads to PyPI
 ```
 
-Trusted Publisher setup (one-time, in PyPI account settings):
+Trusted Publisher setup (one-time — two parts, both required):
+
+**Part A — PyPI account settings:**
 - Publisher: GitHub Actions
 - Repository: miztertea/goldfish
 - Workflow: publish.yml
 - Environment: pypi
 
+**Part B — GitHub repo settings (Settings → Environments):**
+- Create environment named exactly `pypi`
+- (Optional) add required reviewers or deployment protection rules
+
+Both parts must exist. The OIDC token GitHub issues includes an `environment` claim that PyPI validates against Part A. If the GitHub environment (Part B) doesn't exist, the workflow job cannot start.
+
 No `PYPI_TOKEN` secret needed — OIDC handles authentication.
 
-### Setup action
+### Tool versions
 
-All jobs use `astral-sh/setup-uv@v5` (official Astral action, handles caching automatically).
+Pin at implementation time to latest stable:
+
+| Action | Current stable | Notes |
+|--------|---------------|-------|
+| `astral-sh/setup-uv` | `v5` (or latest) | Verify latest tag before implementing |
+| `pypa/gh-action-pypi-publish` | `release/v1` | Rolling major tag, safe to use |
+| `anthropics/claude-code-action` | `v1` | Confirmed on GitHub Marketplace |
+| `actions/checkout` | `v4` | |
+| `actions/setup-node` | `v4` | Needed in matrix job for npm/Claude Code |
 
 ### mypy configuration (lenient start)
 
@@ -243,7 +283,16 @@ ignore_missing_imports = true
 check_untyped_defs = false
 ```
 
-Tighten incrementally as type annotations are added.
+Target `src/goldfish/` not `src/` — this avoids scanning non-package files at the src root. Tighten incrementally as type annotations are added.
+
+### bandit configuration
+
+```toml
+[tool.bandit]
+skips = ["B603", "B607"]   # subprocess.run with list args — expected, not a security issue
+```
+
+Or use the CLI flag: `bandit -r src/ -ll` (medium+ severity only). The subprocess patterns in goldfish are intentional — all commands are hardcoded, not user-supplied.
 
 ### New dev dependencies
 
@@ -257,11 +306,7 @@ pip-audit
 python-semantic-release
 ```
 
-Add to build dependencies:
-
-```
-hatch-vcs
-```
+No new build dependencies needed (hatch-vcs dropped from the design).
 
 ---
 
@@ -290,9 +335,9 @@ Insert before the GitNexus check (Claude Code is the prerequisite for everything
 ### Why this enables CI smoke tests
 
 On a fresh macOS or Windows runner, `goldfish init` will:
-1. Detect Claude Code missing → install via npm
+1. Detect Claude Code missing → install via npm (npm pre-installed via `actions/setup-node@v4`)
 2. Install GitNexus → analyze repo
-3. Install OMEGA → configure
+3. Install OMEGA → configure (requires `ANTHROPIC_API_KEY` injected from repo secrets)
 4. Install Semble → index
 5. Register hooks in Claude Code settings
 
@@ -304,20 +349,21 @@ This is the real integration test — it validates the full new-user onboarding 
 
 ### Phase 0 — Prerequisite (implement first, separate PR)
 - Add Claude Code detection to `goldfish init`
-- Reset version to `0.1.0` tag, switch to hatch-vcs
+- Reset version to `0.1.0` in `pyproject.toml`
+- Add `[tool.semantic_release]` configuration block to `pyproject.toml`
 
 ### Phase 1 — CI pipeline
 - `.github/workflows/ci.yml`
 - Add dev dependencies (ruff, mypy, bandit, pip-audit, python-semantic-release)
-- mypy + ruff configs in pyproject.toml
+- mypy + ruff + bandit configs in `pyproject.toml`
 - `.github/pull_request_template.md`
-- Branch protection rules (configured in GitHub settings, not code)
+- Branch ruleset (via `gh api` command from spec, then bypass actor via UI)
 
 ### Phase 2 — Release pipeline
-- Configure python-semantic-release in pyproject.toml
 - `.github/workflows/publish.yml`
-- PyPI Trusted Publisher setup (in PyPI account — one-time)
-- `ANTHROPIC_API_KEY` secret added to repo (for Claude PR review)
+- Create `pypi` GitHub environment (Settings → Environments)
+- PyPI Trusted Publisher setup (in PyPI account — one-time, Part A)
+- `ANTHROPIC_API_KEY` secret added to repo (for goldfish init in matrix job + Claude PR review)
 
 ### Phase 3 — In-repo docs + roadmap
 - `CONTRIBUTING.md` (branch naming, worktree workflow, commit conventions)
@@ -380,7 +426,8 @@ This is the public-facing "where is this going" document. Agents should read it 
 ## Open Prerequisites (manual steps before implementation)
 
 1. **PyPI package name:** verify `goldfish` is available on PyPI before Phase 2. If taken, choose an alternative (e.g., `goldfish-agent`) and update `pyproject.toml`.
-2. **PyPI Trusted Publisher:** configure in PyPI account settings after Phase 1 CI is green.
-3. **Branch protection bypass:** create a PAT with `repo` scope, store as `GH_TOKEN` secret, add as bypass actor in GitHub branch protection settings UI. Run the `gh api` protection command from the spec after Phase 1 CI is green.
-4. **`ANTHROPIC_API_KEY` secret:** add to GitHub repo secrets for Claude PR review.
-5. **Verify `anthropics/claude-code-action` version tag** at implementation time — use the latest published release tag, not `@main`.
+2. **PyPI Trusted Publisher (Part A):** configure in PyPI account settings after Phase 1 CI is green (Publisher: GitHub Actions, repo: miztertea/goldfish, workflow: publish.yml, env: pypi).
+3. **GitHub environment `pypi` (Part B):** create in GitHub repo Settings → Environments. Required for OIDC token issuance — without this the publish job cannot start.
+4. **Branch protection bypass:** create a PAT with `repo` scope, store as `GH_TOKEN` secret, add as bypass actor in the ruleset via GitHub UI after running the `gh api` command.
+5. **`ANTHROPIC_API_KEY` secret:** add to GitHub repo secrets — used by both the Claude PR review job and `goldfish init` in the matrix smoke test (OMEGA setup requires it).
+6. **Verify `anthropics/claude-code-action` version tag** at implementation time — use the latest published release tag, not `@main`.
