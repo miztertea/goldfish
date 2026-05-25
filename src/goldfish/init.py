@@ -24,7 +24,7 @@ def _goldfish_stable_path() -> Path:
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish wires together four layers of agent intelligence. All four activate at session start.
+goldfish coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -33,7 +33,7 @@ goldfish wires together four layers of agent intelligence. All four activate at 
 | Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
-**Memory systems:** Layer 0 (MEMORY.md) is static file-based memory — user preferences, feedback, references — loaded automatically. Layer 1 OMEGA is episodic MCP memory — decisions, session history, known issues — requires omega_welcome().
+Layer 0 is static (loads automatically); Layer 1 tools are dynamic (called on demand).
 
 ### Session Start (required)
 
