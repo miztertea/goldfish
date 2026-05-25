@@ -28,27 +28,31 @@ goldfish wires together four layers of agent intelligence. All four activate at 
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
-| Layer 0 — MEMORY.md | Static baseline: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
-| Layer 1 — Tool blocks | GitNexus (code), OMEGA (episodic), Semble (semantic) — auto-maintained | On demand (MCP); OMEGA via omega_welcome() |
+| Layer 0 — MEMORY.md | File-based: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
+| Layer 1 — Tool blocks | GitNexus (code graph), OMEGA (episodic memory), Semble (semantic search) | MCP on demand; OMEGA via omega_welcome() |
 | Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
+**Memory systems:** Layer 0 (MEMORY.md) is static file-based memory — user preferences, feedback, references — loaded automatically. Layer 1 OMEGA is episodic MCP memory — decisions, session history, known issues — requires omega_welcome().
+
 ### Session Start (required)
 
+Steps 2–3 are initialization calls, not task responses. The skill-check in step 4 applies to the user's first request.
+
 1. MEMORY.md loads automatically — no action needed
-2. Call `omega_welcome()` — briefing and recent activity
-3. Call `omega_protocol()` — operating instructions
-4. Check for applicable skills before any response
+2. Call `omega_welcome()` — context briefing and recent activity
+3. Call `omega_protocol()` — operating rules for this session
+4. Check for applicable skills before responding to the user's first request
 5. Work begins
 
 ### Before Any Non-Trivial Task
 
 Query all three intelligence tools:
-- GitNexus — call graph, blast radius, execution flows
-- OMEGA — prior decisions, session history, known issues
-- Semble — code by meaning, vault notes
+- **GitNexus** — call graph, blast radius, execution flows
+- **OMEGA** — prior decisions, session history, known issues
+- **Semble** — code by meaning, vault notes
 
-Each tool's full usage instructions are in its own maintained section in this file.
+Each tool's full usage instructions are in its own auto-maintained block below (Layer 1).
 """
 
 
