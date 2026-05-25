@@ -24,19 +24,28 @@ def _goldfish_stable_path() -> Path:
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish wires together three intelligence layers. Query all three before any non-trivial task.
+goldfish wires together four layers of agent intelligence. All four activate at session start.
 
-| Layer | Tool | What it knows |
-|-------|------|---------------|
-| Code + impact | GitNexus (MCP) | Call graph, execution flows, blast radius, pre-commit diff |
-| Episodic memory | OMEGA (MCP) | Past decisions, session history, known issues |
-| Semantic search | Semble (MCP) | Code by meaning, vault notes and decisions |
+| Layer | What it is | When it loads |
+|-------|-----------|--------------|
+| Layer 0 — MEMORY.md | Static baseline: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
+| Layer 1 — Tool blocks | GitNexus (code), OMEGA (episodic), Semble (semantic) — auto-maintained | Call omega_welcome() |
+| Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
+| Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
-### Before any refactor or architecture change:
-1. GitNexus context — understand the symbol and its callers
-2. GitNexus impact — know the blast radius before touching anything
-3. OMEGA query — check prior decisions and known issues on this topic
-4. Then act.
+### Session Start (required)
+
+1. MEMORY.md loads automatically — no action needed
+2. Call `omega_welcome()` → `omega_protocol()` — activates episodic context
+3. Check for applicable skills before any response
+4. Work begins
+
+### Before Any Non-Trivial Task
+
+Query all three intelligence tools:
+- GitNexus — call graph, blast radius, execution flows
+- OMEGA — prior decisions, session history, known issues
+- Semble — code by meaning, vault notes
 
 Each tool's full usage instructions are in its own maintained section in this file.
 """
