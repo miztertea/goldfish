@@ -7,7 +7,7 @@
 
 ## Overview
 
-Full GitHub Actions CI/CD pipeline for the goldfish project. Covers quality gates, cross-platform testing, automated versioning via semantic-release, PyPI publishing via Trusted Publisher (OIDC), Claude PR review, and the in-repo branch/worktree practices agents must follow.
+Full GitHub Actions CI/CD pipeline for the goldfish project. Covers quality gates, cross-platform testing, automated versioning via git-cliff + hatch-vcs, PyPI publishing via Trusted Publisher (OIDC), Claude PR review, and the in-repo branch/worktree practices agents must follow.
 
 Designed for the GitHub free tier while private; once the repo goes public, macOS runner restrictions lift automatically.
 
@@ -19,13 +19,29 @@ Designed for the GitHub free tier while private; once the repo goes public, macO
 
 Current version `0.9.6` carries no semantic meaning. Reset to `0.1.0` at pipeline launch to signal pre-stable development. The `0.x.y` range means "no API stability guarantees" — no pressure to hit 1.0 until the API is genuinely stable.
 
-### python-semantic-release: automated bumping
+### hatch-vcs: version from git tags
 
-PSR manages the version in `pyproject.toml` directly. Keep `version = "0.1.0"` as a static field — PSR reads it, bumps it, commits the change, then tags and creates a GitHub Release. No `hatch-vcs` or `dynamic = ["version"]` — those conflict with PSR because PSR requires a static field to write to.
+Version is derived from the nearest git tag at build time. No version number lives in any source file — the tag IS the version, and hatch-vcs reads it during `uv build`.
 
-> **Why not hatch-vcs?** hatch-vcs replaces the static version field with `dynamic = ["version"]`. PSR needs a static field to read the current version and write the next one. The two tools are architecturally incompatible. PSR automation already achieves the "no manual version management" goal — hatch-vcs adds no value here.
+```toml
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-Semantic-release reads conventional commit prefixes to determine the next version:
+[project]
+dynamic = ["version"]
+
+[tool.hatch.version]
+source = "vcs"
+```
+
+### git-cliff: CHANGELOG and tag automation
+
+`git-cliff` is the natural pairing for hatch-vcs. It reads conventional commits, computes the next semver tag, and generates `CHANGELOG.md` — without needing to write a version to any source file. The tag becomes the single source of truth that hatch-vcs reads at build time.
+
+> **Why not python-semantic-release?** PSR is designed for projects with a static `version = "..."` field it can read and overwrite. hatch-vcs removes that field with `dynamic = ["version"]`. The two are architecturally incompatible — PSR has no supported mode for tag-only versioning with hatch-vcs. git-cliff was designed for exactly this pattern.
+
+Commit prefixes and version bumps (configured in `cliff.toml`):
 
 | Commit prefix | Version bump |
 |---------------|-------------|
@@ -34,29 +50,28 @@ Semantic-release reads conventional commit prefixes to determine the next versio
 | `chore:`, `docs:`, `refactor:`, `test:` | no release |
 | `BREAKING CHANGE:` in footer | major (0.1.0 → 1.0.0) |
 
-Required `pyproject.toml` configuration block:
+The release job in CI runs:
 
-```toml
-[tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
-branch = "main"
-tag_format = "v{version}"
-commit_message = "chore(release): v{version}"
+```bash
+# Compute next version from conventional commits
+NEW_TAG=$(git cliff --bumped-version)
 
-[tool.semantic_release.changelog]
-changelog_file = "CHANGELOG.md"
+# Generate CHANGELOG.md
+git cliff --bump -o CHANGELOG.md
 
-[tool.semantic_release.remote]
-type = "github"
+# Commit changelog and tag
+git add CHANGELOG.md
+git commit -m "chore: update changelog for ${NEW_TAG}"
+git tag "${NEW_TAG}"
+git push --follow-tags
+
+# Create GitHub Release (triggers publish.yml)
+gh release create "${NEW_TAG}" --generate-notes
 ```
 
-Semantic-release runs after all gates pass on `main`. It:
-1. Determines the next version from conventional commits since the last tag
-2. Bumps `version` in `pyproject.toml`
-3. Commits updated `pyproject.toml` + `CHANGELOG.md` to `main`
-4. Creates a git tag and GitHub Release
+Because it commits `CHANGELOG.md` directly to `main`, the release job requires a branch protection bypass. A PAT with `repo` scope is stored as `GH_TOKEN` in repo secrets and configured as a bypass actor in the branch protection ruleset.
 
-Because it pushes a commit directly to `main`, it requires a branch protection bypass. A Personal Access Token (PAT) with `repo` scope is stored as `GH_TOKEN` in repo secrets and configured as a bypass actor in the branch protection ruleset.
+`git-cliff` is added to the release job via `orhun/git-cliff-action@v4` (no local install needed).
 
 ---
 
@@ -219,8 +234,10 @@ matrix (needs: test)
 
 release (ubuntu-latest, needs: matrix)
   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  python-semantic-release version --push    ← bumps version, commits CHANGELOG.md, tags
-  python-semantic-release publish           ← creates GitHub Release
+  orhun/git-cliff-action@v4                 ← compute next tag, generate CHANGELOG.md
+  git commit CHANGELOG.md + git tag         ← commit + tag (uses GH_TOKEN bypass)
+  git push --follow-tags
+  gh release create                         ← creates GitHub Release
   → GitHub Release event triggers publish.yml
 ```
 
@@ -303,10 +320,15 @@ ruff
 mypy
 bandit[toml]
 pip-audit
-python-semantic-release
 ```
 
-No new build dependencies needed (hatch-vcs dropped from the design).
+Add to build dependencies:
+
+```
+hatch-vcs
+```
+
+`git-cliff` is installed in CI via `orhun/git-cliff-action@v4` — no local install needed. A `cliff.toml` config file goes in the repo root to define conventional commit parsing and CHANGELOG template.
 
 ---
 
@@ -349,8 +371,9 @@ This is the real integration test — it validates the full new-user onboarding 
 
 ### Phase 0 — Prerequisite (implement first, separate PR)
 - Add Claude Code detection to `goldfish init`
-- Reset version to `0.1.0` in `pyproject.toml`
-- Add `[tool.semantic_release]` configuration block to `pyproject.toml`
+- Switch to hatch-vcs (`dynamic = ["version"]`, `[tool.hatch.version] source = "vcs"`)
+- Create initial tag `v0.1.0` to establish baseline for git-cliff
+- Add `cliff.toml` to repo root (conventional commit config + CHANGELOG template)
 
 ### Phase 1 — CI pipeline
 - `.github/workflows/ci.yml`
@@ -361,6 +384,7 @@ This is the real integration test — it validates the full new-user onboarding 
 
 ### Phase 2 — Release pipeline
 - `.github/workflows/publish.yml`
+- `orhun/git-cliff-action@v4` + release script in `ci.yml`
 - Create `pypi` GitHub environment (Settings → Environments)
 - PyPI Trusted Publisher setup (in PyPI account — one-time, Part A)
 - `ANTHROPIC_API_KEY` secret added to repo (for goldfish init in matrix job + Claude PR review)
