@@ -87,10 +87,10 @@ No duplication. No drift. Claude Code agents get the full stack from CLAUDE.md. 
 
 ### Updated Layer 2 Goldfish Block
 
-The `_CLAUDE_MD_BLOCK` written by `goldfish init` to every user project becomes:
+The `_CLAUDE_MD_BLOCK` written by `goldfish init` to every user project becomes. The sentinel heading (`## Agent Knowledge Tools (managed by goldfish)`) stays as-is — it is the match key used by `append_claude_md_block` to find and replace the block:
 
 ```
-<!-- goldfish:start -->
+## Agent Knowledge Tools (managed by goldfish)
 
 ## goldfish — Agent Coordination Layer
 
@@ -121,7 +121,6 @@ Query all three intelligence tools:
 
 Each tool's full usage instructions are in its own maintained section in this file.
 
-<!-- goldfish:end -->
 ```
 
 ---
@@ -132,11 +131,10 @@ Each tool's full usage instructions are in its own maintained section in this fi
 
 | File | Change |
 |------|--------|
-| `CLAUDE.md` | Layer 2 section updated to describe four-layer stack. Layer 3 (project constitution) clearly marked. Layer 1 tool blocks remain tool-maintained. |
-| `AGENTS.md` | Stripped to Layers 2-3 only. Remove duplicated GitNexus block. Add pointer to CLAUDE.md for tool blocks. |
-| `src/goldfish/init.py` | `_CLAUDE_MD_BLOCK` updated to four-layer table + session sequence. |
-| `src/goldfish/claude_md.py` | Sentinel updated from `goldfish` to match new block if needed. |
-| `~/.claude/CLAUDE.md` (global) | Session start sequence simplified — OMEGA startup rule defers to Layer 2 goldfish block in each project. |
+| `CLAUDE.md` | Layer 2 section (goldfish block) updated to describe four-layer stack. Layer 3 (project constitution) separated by a `---` rule and a `<!-- layer 3: project -->` comment so the boundary is visible without being a code sentinel. Layer 1 tool blocks remain tool-maintained and untouched. |
+| `AGENTS.md` | Stripped to Layers 2-3 only. Duplicated GitNexus block removed. Pointer added: "Tool-specific blocks (GitNexus, OMEGA, Semble) are auto-maintained in CLAUDE.md." |
+| `src/goldfish/init.py` | `_CLAUDE_MD_BLOCK` updated to four-layer table + session sequence. No other Python changes. |
+| `~/.claude/CLAUDE.md` (global, manual) | User updates their own global CLAUDE.md: session start sequence simplified to defer to the Layer 2 block in each project. goldfish does NOT write to this file — it is the user's private global config. |
 
 ### In every user project (deployed)
 
@@ -149,6 +147,6 @@ Each tool's full usage instructions are in its own maintained section in this fi
 
 ## Non-Goals
 
-- This does not change any goldfish Python code beyond `_CLAUDE_MD_BLOCK` and the sentinel constant.
+- This does not change any goldfish Python code beyond `_CLAUDE_MD_BLOCK` in `init.py`. The sentinel string (`GOLDFISH_SENTINEL`) in `claude_md.py` is unchanged.
 - This does not change GitNexus, OMEGA, or Semble — they continue to maintain their own blocks.
 - This does not add a goldfish sync command to mirror tool blocks from CLAUDE.md to AGENTS.md (accepted limitation — AGENTS.md gets a pointer instead).
