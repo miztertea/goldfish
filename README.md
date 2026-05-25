@@ -62,12 +62,13 @@ The tools to fix this exist. Nothing connects them. That's the gap goldfish fill
 
 ## How it works
 
-goldfish installs three layers of intelligence into Claude Code — each maintained by a dedicated open-source tool.
+goldfish installs four layers of intelligence into Claude Code — each maintained by a dedicated open-source tool or human maintainer.
 
 | Layer | Installed by | What it provides |
 |-------|-------------|-----------------|
+| **Layer 0 — Memory** | You | User preferences, behavioral feedback, reference pointers (plain markdown) |
 | **Layer 1 — Tool-native** | GitNexus, OMEGA, Semble (via `goldfish init`) | Each tool's own hooks, MCP server, and agent instructions |
-| **Layer 2 — Coordination** | goldfish | A single block telling agents to query all three layers before acting |
+| **Layer 2 — Coordination** | goldfish | Cross-tool orchestration — tells agents to query all three tools before acting |
 | **Layer 3 — Project-specific** | You (or your agent) | Codebase-specific guardrails, architecture context, contributor workflow |
 
 goldfish itself is ~500 lines of Python — a thin orchestration layer with no search, embedding, or graph code. Every function is a subprocess call, a file write, or a config read.
