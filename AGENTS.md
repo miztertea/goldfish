@@ -26,22 +26,6 @@ Every change must map to at least one of these failures. If your change doesn't 
 - **Hook handlers return in <10ms.** Write to queue.jsonl and exit. Never block Claude.
 - **GitNexus is PolyForm Noncommercial.** Install via `npm install -g gitnexus` only. Never bundle or redistribute.
 
----
-
-<!-- layer 2: goldfish — superpowers workflow for contributors -->
-
-## Superpowers workflow (required for all contributors)
-
-goldfish uses superpowers skills for all development. When contributing:
-
-- **Before any feature work:** invoke `brainstorming` skill — design before code
-- **Before implementation:** invoke `writing-plans` skill — plan before writing
-- **All features:** use `test-driven-development` skill — test before implementation
-- **Before completing:** invoke `verification-before-completion` skill — verify before claiming done
-- **Independent tasks:** use `dispatching-parallel-agents` skill — parallelize when safe
-
-For all code exploration, use the tools in the maintained sections below — not grep or bash.
-
 ## What goldfish contributes (don't rebuild this)
 
 goldfish does exactly these things and nothing more:
@@ -65,6 +49,22 @@ goldfish does exactly these things and nothing more:
 
 ---
 
+<!-- layer 2: goldfish — superpowers workflow for contributors -->
+
+## Superpowers workflow (required for all contributors)
+
+goldfish uses superpowers skills for all development. When contributing:
+
+- **Before any feature work:** invoke `brainstorming` skill — design before code
+- **Before implementation:** invoke `writing-plans` skill — plan before writing
+- **All features:** use `test-driven-development` skill — test before implementation
+- **Before completing:** invoke `verification-before-completion` skill — verify before claiming done
+- **Independent tasks:** use `dispatching-parallel-agents` skill — parallelize when safe
+
+For all code exploration, use the tools in the maintained sections below — not grep or bash.
+
+---
+
 ## Tool-Specific Instructions (Layer 1)
 
 These blocks are auto-maintained IN THIS FILE by each tool's CLI (see the `<!-- gitnexus:start/end -->` block below). No action needed — they stay current automatically.
@@ -73,7 +73,7 @@ These blocks are auto-maintained IN THIS FILE by each tool's CLI (see the `<!-- 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (1046 symbols, 1276 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfish** (1079 symbols, 1309 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
