@@ -24,28 +24,21 @@ def _goldfish_stable_path() -> Path:
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-### Before any non-trivial task — query all three layers:
+goldfish wires together three intelligence layers. Query all three before any non-trivial task.
 
-#### Code + Impact Intelligence — GitNexus (MCP)
-- `query({{query}})` — hybrid BM25+semantic search across code graph
-- `context({{name}})` — 360° view of any symbol (callers, callees, processes)
-- `impact({{target}}, direction="upstream")` — blast radius before ANY change
-- `detect_changes()` — map staged changes to affected processes pre-commit
+| Layer | Tool | What it knows |
+|-------|------|---------------|
+| Code + impact | GitNexus (MCP) | Call graph, execution flows, blast radius, pre-commit diff |
+| Episodic memory | OMEGA (MCP) | Past decisions, session history, known issues |
+| Semantic search | Semble (MCP) | Code by meaning, vault notes and decisions |
 
-#### Episodic Memory — OMEGA (MCP)
-- `omega_query("why did we choose JWT")` — past decisions
-- `omega_query("rate limiter bug")` — known issues
-- `omega_query("Sarah rate limiter")` — person + topic references
-
-#### Semantic Search — Semble (MCP)
-- `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>")` — vault notes (markdown indexed automatically)
-
-### Mandatory workflow before refactoring:
-1. `gitnexus context({{name}})` → understand the symbol
-2. `gitnexus impact({{target}})` → know what breaks
-3. `omega_query(topic)` → check past decisions
+### Before any refactor or architecture change:
+1. GitNexus context — understand the symbol and its callers
+2. GitNexus impact — know the blast radius before touching anything
+3. OMEGA query — check prior decisions and known issues on this topic
 4. Then act.
+
+Each tool's full usage instructions are in its own maintained section in this file.
 """
 
 
