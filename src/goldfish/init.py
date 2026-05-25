@@ -183,10 +183,9 @@ def run(
         except FileNotFoundError:
             print("  note: omega setup not available; skipping")
         try:
-            subprocess.run([
-                "claude", "mcp", "add", "semble", "-s", "user",
-                "--", "uvx", "--from", "semble[mcp]", "semble"
-            ])
+            subprocess.run(
+                ["claude", "mcp", "add", "semble", "-s", "user", "--", "uvx", "--from", "semble[mcp]", "semble"]
+            )
         except FileNotFoundError:
             print("  note: claude CLI not available; skipping semble MCP registration")
         manifest["mcp_registered"] = True
@@ -205,5 +204,5 @@ def run(
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
         print("✓ CLAUDE.md updated")
 
-    print(f"\n✓ goldfish is ready.")
+    print("\n✓ goldfish is ready.")
     print(f"  Vault: {vaults_root / project}")

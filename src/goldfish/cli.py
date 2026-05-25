@@ -31,7 +31,9 @@ def drain_cmd() -> None:
 def init() -> None:
     """Install and configure all goldfish dependencies."""
     import os
+
     from goldfish.init import run as _init
+
     _init(cwd=os.getcwd())
 
 
@@ -87,6 +89,7 @@ def doctor() -> None:
     if DEFAULT_SETTINGS.exists():
         try:
             import json as _json
+
             data = _json.loads(DEFAULT_SETTINGS.read_text())
             hooks = data.get("hooks", {})
             has_goldfish = any(
@@ -232,8 +235,12 @@ def replay() -> None:
         manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
         write_manifest(
             project,
-            {**manifest, "last_byte_offset": new_offset, "last_jsonl_file": jsonl_file.name,
-             "bootstrap_complete": True},
+            {
+                **manifest,
+                "last_byte_offset": new_offset,
+                "last_jsonl_file": jsonl_file.name,
+                "bootstrap_complete": True,
+            },
             vaults_root=VAULTS_ROOT,
         )
         manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
@@ -245,16 +252,18 @@ def replay() -> None:
 def mine() -> None:
     """Seed OMEGA episodic memory from historical JSONL session logs."""
     import json as _json
+
     cwd = os.getcwd()
     settings = _json.loads(DEFAULT_SETTINGS.read_text()) if DEFAULT_SETTINGS.exists() else {}
     from goldfish.miner import _find_hook_cmd
+
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
     asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
     if not auto_cmd and not asst_cmd:
         typer.echo("OMEGA hooks not registered — run: goldfish init")
         raise typer.Exit(1)
 
-    typer.echo(f"Mining sessions from ~/.claude/projects/...")
+    typer.echo("Mining sessions from ~/.claude/projects/...")
     n = mine_project(cwd, _settings=settings)
     if n == 0:
         typer.echo("No new sessions to mine.")

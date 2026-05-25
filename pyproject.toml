@@ -30,4 +30,25 @@ packages = ["src/goldfish"]
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "ruff>=0.9.0",
+    "mypy>=1.0.0",
+    "bandit[toml]>=1.7.0",
+    "pip-audit>=2.7.0",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# init.py embeds long markdown strings — line length is intentional
+"src/goldfish/init.py" = ["E501"]
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = false
+
+[tool.bandit]
+skips = ["B603", "B607"]

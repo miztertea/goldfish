@@ -1,7 +1,6 @@
-from pathlib import Path
 import yaml
 
-from goldfish.vault import scaffold, write_note, read_note
+from goldfish.vault import read_note, scaffold, write_note
 
 FRONTMATTER = {
     "id": "decision-jwt-2026-05-24",
@@ -17,8 +16,15 @@ FRONTMATTER = {
 
 def test_scaffold_creates_required_dirs(tmp_path):
     scaffold("myproject", vaults_root=tmp_path)
-    for d in ["Memory/Decisions", "Memory/Lessons", "Memory/Errors",
-              "Memory/Checkpoints", "Specs", "Tasks", "_context"]:
+    for d in [
+        "Memory/Decisions",
+        "Memory/Lessons",
+        "Memory/Errors",
+        "Memory/Checkpoints",
+        "Specs",
+        "Tasks",
+        "_context",
+    ]:
         assert (tmp_path / "myproject" / d).is_dir()
 
 
