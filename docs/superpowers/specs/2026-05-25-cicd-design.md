@@ -411,6 +411,23 @@ Phase 4 deliverable: add `act` to CONTRIBUTING.md with the local workflow comman
 
 **Limitation:** `act` maps all runner types to Linux containers — macOS/Windows-specific path behavior still requires real GitHub CI runners. For goldfish's init flow, pytest, and CLI smoke tests, Linux is sufficient for local validation.
 
+**Researched and ruled out — local Windows/macOS container testing:**
+The idea of testing uvbox-built binaries in local containers (dockur/windows, docker-osx) was evaluated and found impractical:
+- `docker-osx` (sickcodes): EULA violation on non-Apple hardware (Apple actively DMCA-enforces); hours-long first-time install; not viable legally or practically.
+- `dockur/windows`: Requires KVM (hardware virtualization); 2-min warm boot; 4+ GB persistent RAM; SSH-based stdout capture with fragile PATH issues. Heavy for a dev loop.
+- Wine (`scottyhardy/docker-wine`): Lightest option (2-sec startup), but `uv tool install` fails on Wine ([astral-sh/uv#5090](https://github.com/astral-sh/uv/issues/5090)). uvbox binaries call `uv tool install` on first run to self-bootstrap — Wine can't complete this step.
+
+**Conclusion:** GitHub Actions remains the only reliable cross-platform validation. `act` covers the fast Linux-local dev loop.
+
+### Phase 5 — uvbox distribution (future)
+uvbox (github.com/AmadeusITGroup/uvbox) builds self-bootstrapping executables using Go cross-compilation — Linux, macOS, and Windows binaries from a single Ubuntu machine. Users would be able to install goldfish without Python or uv pre-installed:
+
+```bash
+curl -L https://github.com/miztertea/goldfish/releases/download/v0.2.0/goldfish-linux-amd64 -o goldfish && chmod +x goldfish && ./goldfish init
+```
+
+This is a distribution improvement, not a testing story. Defer to a future spec after the core pipeline is stable.
+
 ---
 
 ## Roadmap and Feature Tracking
