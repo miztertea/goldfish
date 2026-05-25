@@ -23,12 +23,19 @@ def test_run_exits_early_if_node_missing(tmp_path):
     settings.write_text("{}")
     stable = tmp_path / "goldfish"
     stable.touch()
-    with patch("goldfish.init.check_dependency", return_value=False), \
+
+    def dep_missing_node(cmd):
+        return cmd != "node"  # node absent, claude and others present
+
+    with patch("goldfish.init.check_dependency", side_effect=dep_missing_node), \
          patch("goldfish.init._goldfish_stable_path", return_value=stable), \
          patch("goldfish.init.subprocess.run") as mock_run, \
          pytest.raises(SystemExit):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
-    mock_run.assert_not_called()
+
+    cmds = [c[0][0] for c in mock_run.call_args_list]
+    gitnexus_ran = any(isinstance(c, list) and "gitnexus" in c for c in cmds)
+    assert not gitnexus_ran, "gitnexus must not run when node is missing"
 
 
 def test_run_calls_install_steps_in_order(tmp_path):
@@ -339,6 +346,53 @@ def test_init_calls_mine_project_for_existing_project(tmp_path):
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
 
     mock_mine.assert_called_once_with(str(project_dir))
+
+
+def test_init_installs_claude_code_when_missing(tmp_path):
+    """When claude CLI is absent, npm install -g @anthropic-ai/claude-code must run."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+
+    def dep_missing_claude(cmd):
+        return cmd != "claude"  # claude absent, all others present
+
+    with patch("goldfish.init.check_dependency", side_effect=dep_missing_claude), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+
+    cmds = [c[0][0] for c in mock_run.call_args_list]
+    claude_install = any(
+        isinstance(c, list) and "npm" in c and "@anthropic-ai/claude-code" in c
+        for c in cmds
+    )
+    assert claude_install, "npm install -g @anthropic-ai/claude-code must run when claude is missing"
+
+
+def test_init_skips_claude_code_install_when_present(tmp_path):
+    """When claude CLI is already present, npm install for Claude Code must NOT run."""
+    settings = tmp_path / "settings.json"
+    settings.write_text("{}")
+
+    with patch("goldfish.init.check_dependency", return_value=True), \
+         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfish.init.subprocess.run") as mock_run, \
+         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+        mock_run.return_value = MagicMock(returncode=0)
+        run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
+
+    cmds = [c[0][0] for c in mock_run.call_args_list]
+    claude_install = any(
+        isinstance(c, list) and "npm" in c and "@anthropic-ai/claude-code" in c
+        for c in cmds
+    )
+    assert not claude_install, "npm install @anthropic-ai/claude-code must NOT run when claude is present"
 
 
 def test_claude_md_block_describes_four_layer_stack():

@@ -98,6 +98,17 @@ def run(
 
     project = project_name(cwd)
 
+    # Claude Code — install via npm if missing (non-fatal, log only)
+    if not check_dependency("claude"):
+        print("  Installing Claude Code...")
+        result = subprocess.run(["npm", "install", "-g", "@anthropic-ai/claude-code"])
+        if result.returncode != 0:
+            print("  note: Claude Code install failed; install manually from claude.ai/code")
+        else:
+            print("✓ Claude Code installed")
+    else:
+        print("✓ Claude Code found")
+
     if not check_dependency("node"):
         print("✗ Node.js missing — required for GitNexus. Install from https://nodejs.org")
         sys.exit(1)
