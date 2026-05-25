@@ -182,7 +182,6 @@ Claude's context window approaches capacity
         ↓
 PreCompact fires (Claude waits)
         ↓
-omega flush(session_snapshot)
 vault.write("Memory/Checkpoints/{session_id}.md", summary)
         ↓
 PreCompact returns → compaction proceeds
