@@ -1,9 +1,45 @@
-# goldfish
+<p align="center">
+  <img src="assets/goldfish-logo.png" alt="goldfish — persistent memory for Claude Code" width="280">
+</p>
 
-**Persistent memory for Claude Code agents.** One command installs and wires together GitNexus, OMEGA, and Semble so your AI agent never starts a session from scratch again.
+<h1 align="center">goldfish</h1>
+
+<p align="center">
+  <strong>Persistent memory for Claude Code agents.</strong><br>
+  One command installs and wires together GitNexus, OMEGA, and Semble so your AI agent<br>
+  never starts a session from scratch again.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/python-3.13+-blue.svg" alt="Python 3.13+">
+  <img src="https://img.shields.io/badge/platform-linux-lightgrey.svg" alt="Platform: Linux">
+</p>
+
+---
+
+## Quick start
+
+**Prerequisites:** Python 3.13+, Node.js 18+, [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
 ```bash
-uvx goldfish init
+# Run directly from GitHub (PyPI listing coming soon)
+uvx --from git+https://github.com/miztertea/goldfish goldfish init
+```
+
+Or install as a persistent tool:
+
+```bash
+uv tool install git+https://github.com/miztertea/goldfish
+goldfish init
+```
+
+The init wizard detects and installs all dependencies, indexes your codebase, scaffolds your memory vault, and registers Claude Code hooks. Re-running is safe — it reports health and skips what's already installed.
+
+If you have prior Claude Code sessions in this project, seed OMEGA with their history:
+
+```bash
+goldfish mine
 ```
 
 ---
@@ -12,9 +48,7 @@ uvx goldfish init
 
 Claude Code agents are stateless. Every session starts from zero. You spend 10–30 minutes re-explaining context that was established yesterday. The agent repeats mistakes it already made, asks questions already answered, and changes a function without knowing 47 others depend on it.
 
-The tools to fix this exist. No single tool covers everything, and nothing connects them. That's the gap goldfish fills.
-
-## What goldfish solves
+The tools to fix this exist. Nothing connects them. That's the gap goldfish fills.
 
 | Failure | Cause | Solution |
 |---------|-------|---------|
@@ -24,18 +58,21 @@ The tools to fix this exist. No single tool covers everything, and nothing conne
 | Impact blindness | Agent doesn't know what breaks when it changes something | GitNexus blast-radius analysis |
 | Prompt deafness | Agent gets generic context, not prompt-specific context | Chonkie + Semble + OMEGA fan-out |
 
+---
+
 ## How it works
 
-goldfish is an orchestration layer (~500 lines of Python), not a memory engine. Every function is a subprocess call, a file write, or a config read. The heavy lifting is done by:
+goldfish installs three layers of intelligence into Claude Code — each maintained by a dedicated open-source tool.
 
-| Tool | Install | Purpose |
-|------|---------|---------|
-| **GitNexus** | `npm install -g gitnexus` | Code graph, blast radius, execution flows |
-| **OMEGA** | `uv tool install omega-memory` | Episodic memory, SQLite, offline |
-| **Semble** | `uv tool install semble` | Semantic search over code and vault notes |
-| **Chonkie** | goldfish dependency | Splits multi-topic prompts into search queries |
+| Layer | Installed by | What it provides |
+|-------|-------------|-----------------|
+| **Layer 1 — Tool-native** | GitNexus, OMEGA, Semble (via `goldfish init`) | Each tool's own hooks, MCP server, and agent instructions |
+| **Layer 2 — Coordination** | goldfish | A single block telling agents to query all three layers before acting |
+| **Layer 3 — Project-specific** | You (or your agent) | Codebase-specific guardrails, architecture context, contributor workflow |
 
-### The flow
+goldfish itself is ~500 lines of Python — a thin orchestration layer with no search, embedding, or graph code. Every function is a subprocess call, a file write, or a config read.
+
+### How the tools connect
 
 ```
 Claude Code JSONL logs         ← source of truth
@@ -52,23 +89,21 @@ Prompt enrichment              ← context injected before every task
 
 ### Hook lifecycle
 
-When you work in Claude Code, goldfish responds to lifecycle events:
-
 | Event | What happens |
 |-------|-------------|
-| `SessionStart` | Drains queue, generates wake-up context from vault |
-| `UserPromptSubmit` | Decomposes prompt → fans out to Semble (code + vault) + OMEGA (memory) → injects context |
+| `SessionStart` | Drains queue, generates wake-up context from vault + OMEGA |
+| `UserPromptSubmit` | Decomposes prompt → fans out to Semble (code + vault) + OMEGA → injects context |
 | `PreCompact` | Drains queue, writes checkpoint note to vault |
 | `TaskCreated` / `TaskCompleted` | Writes task notes to vault |
 | `Stop` / `SessionEnd` | Advances JSONL offset in manifest |
 
-Run `goldfish mine` once after setup to seed OMEGA with history from past sessions.
-
 All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so Claude never blocks.
 
-### Vault layout
+---
 
-All knowledge is plain markdown — readable with `cat`, searchable with `grep`, versionable with `git`, and viewable as a graph in [Obsidian](https://obsidian.md) (no plugins required).
+## Vault
+
+All knowledge is plain markdown — readable with `cat`, searchable with `grep`, versionable with `git`.
 
 ```
 ~/.goldfish/vaults/{project}/
@@ -84,7 +119,7 @@ All knowledge is plain markdown — readable with `cat`, searchable with `grep`,
     └── wake-up.md           ← refreshed every session
 ```
 
-Each note uses temporal frontmatter:
+Each note uses temporal frontmatter so agents can tell what's current and what's superseded:
 
 ```yaml
 ---
@@ -94,56 +129,10 @@ valid_from: 2026-05-24
 superseded_by: null
 confidence: 0.94
 source_session: abc123
-source_offset: 48291
-related:
-  - "[[Specs/auth-spec]]"
 ---
 ```
 
-To supersede a note, set `superseded_by` instead of deleting it. Semble excludes superseded notes from search results automatically.
-
----
-
-## Installation
-
-### Prerequisites
-
-- Python 3.13+ (required by chonkie's native dependencies; `uvx` downloads it automatically)
-- Node.js 18+
-- [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-
-### Quick start
-
-```bash
-# Run the init wizard (detects and installs all dependencies)
-uvx goldfish init
-
-# Or install globally first
-uv tool install goldfish
-goldfish init
-```
-
-The wizard:
-1. Checks for Node.js, installs GitNexus (`npm install -g gitnexus`) if needed
-2. Installs OMEGA (`uv tool install omega-memory`) if needed — downloads embedding model (~127 MB, one-time)
-3. Installs Semble (`uv tool install semble`) if needed
-4. Runs `npx gitnexus analyze` to build the code graph (skipped if `.gitnexus/` exists)
-5. Scaffolds `~/.goldfish/vaults/{project}/`
-6. Registers all 9 Claude Code hook events in `~/.claude/settings.json`
-7. Appends the agent knowledge block to `CLAUDE.md`
-
-Re-running `goldfish init` is safe — it reports health and skips already-installed tools.
-
-### Onboarding an existing project
-
-If you have prior Claude Code sessions in this project, seed OMEGA from them:
-
-```bash
-goldfish init          # sets up hooks for future sessions
-goldfish mine          # seeds OMEGA from all past sessions (run once, inside a Claude session)
-```
-
-`goldfish mine` is also called automatically on subsequent `goldfish init` runs.
+Want a visual graph of the knowledge store? See [docs/obsidian.md](docs/obsidian.md).
 
 ---
 
@@ -151,37 +140,20 @@ goldfish mine          # seeds OMEGA from all past sessions (run once, inside a 
 
 ```
 goldfish init              Run the setup wizard
+goldfish mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
+goldfish status            Show queue depth, manifest state, and sync timestamps
+goldfish doctor            Check all dependencies and report with fix instructions
+goldfish register-hooks    Re-register hooks with the correct binary path
+goldfish replay            Rebuild vault from JSONL transcripts (resumable)
 goldfish hook              Handle a hook event from stdin (called by Claude Code)
 goldfish drain             Process queued events from ~/.goldfish/queue.jsonl
-goldfish register-hooks    Re-register hooks with the correct binary path
-goldfish status            Show current configuration and sync state
-goldfish doctor            Check all dependencies are installed and reachable
-goldfish replay            Re-process JSONL events from a session file
-goldfish mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
 ```
 
 ---
 
-## Architecture
+## Platform support
 
-```
-cli.py        Typer CLI: init, hook, drain, register-hooks, status, doctor, replay
-init.py       Wizard: checks/installs deps, scaffolds vault, registers hooks
-hook.py       Reads stdin JSON event → appends to queue.jsonl; enriches UserPromptSubmit synchronously
-drain.py      Time-budgeted queue processor; routes events to subprocess/file writes
-enricher.py   Chonkie decompose → Semble (code + vault) + OMEGA (memory) fan-out per chunk
-vault.py      pathlib-only file writes: write_note(), read_note(), scaffold()
-claude_md.py  Upserts goldfish hooks in settings.json; updates CLAUDE.md block in-place
-config.py     Reads/writes ~/.goldfish/config.toml and per-project .manifest.toml
-miner.py      replay historical JSONL → pipes user/assistant text to OMEGA's own hooks (auto_capture, assistant_capture)
-```
-
-### Non-negotiable constraints
-
-- No search, embedding, or graph code — use the right tool
-- No always-on processes — every tool opens, executes, closes
-- Hook handlers return in <10ms — write to queue and exit
-- GitNexus is PolyForm Noncommercial — install via `npm install -g gitnexus` only, never bundle
+Tested on a clean install of **Ubuntu 26.04 LTS**. Expected to work on other Linux distributions and macOS — not yet verified. Windows is out of scope for v1.
 
 ---
 
@@ -197,12 +169,19 @@ uv run pytest
 Tests stub all subprocess calls and run without live tool installations. ~100 tests, ~0.3s.
 
 ```bash
-uv run pytest -v          # run all tests
+uv run pytest -v          # verbose test output
 uv run goldfish --help    # run CLI from source
 ```
 
 ---
 
+## Contributing
+
+Human contributors: [CONTRIBUTING.md](CONTRIBUTING.md)  
+AI agent contributors: [AGENTS.md](AGENTS.md)
+
+---
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
