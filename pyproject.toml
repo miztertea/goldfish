@@ -14,9 +14,7 @@ Repository = "https://github.com/miztertea/goldfish"
 
 [tool.hatch.version]
 source = "vcs"
-
-[project.optional-dependencies]
-dev = ["pytest"]
+fallback_version = "0.0.0"
 
 [project.scripts]
 goldfish = "goldfish.cli:app"
