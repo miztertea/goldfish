@@ -132,7 +132,10 @@ def test_register_hooks_preserves_non_goldfish_hooks(tmp_path):
     stop_hooks = data["hooks"]["Stop"][0]["hooks"]
     # GitNexus hook must still be present alongside the new goldfish hook
     assert gitnexus_hook in stop_hooks
-    assert any("goldfish hook" in h.get("command", "") for h in stop_hooks)
+    assert any(
+        "goldfish" in h.get("command", "") and h.get("command", "").endswith(" hook")
+        for h in stop_hooks
+    )
 
 
 def test_append_claude_md_block_updates_content_in_place(tmp_path):
