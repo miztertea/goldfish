@@ -2,7 +2,16 @@ import json
 import os
 import shutil
 import subprocess as sp
+import sys
+from io import TextIOWrapper
 from pathlib import Path
+
+# Windows default encoding (cp1252) cannot represent ✓/✗ — reconfigure at startup
+if sys.platform == "win32":
+    if isinstance(sys.stdout, TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if isinstance(sys.stderr, TextIOWrapper):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import typer
 
@@ -31,7 +40,9 @@ def drain_cmd() -> None:
 def init() -> None:
     """Install and configure all goldfish dependencies."""
     import os
+
     from goldfish.init import run as _init
+
     _init(cwd=os.getcwd())
 
 
@@ -39,7 +50,7 @@ def init() -> None:
 def status() -> None:
     """Show queue depth, manifest state, and sync timestamps."""
     queue = QUEUE_PATH
-    depth = len(queue.read_text().splitlines()) if queue.exists() else 0
+    depth = len(queue.read_text(encoding="utf-8").splitlines()) if queue.exists() else 0
     project = project_name(os.getcwd())
     manifest = get_manifest(project)
 
@@ -87,7 +98,8 @@ def doctor() -> None:
     if DEFAULT_SETTINGS.exists():
         try:
             import json as _json
-            data = _json.loads(DEFAULT_SETTINGS.read_text())
+
+            data = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8"))
             hooks = data.get("hooks", {})
             has_goldfish = any(
                 "goldfish" in str(h) and "hook" in str(h)
@@ -109,7 +121,7 @@ def doctor() -> None:
 
     # Queue depth check
     if QUEUE_PATH.exists():
-        depth = len(QUEUE_PATH.read_text().splitlines())
+        depth = len(QUEUE_PATH.read_text(encoding="utf-8").splitlines())
         if depth > 100:
             typer.echo(f"⚠ Queue depth {depth} — run: goldfish drain")
         else:
@@ -128,7 +140,7 @@ def doctor() -> None:
     claude_json = Path.home() / ".claude.json"
     if claude_json.exists():
         try:
-            mcp_data = json.loads(claude_json.read_text())
+            mcp_data = json.loads(claude_json.read_text(encoding="utf-8"))
             mcp = mcp_data.get("mcpServers", {})
             for name in ("omega-memory", "semble", "gitnexus"):
                 status = "✓" if name in mcp else "✗"
@@ -232,8 +244,12 @@ def replay() -> None:
         manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
         write_manifest(
             project,
-            {**manifest, "last_byte_offset": new_offset, "last_jsonl_file": jsonl_file.name,
-             "bootstrap_complete": True},
+            {
+                **manifest,
+                "last_byte_offset": new_offset,
+                "last_jsonl_file": jsonl_file.name,
+                "bootstrap_complete": True,
+            },
             vaults_root=VAULTS_ROOT,
         )
         manifest = get_manifest(project, vaults_root=VAULTS_ROOT)
@@ -245,16 +261,18 @@ def replay() -> None:
 def mine() -> None:
     """Seed OMEGA episodic memory from historical JSONL session logs."""
     import json as _json
+
     cwd = os.getcwd()
-    settings = _json.loads(DEFAULT_SETTINGS.read_text()) if DEFAULT_SETTINGS.exists() else {}
+    settings = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8")) if DEFAULT_SETTINGS.exists() else {}
     from goldfish.miner import _find_hook_cmd
+
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
     asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
     if not auto_cmd and not asst_cmd:
         typer.echo("OMEGA hooks not registered — run: goldfish init")
         raise typer.Exit(1)
 
-    typer.echo(f"Mining sessions from ~/.claude/projects/...")
+    typer.echo("Mining sessions from ~/.claude/projects/...")
     n = mine_project(cwd, _settings=settings)
     if n == 0:
         typer.echo("No new sessions to mine.")

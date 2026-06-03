@@ -8,8 +8,10 @@ from goldfish.drain import handle_pre_compact, handle_session_start
 try:
     from goldfish.enricher import enrich
 except ImportError:
+
     def enrich(prompt: str, cwd: str, project: str) -> str:  # type: ignore[misc]
         return ""
+
 
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
 

@@ -1,0 +1,47 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to goldfish are documented here.
+Generated automatically by [git-cliff](https://git-cliff.org).
+
+"""
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}
+"""
+trim = true
+footer = ""
+
+[bump]
+features_always_bump_minor = true
+breaking_always_bump_major = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_parsers = [
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^refactor", group = "Refactoring" },
+    { message = "^perf", group = "Performance" },
+    { message = "^test", group = "Testing" },
+    { message = "^chore|^ci|^build", skip = true },
+]
+filter_commits = false
+tag_pattern = "v[0-9]*"
+skip_tags = ""
+ignore_tags = ""
+topo_order = false
+sort_commits = "oldest"

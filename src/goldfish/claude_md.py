@@ -5,12 +5,17 @@ import sys
 from pathlib import Path
 
 from goldfish.config import DEFAULT_SETTINGS
+
 GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = [
-    "Stop", "SessionEnd", "PostToolUse", "SubagentStop",
-    "TaskCreated", "TaskCompleted",
+    "Stop",
+    "SessionEnd",
+    "PostToolUse",
+    "SubagentStop",
+    "TaskCreated",
+    "TaskCompleted",
 ]
 
 
@@ -38,7 +43,7 @@ def _is_goldfish_hook(h: object) -> bool:
     if not isinstance(h, dict):
         return False
     cmd = h.get("command", "")
-    return "goldfish hook" in cmd
+    return isinstance(cmd, str) and "goldfish" in cmd and cmd.endswith(" hook")
 
 
 def _upsert_hook(hooks: dict, event: str, bin_path: str, async_: bool) -> None:
@@ -50,7 +55,7 @@ def _upsert_hook(hooks: dict, event: str, bin_path: str, async_: bool) -> None:
 
 
 def register_hooks(settings_path: Path = DEFAULT_SETTINGS) -> None:
-    data = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+    data = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.exists() else {}
     hooks = data.setdefault("hooks", {})
     bin_path = _detect_goldfish_bin()
     settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,20 +65,20 @@ def register_hooks(settings_path: Path = DEFAULT_SETTINGS) -> None:
     for event in _ASYNC_HOOKS:
         _upsert_hook(hooks, event, bin_path, async_=True)
 
-    settings_path.write_text(json.dumps(data, indent=2))
+    settings_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
 def append_claude_md_block(claude_md_path: Path, block: str) -> None:
-    existing = claude_md_path.read_text() if claude_md_path.exists() else ""
+    existing = claude_md_path.read_text(encoding="utf-8") if claude_md_path.exists() else ""
     if GOLDFISH_SENTINEL not in existing:
-        claude_md_path.write_text(existing.rstrip() + "\n\n" + block + "\n")
+        claude_md_path.write_text(existing.rstrip() + "\n\n" + block + "\n", encoding="utf-8")
         return
     # Update: replace existing block in-place, preserving content before and after
     start = existing.index(GOLDFISH_SENTINEL)
-    after = existing[start + len(GOLDFISH_SENTINEL):]
-    m = re.search(r'\n##\s', after)
+    after = existing[start + len(GOLDFISH_SENTINEL) :]
+    m = re.search(r"\n##\s", after)
     if m:
         end = start + len(GOLDFISH_SENTINEL) + m.start()
-        claude_md_path.write_text(existing[:start] + block + "\n" + existing[end:])
+        claude_md_path.write_text(existing[:start] + block + "\n" + existing[end:], encoding="utf-8")
     else:
-        claude_md_path.write_text(existing[:start] + block + "\n")
+        claude_md_path.write_text(existing[:start] + block + "\n", encoding="utf-8")

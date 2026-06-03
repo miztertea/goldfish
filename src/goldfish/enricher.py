@@ -1,5 +1,4 @@
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 from goldfish.config import VAULTS_ROOT
@@ -20,9 +19,10 @@ def decompose(prompt: str) -> list[str]:
         return []
     try:
         from chonkie import SentenceChunker
+
         chunker = SentenceChunker()
         chunks = chunker(prompt)
-        return [c.text for c in chunks if c.text.strip()]
+        return [c.text for c in chunks if c.text.strip()]  # type: ignore[union-attr]
     except Exception:
         return [prompt]
 
@@ -39,20 +39,25 @@ def enrich(prompt: str, cwd: str, project: str) -> str:
     for chunk in chunks:
         code_result = _run(
             ["semble", "search", chunk, cwd],
-            capture_output=True, check=False,
+            capture_output=True,
+            check=False,
         )
         docs_result = _run(
             ["semble", "search", chunk, vault_path, "--include-text-files"],
-            capture_output=True, check=False,
+            capture_output=True,
+            check=False,
         )
         mem_result = _run(
             ["omega", "query", chunk],
-            capture_output=True, check=False,
+            capture_output=True,
+            check=False,
         )
 
         code_out = code_result.stdout.decode(errors="replace").strip() if code_result else ""
         docs_out = docs_result.stdout.decode(errors="replace").strip() if docs_result else ""
-        mem_out = mem_result.stdout.decode(errors="replace").strip() if mem_result and mem_result.returncode == 0 else ""
+        mem_out = (
+            mem_result.stdout.decode(errors="replace").strip() if mem_result and mem_result.returncode == 0 else ""
+        )
 
         if code_out or docs_out or mem_out:
             section = f"### Query: {chunk}\n"

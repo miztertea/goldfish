@@ -1,5 +1,11 @@
 # Contributing to goldfish
 
+## Prerequisites
+
+- Python 3.13+
+- Node.js 18+ (required for GitNexus and Claude Code)
+- [uv](https://docs.astral.sh/uv/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
 ## Branch naming
 
 Every unit of work lives on a branch — never commit directly to `main`.

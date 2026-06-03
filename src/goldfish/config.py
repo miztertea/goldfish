@@ -1,5 +1,6 @@
-from pathlib import Path
 import tomllib
+from pathlib import Path
+
 import tomli_w
 
 VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"

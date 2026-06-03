@@ -75,6 +75,19 @@ GitNexus usage instructions are in the auto-maintained block below. OMEGA and Se
 """
 
 
+def _run(cmd: list[str], **kwargs) -> "subprocess.CompletedProcess | None":
+    """Run cmd. On Windows, retries with shell=True for batch-file wrappers (npm.cmd, npx.cmd)."""
+    try:
+        return subprocess.run(cmd, **kwargs)
+    except (FileNotFoundError, OSError):
+        if sys.platform == "win32":
+            try:
+                return subprocess.run(cmd, shell=True, **kwargs)  # nosec B602 — cmd is always a hardcoded list, no user input
+            except (FileNotFoundError, OSError):
+                pass
+        return None
+
+
 def check_dependency(cmd: str) -> bool:
     try:
         result = subprocess.run([cmd, "--version"], capture_output=True)
@@ -88,10 +101,13 @@ def run(
     settings_path: Path = DEFAULT_SETTINGS,
     vaults_root: Path = VAULTS_ROOT,
 ) -> None:
-    # Self-install for stable hook path
+    # Self-install for stable hook path — skip if already on PATH (e.g. uv tool install)
+    # to avoid replacing a running binary on Windows (Access denied, os error 5).
     stable = _goldfish_stable_path()
     if stable.exists():
         print("✓ goldfish installed (stable path)")
+    elif shutil.which("goldfish"):
+        print("✓ goldfish installed (found on PATH)")
     else:
         r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfish"])
         if r.returncode != 0:
@@ -100,6 +116,20 @@ def run(
             print("✓ goldfish installed at ~/.local/bin/goldfish")
 
     project = project_name(cwd)
+
+    # Claude Code — install via npm if missing (non-fatal, log only)
+    if not check_dependency("claude"):
+        print("  Installing Claude Code...")
+        try:
+            result = subprocess.run(["npm", "install", "-g", "@anthropic-ai/claude-code"])
+            if result.returncode != 0:
+                print("  note: Claude Code install failed; install manually from claude.ai/code")
+            else:
+                print("✓ Claude Code installed")
+        except (FileNotFoundError, OSError):
+            print("  note: npm not available; install Claude Code manually from claude.ai/code")
+    else:
+        print("✓ Claude Code found")
 
     if not check_dependency("node"):
         print("✗ Node.js missing — required for GitNexus. Install from https://nodejs.org")
@@ -112,11 +142,11 @@ def run(
         print("✓ GitNexus already indexed")
     else:
         print("  Installing GitNexus...")
-        result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
-        if result.returncode != 0:
+        npm_result = _run(["npm", "install", "-g", "gitnexus"], capture_output=True)
+        if npm_result is None or npm_result.returncode != 0:
             print("  note: global npm install failed; using npx")
-        result2 = subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd)
-        if result2.returncode != 0:
+        analyze_result = _run(["npx", "gitnexus", "analyze"], cwd=cwd)
+        if analyze_result is None or analyze_result.returncode != 0:
             print("✗ GitNexus analyze failed. Check npm/Node.js installation.")
             sys.exit(1)
         print("✓ GitNexus indexed")
@@ -169,16 +199,19 @@ def run(
         except FileNotFoundError:
             print("  note: gitnexus setup not available; skipping")
         try:
+            subprocess.run(["claude", "mcp", "add", "gitnexus", "-s", "user", "--", "npx", "gitnexus", "mcp"])
+        except FileNotFoundError:
+            print("  note: claude CLI not available; skipping gitnexus MCP registration")
+        try:
             print("  Downloading OMEGA embedding model (~127 MB, one-time)...")
             subprocess.run(["omega", "setup", "--download-model"])
             subprocess.run(["omega", "setup", "--client", "claude-code"])
         except FileNotFoundError:
             print("  note: omega setup not available; skipping")
         try:
-            subprocess.run([
-                "claude", "mcp", "add", "semble", "-s", "user",
-                "--", "uvx", "--from", "semble[mcp]", "semble"
-            ])
+            subprocess.run(
+                ["claude", "mcp", "add", "semble", "-s", "user", "--", "uvx", "--from", "semble[mcp]", "semble"]
+            )
         except FileNotFoundError:
             print("  note: claude CLI not available; skipping semble MCP registration")
         manifest["mcp_registered"] = True
@@ -197,5 +230,5 @@ def run(
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
         print("✓ CLAUDE.md updated")
 
-    print(f"\n✓ goldfish is ready.")
+    print("\n✓ goldfish is ready.")
     print(f"  Vault: {vaults_root / project}")

@@ -3,8 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from goldfish.config import DEFAULT_SETTINGS
-from goldfish.config import get_manifest, project_name, write_manifest
+from goldfish.config import DEFAULT_SETTINGS, get_manifest, project_name, write_manifest
 
 
 def _find_hook_cmd(settings: dict, event: str, script_name: str) -> str | None:
@@ -62,7 +61,7 @@ def mine_project(
         return 0
 
     if _settings is None:
-        _settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+        _settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.exists() else {}
     auto_capture_cmd = _find_hook_cmd(_settings, "UserPromptSubmit", "auto_capture")
     assistant_capture_cmd = _find_hook_cmd(_settings, "Stop", "assistant_capture")
 
@@ -77,7 +76,7 @@ def mine_project(
             continue
 
         session_ok = True
-        for line in jsonl_file.read_text(errors="replace").splitlines():
+        for line in jsonl_file.read_text(encoding="utf-8", errors="replace").splitlines():
             line = line.strip()
             if not line:
                 continue
@@ -91,15 +90,25 @@ def mine_project(
                 if msg_type == "user" and auto_capture_cmd:
                     text = _extract_user_text(obj)
                     if text:
-                        _pipe_to_hook(auto_capture_cmd, {
-                            "prompt": text, "session_id": session_id, "cwd": cwd,
-                        })
+                        _pipe_to_hook(
+                            auto_capture_cmd,
+                            {
+                                "prompt": text,
+                                "session_id": session_id,
+                                "cwd": cwd,
+                            },
+                        )
                 elif msg_type == "assistant" and assistant_capture_cmd:
                     text = _extract_assistant_text(obj)
                     if text:
-                        _pipe_to_hook(assistant_capture_cmd, {
-                            "last_assistant_message": text, "session_id": session_id, "cwd": cwd,
-                        })
+                        _pipe_to_hook(
+                            assistant_capture_cmd,
+                            {
+                                "last_assistant_message": text,
+                                "session_id": session_id,
+                                "cwd": cwd,
+                            },
+                        )
             except subprocess.TimeoutExpired:
                 session_ok = False
                 break

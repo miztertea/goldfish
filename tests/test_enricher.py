@@ -16,9 +16,7 @@ def test_decompose_returns_list_for_medium_prompt():
 
 
 def test_decompose_splits_multi_topic_prompt():
-    result = decompose(
-        "fix the auth middleware and the CI tests are broken and Sarah mentioned the rate limiter"
-    )
+    result = decompose("fix the auth middleware and the CI tests are broken and Sarah mentioned the rate limiter")
     assert isinstance(result, list)
     assert len(result) >= 1  # Chonkie may return 1-3 chunks depending on sentence boundaries
 
@@ -93,6 +91,7 @@ def test_enrich_vault_search_uses_include_text_files():
 
 def test_enrich_includes_memory_section_in_output():
     """When omega returns results, output must contain a Memory section."""
+
     def fake_run(cmd, *args, **kwargs):
         m = MagicMock()
         if cmd[0] == "omega":
