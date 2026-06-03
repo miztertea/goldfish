@@ -23,7 +23,7 @@ def drain(queue: Path = QUEUE_PATH, budget_ms: float = 0) -> int:
     """Process queued events. budget_ms=0 means no time limit."""
     if not queue.exists():
         return 0
-    lines = queue.read_text().splitlines()
+    lines = queue.read_text(encoding="utf-8").splitlines()
     processed = 0
     failed: list[str] = []
     unprocessed: list[str] = []
@@ -48,7 +48,7 @@ def drain(queue: Path = QUEUE_PATH, budget_ms: float = 0) -> int:
             failed.append(raw_line)
 
     leftover = failed + unprocessed
-    queue.write_text("\n".join(leftover) + "\n" if leftover else "")
+    queue.write_text("\n".join(leftover) + "\n" if leftover else "", encoding="utf-8")
     return processed
 
 

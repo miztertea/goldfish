@@ -50,7 +50,7 @@ def init() -> None:
 def status() -> None:
     """Show queue depth, manifest state, and sync timestamps."""
     queue = QUEUE_PATH
-    depth = len(queue.read_text().splitlines()) if queue.exists() else 0
+    depth = len(queue.read_text(encoding="utf-8").splitlines()) if queue.exists() else 0
     project = project_name(os.getcwd())
     manifest = get_manifest(project)
 
@@ -99,7 +99,7 @@ def doctor() -> None:
         try:
             import json as _json
 
-            data = _json.loads(DEFAULT_SETTINGS.read_text())
+            data = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8"))
             hooks = data.get("hooks", {})
             has_goldfish = any(
                 "goldfish" in str(h) and "hook" in str(h)
@@ -121,7 +121,7 @@ def doctor() -> None:
 
     # Queue depth check
     if QUEUE_PATH.exists():
-        depth = len(QUEUE_PATH.read_text().splitlines())
+        depth = len(QUEUE_PATH.read_text(encoding="utf-8").splitlines())
         if depth > 100:
             typer.echo(f"⚠ Queue depth {depth} — run: goldfish drain")
         else:
@@ -140,7 +140,7 @@ def doctor() -> None:
     claude_json = Path.home() / ".claude.json"
     if claude_json.exists():
         try:
-            mcp_data = json.loads(claude_json.read_text())
+            mcp_data = json.loads(claude_json.read_text(encoding="utf-8"))
             mcp = mcp_data.get("mcpServers", {})
             for name in ("omega-memory", "semble", "gitnexus"):
                 status = "✓" if name in mcp else "✗"
@@ -263,7 +263,7 @@ def mine() -> None:
     import json as _json
 
     cwd = os.getcwd()
-    settings = _json.loads(DEFAULT_SETTINGS.read_text()) if DEFAULT_SETTINGS.exists() else {}
+    settings = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8")) if DEFAULT_SETTINGS.exists() else {}
     from goldfish.miner import _find_hook_cmd
 
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")

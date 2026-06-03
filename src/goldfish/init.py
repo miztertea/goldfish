@@ -75,6 +75,19 @@ GitNexus usage instructions are in the auto-maintained block below. OMEGA and Se
 """
 
 
+def _run(cmd: list[str], **kwargs) -> "subprocess.CompletedProcess | None":
+    """Run cmd. On Windows, retries with shell=True for batch-file wrappers (npm.cmd, npx.cmd)."""
+    try:
+        return subprocess.run(cmd, **kwargs)
+    except (FileNotFoundError, OSError):
+        if sys.platform == "win32":
+            try:
+                return subprocess.run(cmd, shell=True, **kwargs)
+            except (FileNotFoundError, OSError):
+                pass
+        return None
+
+
 def check_dependency(cmd: str) -> bool:
     try:
         result = subprocess.run([cmd, "--version"], capture_output=True)
@@ -126,11 +139,11 @@ def run(
         print("✓ GitNexus already indexed")
     else:
         print("  Installing GitNexus...")
-        result = subprocess.run(["npm", "install", "-g", "gitnexus"], capture_output=True)
-        if result.returncode != 0:
+        npm_result = _run(["npm", "install", "-g", "gitnexus"], capture_output=True)
+        if npm_result is None or npm_result.returncode != 0:
             print("  note: global npm install failed; using npx")
-        result2 = subprocess.run(["npx", "gitnexus", "analyze"], cwd=cwd)
-        if result2.returncode != 0:
+        analyze_result = _run(["npx", "gitnexus", "analyze"], cwd=cwd)
+        if analyze_result is None or analyze_result.returncode != 0:
             print("✗ GitNexus analyze failed. Check npm/Node.js installation.")
             sys.exit(1)
         print("✓ GitNexus indexed")
