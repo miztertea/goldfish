@@ -104,11 +104,14 @@ def run(
     # Claude Code — install via npm if missing (non-fatal, log only)
     if not check_dependency("claude"):
         print("  Installing Claude Code...")
-        result = subprocess.run(["npm", "install", "-g", "@anthropic-ai/claude-code"])
-        if result.returncode != 0:
-            print("  note: Claude Code install failed; install manually from claude.ai/code")
-        else:
-            print("✓ Claude Code installed")
+        try:
+            result = subprocess.run(["npm", "install", "-g", "@anthropic-ai/claude-code"])
+            if result.returncode != 0:
+                print("  note: Claude Code install failed; install manually from claude.ai/code")
+            else:
+                print("✓ Claude Code installed")
+        except (FileNotFoundError, OSError):
+            print("  note: npm not available; install Claude Code manually from claude.ai/code")
     else:
         print("✓ Claude Code found")
 
@@ -179,6 +182,10 @@ def run(
             subprocess.run(["npx", "gitnexus", "setup"], cwd=cwd)
         except FileNotFoundError:
             print("  note: gitnexus setup not available; skipping")
+        try:
+            subprocess.run(["claude", "mcp", "add", "gitnexus", "-s", "user", "--", "npx", "gitnexus", "mcp"])
+        except FileNotFoundError:
+            print("  note: claude CLI not available; skipping gitnexus MCP registration")
         try:
             print("  Downloading OMEGA embedding model (~127 MB, one-time)...")
             subprocess.run(["omega", "setup", "--download-model"])
