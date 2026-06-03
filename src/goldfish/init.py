@@ -101,10 +101,13 @@ def run(
     settings_path: Path = DEFAULT_SETTINGS,
     vaults_root: Path = VAULTS_ROOT,
 ) -> None:
-    # Self-install for stable hook path
+    # Self-install for stable hook path — skip if already on PATH (e.g. uv tool install)
+    # to avoid replacing a running binary on Windows (Access denied, os error 5).
     stable = _goldfish_stable_path()
     if stable.exists():
         print("✓ goldfish installed (stable path)")
+    elif shutil.which("goldfish"):
+        print("✓ goldfish installed (found on PATH)")
     else:
         r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfish"])
         if r.returncode != 0:

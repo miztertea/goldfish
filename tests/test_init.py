@@ -173,12 +173,16 @@ def test_init_does_not_rescaffold_existing_vault(tmp_path):
 
 
 def test_init_self_installs_goldfish_when_not_at_stable_path(tmp_path):
-    """When ~/.local/bin/goldfish doesn't exist, self-install must be called."""
+    """When ~/.local/bin/goldfish doesn't exist and goldfish is not on PATH, self-install must be called."""
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
+
+    def which_no_goldfish(cmd):
+        return None if cmd == "goldfish" else f"/usr/bin/{cmd}"
+
     with (
         patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfish.init.shutil.which", side_effect=which_no_goldfish),
         patch("goldfish.init.subprocess.run") as mock_run,
         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
@@ -190,7 +194,7 @@ def test_init_self_installs_goldfish_when_not_at_stable_path(tmp_path):
     self_install_ran = any(
         isinstance(c, list) and "uv" in c and "tool" in c and "install" in c and "--from" in c for c in cmds
     )
-    assert self_install_ran, "uv tool install --from ... goldfish must run when stable bin missing"
+    assert self_install_ran, "uv tool install --from ... goldfish must run when stable bin missing and not on PATH"
 
 
 def test_init_skips_self_install_when_stable_bin_exists(tmp_path):
