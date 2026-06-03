@@ -132,15 +132,29 @@ jobs:
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
-      - uses: orhun/git-cliff-action@v4
+      - name: Install git-cliff and compute version
         if: steps.check.outputs.skip == 'false'
-        id: cliff
+        uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
           args: --bumped-version
         env:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - name: Capture version from git-cliff binary
+        if: steps.check.outputs.skip == 'false'
+        id: cliff
+        shell: bash
+        run: |
+          NEW_TAG=$(git-cliff --config cliff.toml --bumped-version 2>/dev/null || true)
+          if [ -z "${NEW_TAG}" ]; then
+            echo "No releasable commits — skipping release"
+            echo "version=" >> $GITHUB_OUTPUT
+          else
+            echo "version=${NEW_TAG}" >> $GITHUB_OUTPUT
+            echo "Computed next version: ${NEW_TAG}"
+          fi
       - uses: orhun/git-cliff-action@v4
         if: steps.check.outputs.skip == 'false' && steps.cliff.outputs.version != ''
         with:
