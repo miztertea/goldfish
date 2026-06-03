@@ -221,11 +221,6 @@ dependencies = [
     { name = "typer" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
 [package.dev-dependencies]
 dev = [
     { name = "bandit" },
@@ -238,12 +233,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "chonkie" },
-    { name = "pytest", marker = "extra == 'dev'" },
     { name = "pyyaml" },
     { name = "tomli-w" },
     { name = "typer" },
 ]
-provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
