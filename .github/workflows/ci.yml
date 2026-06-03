@@ -34,15 +34,47 @@ jobs:
       - run: uv sync --group dev
       - run: uv run pytest
 
-  matrix:
-    name: matrix (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+  matrix-windows:
+    name: matrix (windows-latest)
+    runs-on: windows-latest
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.event.head_commit.author.email != 'github-actions[bot]@users.noreply.github.com'
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]
-      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-caching: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - name: Install dev dependencies
+        shell: bash
+        run: uv sync --group dev
+      - name: Run test suite
+        shell: bash
+        run: uv run pytest
+      - name: Build wheel
+        shell: bash
+        run: uv build
+      - name: Install built wheel
+        shell: bash
+        run: uv tool install dist/goldfish-*.whl
+      - name: Smoke test CLI
+        shell: bash
+        run: goldfish --help
+      - name: Smoke test init
+        shell: bash
+        run: |
+          goldfish init
+          goldfish status
+          goldfish doctor
+
+  matrix-macos:
+    name: matrix (macos-latest)
+    runs-on: macos-latest
+    needs: matrix-windows
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,7 +110,7 @@ jobs:
   release:
     name: release
     runs-on: ubuntu-latest
-    needs: matrix
+    needs: matrix-macos
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: write

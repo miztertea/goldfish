@@ -61,7 +61,7 @@ def mine_project(
         return 0
 
     if _settings is None:
-        _settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+        _settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.exists() else {}
     auto_capture_cmd = _find_hook_cmd(_settings, "UserPromptSubmit", "auto_capture")
     assistant_capture_cmd = _find_hook_cmd(_settings, "Stop", "assistant_capture")
 
@@ -76,7 +76,7 @@ def mine_project(
             continue
 
         session_ok = True
-        for line in jsonl_file.read_text(errors="replace").splitlines():
+        for line in jsonl_file.read_text(encoding="utf-8", errors="replace").splitlines():
             line = line.strip()
             if not line:
                 continue
