@@ -76,8 +76,11 @@ GitNexus usage instructions are in the auto-maintained block below. OMEGA and Se
 
 
 def check_dependency(cmd: str) -> bool:
-    result = subprocess.run([cmd, "--version"], capture_output=True)
-    return result.returncode == 0
+    try:
+        result = subprocess.run([cmd, "--version"], capture_output=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 
 def run(
