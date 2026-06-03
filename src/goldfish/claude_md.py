@@ -5,12 +5,17 @@ import sys
 from pathlib import Path
 
 from goldfish.config import DEFAULT_SETTINGS
+
 GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = [
-    "Stop", "SessionEnd", "PostToolUse", "SubagentStop",
-    "TaskCreated", "TaskCompleted",
+    "Stop",
+    "SessionEnd",
+    "PostToolUse",
+    "SubagentStop",
+    "TaskCreated",
+    "TaskCompleted",
 ]
 
 
@@ -70,8 +75,8 @@ def append_claude_md_block(claude_md_path: Path, block: str) -> None:
         return
     # Update: replace existing block in-place, preserving content before and after
     start = existing.index(GOLDFISH_SENTINEL)
-    after = existing[start + len(GOLDFISH_SENTINEL):]
-    m = re.search(r'\n##\s', after)
+    after = existing[start + len(GOLDFISH_SENTINEL) :]
+    m = re.search(r"\n##\s", after)
     if m:
         end = start + len(GOLDFISH_SENTINEL) + m.start()
         claude_md_path.write_text(existing[:start] + block + "\n" + existing[end:])

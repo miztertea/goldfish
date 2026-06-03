@@ -98,6 +98,17 @@ def run(
 
     project = project_name(cwd)
 
+    # Claude Code — install via npm if missing (non-fatal, log only)
+    if not check_dependency("claude"):
+        print("  Installing Claude Code...")
+        result = subprocess.run(["npm", "install", "-g", "@anthropic-ai/claude-code"])
+        if result.returncode != 0:
+            print("  note: Claude Code install failed; install manually from claude.ai/code")
+        else:
+            print("✓ Claude Code installed")
+    else:
+        print("✓ Claude Code found")
+
     if not check_dependency("node"):
         print("✗ Node.js missing — required for GitNexus. Install from https://nodejs.org")
         sys.exit(1)
@@ -172,10 +183,9 @@ def run(
         except FileNotFoundError:
             print("  note: omega setup not available; skipping")
         try:
-            subprocess.run([
-                "claude", "mcp", "add", "semble", "-s", "user",
-                "--", "uvx", "--from", "semble[mcp]", "semble"
-            ])
+            subprocess.run(
+                ["claude", "mcp", "add", "semble", "-s", "user", "--", "uvx", "--from", "semble[mcp]", "semble"]
+            )
         except FileNotFoundError:
             print("  note: claude CLI not available; skipping semble MCP registration")
         manifest["mcp_registered"] = True
@@ -194,5 +204,5 @@ def run(
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
         print("✓ CLAUDE.md updated")
 
-    print(f"\n✓ goldfish is ready.")
+    print("\n✓ goldfish is ready.")
     print(f"  Vault: {vaults_root / project}")

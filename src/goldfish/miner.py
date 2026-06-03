@@ -3,8 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from goldfish.config import DEFAULT_SETTINGS
-from goldfish.config import get_manifest, project_name, write_manifest
+from goldfish.config import DEFAULT_SETTINGS, get_manifest, project_name, write_manifest
 
 
 def _find_hook_cmd(settings: dict, event: str, script_name: str) -> str | None:
@@ -91,15 +90,25 @@ def mine_project(
                 if msg_type == "user" and auto_capture_cmd:
                     text = _extract_user_text(obj)
                     if text:
-                        _pipe_to_hook(auto_capture_cmd, {
-                            "prompt": text, "session_id": session_id, "cwd": cwd,
-                        })
+                        _pipe_to_hook(
+                            auto_capture_cmd,
+                            {
+                                "prompt": text,
+                                "session_id": session_id,
+                                "cwd": cwd,
+                            },
+                        )
                 elif msg_type == "assistant" and assistant_capture_cmd:
                     text = _extract_assistant_text(obj)
                     if text:
-                        _pipe_to_hook(assistant_capture_cmd, {
-                            "last_assistant_message": text, "session_id": session_id, "cwd": cwd,
-                        })
+                        _pipe_to_hook(
+                            assistant_capture_cmd,
+                            {
+                                "last_assistant_message": text,
+                                "session_id": session_id,
+                                "cwd": cwd,
+                            },
+                        )
             except subprocess.TimeoutExpired:
                 session_ok = False
                 break

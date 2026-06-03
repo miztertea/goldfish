@@ -1,6 +1,4 @@
-from pathlib import Path
-
-from goldfish.config import is_new_project, project_name, write_manifest, get_manifest
+from goldfish.config import get_manifest, is_new_project, project_name, write_manifest
 
 
 def test_is_new_project_returns_true_when_no_manifest(tmp_path):

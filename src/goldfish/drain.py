@@ -180,7 +180,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
         )
         for f in files[:3]:
             lines = f.read_text(encoding="utf-8").splitlines()
-            heading = next((l for l in lines if l.startswith("# ")), f.stem)
+            heading = next((line for line in lines if line.startswith("# ")), f.stem)
             recent_decisions.append(heading.lstrip("# "))
 
     if open_tasks:

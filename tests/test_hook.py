@@ -1,6 +1,4 @@
 import json
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
 from goldfish.hook import handle
@@ -35,6 +33,7 @@ def test_async_event_appends_to_queue(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"hook_event_name": "Stop", "session_id": "s1", "cwd": "/p"}
     from goldfish.hook import main_with_event
+
     main_with_event(event, queue=queue)
     assert queue.exists()
     assert len(queue.read_text().splitlines()) == 1
@@ -45,6 +44,7 @@ def test_sync_session_start_writes_stdout_not_queue(tmp_path, capsys):
     event = {"hook_event_name": "SessionStart", "session_id": "s1", "cwd": "/project/myapp"}
     with patch("goldfish.hook.handle_session_start", return_value="wake-up content"):
         from goldfish.hook import main_with_event
+
         main_with_event(event, queue=queue)
     captured = capsys.readouterr()
     assert "wake-up content" in captured.out
@@ -57,6 +57,7 @@ def test_sync_pre_compact_calls_handler(tmp_path, capsys):
     event = {"hook_event_name": "PreCompact", "session_id": "s1", "cwd": "/p"}
     with patch("goldfish.hook.handle_pre_compact") as mock_handler:
         from goldfish.hook import main_with_event
+
         main_with_event(event, queue=queue)
     mock_handler.assert_called_once_with(event)
     captured = capsys.readouterr()
@@ -67,6 +68,7 @@ def test_unknown_event_type_goes_to_queue(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"hook_event_name": "SomeNewEvent", "cwd": "/p"}
     from goldfish.hook import main_with_event
+
     main_with_event(event, queue=queue)
     assert queue.exists()
     assert len(queue.read_text().splitlines()) == 1
@@ -76,6 +78,7 @@ def test_hook_short_prompt_produces_no_stdout(tmp_path, capsys):
     event = {"hook_event_name": "UserPromptSubmit", "prompt": "yes", "cwd": "/p", "session_id": "s1"}
     with patch("goldfish.hook.enrich", return_value=""):
         from goldfish.hook import main_with_event
+
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     captured = capsys.readouterr()
     assert captured.out == ""
@@ -90,6 +93,7 @@ def test_hook_long_prompt_calls_enrich_and_writes_stdout(tmp_path, capsys):
     }
     with patch("goldfish.hook.enrich", return_value="## Goldfish Context\n\nsome results"):
         from goldfish.hook import main_with_event
+
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     captured = capsys.readouterr()
     assert "Goldfish Context" in captured.out
