@@ -2,7 +2,16 @@ import json
 import os
 import shutil
 import subprocess as sp
+import sys
+from io import TextIOWrapper
 from pathlib import Path
+
+# Windows default encoding (cp1252) cannot represent ✓/✗ — reconfigure at startup
+if sys.platform == "win32":
+    if isinstance(sys.stdout, TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if isinstance(sys.stderr, TextIOWrapper):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 import typer
 
