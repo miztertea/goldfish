@@ -82,7 +82,7 @@ def _run(cmd: list[str], **kwargs) -> "subprocess.CompletedProcess | None":
     except (FileNotFoundError, OSError):
         if sys.platform == "win32":
             try:
-                return subprocess.run(cmd, shell=True, **kwargs)
+                return subprocess.run(cmd, shell=True, **kwargs)  # nosec B602 — cmd is always a hardcoded list, no user input
             except (FileNotFoundError, OSError):
                 pass
         return None
