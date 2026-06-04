@@ -109,7 +109,7 @@ def run(
     elif shutil.which("goldfish"):
         print("✓ goldfish installed (found on PATH)")
     else:
-        r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfish"])
+        r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfishh"])
         if r.returncode != 0:
             print("  note: goldfish self-install failed; hook path may be unstable")
         else:
