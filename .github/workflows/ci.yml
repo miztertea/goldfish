@@ -18,7 +18,7 @@ jobs:
       - run: uv sync --group dev
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run mypy src/goldfish/
+      - run: uv run mypy src/goldfishh/
       - run: uv run bandit -r src/ -ll
       - run: uv run pip-audit
 
@@ -63,13 +63,13 @@ jobs:
         run: uv tool install dist/goldfishh-*.whl
       - name: Smoke test CLI
         shell: bash
-        run: goldfish --help
+        run: goldfishh --help
       - name: Smoke test init
         shell: bash
         run: |
-          goldfish init
-          goldfish status
-          goldfish doctor
+          goldfishh init
+          goldfishh status
+          goldfishh doctor
 
   matrix-macos:
     name: matrix (macos-latest)
@@ -99,13 +99,13 @@ jobs:
         run: uv tool install dist/goldfishh-*.whl
       - name: Smoke test CLI
         shell: bash
-        run: goldfish --help
+        run: goldfishh --help
       - name: Smoke test init
         shell: bash
         run: |
-          goldfish init
-          goldfish status
-          goldfish doctor
+          goldfishh init
+          goldfishh status
+          goldfishh doctor
 
   release:
     name: release
