@@ -60,7 +60,7 @@ jobs:
         run: uv build
       - name: Install built wheel
         shell: bash
-        run: uv tool install dist/goldfish-*.whl
+        run: uv tool install dist/goldfishh-*.whl
       - name: Smoke test CLI
         shell: bash
         run: goldfish --help
@@ -96,7 +96,7 @@ jobs:
         run: uv build
       - name: Install built wheel
         shell: bash
-        run: uv tool install dist/goldfish-*.whl
+        run: uv tool install dist/goldfishh-*.whl
       - name: Smoke test CLI
         shell: bash
         run: goldfish --help
