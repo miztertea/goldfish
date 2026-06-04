@@ -40,7 +40,7 @@ goldfishh coordinates four layers of agent intelligence. All four are available 
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | explicit `write_note()` when human audience warrants it |
+| Architectural summaries, design notes | Goldfishh vault | explicit `write_note()` when human audience warrants it |
 
 For reads: auto-memory is authoritative for user preferences; `omega_profile()` is supplemental — additional signal, not ground truth.
 

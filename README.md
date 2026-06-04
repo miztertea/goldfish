@@ -83,7 +83,7 @@ Claude Code JSONL logs         ← source of truth
        ↓ mined by OMEGA
 SQLite episodic store          ← past decisions, lessons, errors
        ↓ written by goldfish
-~/.goldfish/vaults/{project}/  ← plain markdown vault (human-readable)
+~/.goldfishh/vaults/{project}/  ← plain markdown vault (human-readable)
        ↑ indexed by GitNexus
 Code knowledge graph           ← symbols, callers, execution flows
        ↑ searched by Semble
@@ -101,7 +101,7 @@ Prompt enrichment              ← context injected before every task
 | `TaskCreated` / `TaskCompleted` | Writes task notes to vault |
 | `Stop` / `SessionEnd` | Advances JSONL offset in manifest |
 
-All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so Claude never blocks.
+All async events write to `~/.goldfishh/queue.jsonl` first and return in <10ms so Claude never blocks.
 
 ---
 
@@ -110,7 +110,7 @@ All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so
 All knowledge is plain markdown — readable with `cat`, searchable with `grep`, versionable with `git`.
 
 ```
-~/.goldfish/vaults/{project}/
+~/.goldfishh/vaults/{project}/
 ├── .manifest.toml           ← sync state (byte offset, timestamps)
 ├── Memory/
 │   ├── Decisions/           ← architectural choices and rationale

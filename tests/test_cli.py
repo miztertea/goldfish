@@ -133,7 +133,7 @@ def test_replay_processes_jsonl_events(tmp_path):
     jsonl_file = jsonl_dir / "session1.jsonl"
     jsonl_file.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
-    vaults_root = tmp_path / ".goldfish" / "vaults"
+    vaults_root = tmp_path / ".goldfishh" / "vaults"
     with (
         patch("goldfishh.cli.os.getcwd", return_value="/project/myapp"),
         patch("goldfishh.cli.Path.home", return_value=tmp_path),

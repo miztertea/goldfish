@@ -38,7 +38,7 @@ def drain_cmd() -> None:
 
 @app.command()
 def init() -> None:
-    """Install and configure all goldfish dependencies."""
+    """Install and configure all goldfishh dependencies."""
     import os
 
     from goldfishh.init import run as _init
@@ -63,7 +63,7 @@ def status() -> None:
 
 @app.command()
 def doctor() -> None:
-    """Check goldfish configuration. Prints fix instructions for failures."""
+    """Check goldfishh configuration. Prints fix instructions for failures."""
     ok = True
     cwd = os.getcwd()
 
@@ -176,7 +176,7 @@ def doctor() -> None:
 
 @app.command(name="register-hooks")
 def register_hooks_cmd() -> None:
-    """Update Claude Code hook registrations with the correct goldfish binary path."""
+    """Update Claude Code hook registrations with the correct goldfishh binary path."""
     register_hooks(settings_path=DEFAULT_SETTINGS)
     typer.echo(f"Hooks registered in {DEFAULT_SETTINGS}")
 
