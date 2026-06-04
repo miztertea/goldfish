@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a full GitHub Actions CI/CD pipeline for goldfish with quality gates, cross-platform validation, automated versioning via git-cliff + hatch-vcs, and PyPI publishing via Trusted Publisher.
+**Goal:** Build a full GitHub Actions CI/CD pipeline for goldfishh with quality gates, cross-platform validation, automated versioning via git-cliff + hatch-vcs, and PyPI publishing via Trusted Publisher.
 
 **Architecture:** Sequential gate pipeline — ubuntu quality/test runs on every push and PR; macOS + Windows matrix runs on push to main only; git-cliff generates CHANGELOG and creates a release tag after matrix passes; a separate publish workflow fires on the GitHub Release event and uploads to PyPI via OIDC.
 
@@ -31,7 +31,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "goldfish"
+name = "goldfishh"
 dynamic = ["version"]
 requires-python = "==3.13.*"
 dependencies = ["tomli-w", "PyYAML", "typer", "chonkie"]
@@ -86,7 +86,7 @@ git-cliff reads `cliff.toml` to know how to parse commits and format the changel
 header = """
 # Changelog
 
-All notable changes to goldfish are documented here.
+All notable changes to goldfishh are documented here.
 Generated automatically by [git-cliff](https://git-cliff.org).
 
 """
@@ -132,7 +132,7 @@ sort_commits = "oldest"
 ```markdown
 # Changelog
 
-All notable changes to goldfish are documented here.
+All notable changes to goldfishh are documented here.
 Generated automatically by [git-cliff](https://git-cliff.org).
 ```
 
@@ -157,12 +157,12 @@ Expected: outputs `v0.1.0` (no commits since the tag yet) or `v0.1.1`/`v0.2.0` d
 
 ---
 
-### Task 3: Add Claude Code detection to `goldfish init`
+### Task 3: Add Claude Code detection to `goldfishh init`
 
-`goldfish init` should detect and auto-install Claude Code before checking Node.js, making it fully self-bootstrapping.
+`goldfishh init` should detect and auto-install Claude Code before checking Node.js, making it fully self-bootstrapping.
 
 **Files:**
-- Modify: `src/goldfish/init.py`
+- Modify: `src/goldfishh/init.py`
 - Modify: `tests/test_init.py`
 
 - [ ] **Step 1: Add two new tests first (TDD)**
@@ -178,12 +178,12 @@ def test_init_installs_claude_code_when_missing(tmp_path):
     def dep_missing_claude(cmd):
         return cmd != "claude"  # claude absent, all others present
 
-    with patch("goldfish.init.check_dependency", side_effect=dep_missing_claude), \
-         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
-         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
-         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+    with patch("goldfishh.init.check_dependency", side_effect=dep_missing_claude), \
+         patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
+         patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
 
@@ -200,12 +200,12 @@ def test_init_skips_claude_code_install_when_present(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
 
-    with patch("goldfish.init.check_dependency", return_value=True), \
-         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
-         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
-         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+    with patch("goldfishh.init.check_dependency", return_value=True), \
+         patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
+         patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
 
@@ -235,15 +235,15 @@ Replace the entire `test_run_exits_early_if_node_missing` function with:
 def test_run_exits_early_if_node_missing(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
-    stable = tmp_path / "goldfish"
+    stable = tmp_path / "goldfishh"
     stable.touch()
 
     def dep_missing_node(cmd):
         return cmd != "node"  # node absent, claude and others present
 
-    with patch("goldfish.init.check_dependency", side_effect=dep_missing_node), \
-         patch("goldfish.init._goldfish_stable_path", return_value=stable), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
+    with patch("goldfishh.init.check_dependency", side_effect=dep_missing_node), \
+         patch("goldfishh.init._goldfish_stable_path", return_value=stable), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
          pytest.raises(SystemExit):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
 
@@ -254,7 +254,7 @@ def test_run_exits_early_if_node_missing(tmp_path):
 
 - [ ] **Step 4: Add Claude Code detection to init.py**
 
-In `src/goldfish/init.py`, add the following block immediately before the `if not check_dependency("node"):` check (currently at line 101). Insert after the `project = project_name(cwd)` line:
+In `src/goldfishh/init.py`, add the following block immediately before the `if not check_dependency("node"):` check (currently at line 101). Insert after the `project = project_name(cwd)` line:
 
 ```python
     # Claude Code — install via npm if missing (non-fatal, log only)
@@ -288,8 +288,8 @@ Expected: 110 passed (108 + 2 new)
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/goldfish/init.py tests/test_init.py
-git commit -m "feat: auto-install Claude Code in goldfish init when missing"
+git add src/goldfishh/init.py tests/test_init.py
+git commit -m "feat: auto-install Claude Code in goldfishh init when missing"
 ```
 
 ---
@@ -361,7 +361,7 @@ Expected: no output (no violations)
 - [ ] **Step 4: Run mypy**
 
 ```bash
-uv run mypy src/goldfish/
+uv run mypy src/goldfishh/
 ```
 
 Expected: exits 0 with `Success: no issues found` or warnings only (no errors, because `check_untyped_defs = false` skips untyped function bodies). If errors appear, they are likely missing type stubs — fix by adding `# type: ignore` only for third-party imports that have no stubs, or adjust `ignore_missing_imports = true` covers them.
@@ -372,7 +372,7 @@ Expected: exits 0 with `Success: no issues found` or warnings only (no errors, b
 uv run bandit -r src/ -ll
 ```
 
-Expected: exits 0. The `[tool.bandit] skips = ["B603", "B607"]` config suppresses the subprocess-related findings that are expected in goldfish. If other findings appear, either fix the code or add them to `skips` in `pyproject.toml` with a comment explaining why.
+Expected: exits 0. The `[tool.bandit] skips = ["B603", "B607"]` config suppresses the subprocess-related findings that are expected in goldfishh. If other findings appear, either fix the code or add them to `skips` in `pyproject.toml` with a comment explaining why.
 
 - [ ] **Step 6: Run pip-audit**
 
@@ -436,7 +436,7 @@ jobs:
       - run: uv sync --group dev
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run mypy src/goldfish/
+      - run: uv run mypy src/goldfishh/
       - run: uv run bandit -r src/ -ll
       - run: uv run pip-audit
 
@@ -528,25 +528,25 @@ Add after the `test` job:
         run: uv build
       - name: Install built wheel
         shell: bash
-        run: uv tool install dist/goldfish-*.whl
+        run: uv tool install dist/goldfishh-*.whl
       - name: Smoke test CLI
         shell: bash
-        run: goldfish --help
+        run: goldfishh --help
       - name: Smoke test init
         shell: bash
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          goldfish init
-          goldfish status
-          goldfish doctor
+          goldfishh init
+          goldfishh status
+          goldfishh doctor
 ```
 
 > **Key details:**
-> - All steps use `shell: bash` — this ensures glob patterns (`dist/goldfish-*.whl`) work on Windows (GitHub Actions ships git-bash on Windows runners).
-> - `actions/setup-node@v4` is required — `goldfish init` installs Claude Code via npm.
+> - All steps use `shell: bash` — this ensures glob patterns (`dist/goldfishh-*.whl`) work on Windows (GitHub Actions ships git-bash on Windows runners).
+> - `actions/setup-node@v4` is required — `goldfishh init` installs Claude Code via npm.
 > - `fetch-depth: 0` is needed for hatch-vcs to find the nearest git tag and produce the correct wheel version (without it, hatch-vcs produces `0.0.0.dev0`).
-> - `ANTHROPIC_API_KEY` is injected so `goldfish init` can configure OMEGA.
+> - `ANTHROPIC_API_KEY` is injected so `goldfishh init` can configure OMEGA.
 
 - [ ] **Step 2: Append the release job to ci.yml**
 
@@ -680,8 +680,8 @@ Fires on GitHub Release published event (created by the release job in ci.yml). 
 
 **Prerequisites before this task can produce a live publish:**
 1. Create GitHub environment named `pypi` in repo Settings → Environments
-2. Configure PyPI Trusted Publisher in your PyPI account: Publisher = GitHub Actions, Repository = miztertea/goldfish, Workflow = publish.yml, Environment = pypi
-3. Verify `goldfish` (or chosen name) is available on PyPI
+2. Configure PyPI Trusted Publisher in your PyPI account: Publisher = GitHub Actions, Repository = miztertea/goldfishh, Workflow = publish.yml, Environment = pypi
+3. Verify `goldfishh` (or chosen name) is available on PyPI
 
 - [ ] **Step 1: Create publish.yml**
 
@@ -745,7 +745,7 @@ Enforces that `quality` and `test` status checks must pass before any PR can mer
 - [ ] **Step 1: Create the branch ruleset via GitHub API**
 
 ```bash
-gh api repos/miztertea/goldfish/rulesets \
+gh api repos/miztertea/goldfishh/rulesets \
   -X POST \
   -H "Accept: application/vnd.github+json" \
   --input - <<'EOF'
@@ -802,7 +802,7 @@ Go to: GitHub repo → Settings → Secrets and variables → Actions → New re
 
 Add:
 - `GH_TOKEN` — PAT with `repo` scope (for release job push + gh release create)
-- `ANTHROPIC_API_KEY` — Anthropic API key (for Claude PR review + goldfish init in matrix)
+- `ANTHROPIC_API_KEY` — Anthropic API key (for Claude PR review + goldfishh init in matrix)
 
 - [ ] **Step 4: Verify branch protection by opening a test PR**
 
@@ -825,7 +825,7 @@ Documents branch naming, worktree workflow, conventional commit format, and loca
 - [ ] **Step 1: Create CONTRIBUTING.md**
 
 ```markdown
-# Contributing to goldfish
+# Contributing to goldfishh
 
 ## Branch naming
 
@@ -847,14 +847,14 @@ Every agent coding session uses a git worktree so each session has its own
 ```bash
 # Start of session
 git checkout -b feat/<name>
-git worktree add ../goldfish-<name> feat/<name>
-cd ../goldfish-<name>
+git worktree add ../goldfishh-<name> feat/<name>
+cd ../goldfishh-<name>
 
 # ... all work happens here ...
 
 # After PR merges — clean up
-cd /path/to/goldfish
-git worktree remove ../goldfish-<name>
+cd /path/to/goldfishh
+git worktree remove ../goldfishh-<name>
 ```
 
 See the `superpowers:using-git-worktrees` skill for full details.
@@ -864,7 +864,7 @@ See the `superpowers:using-git-worktrees` skill for full details.
 Commit messages determine the next version bump via git-cliff:
 
 ```
-feat: add Claude Code detection to goldfish init
+feat: add Claude Code detection to goldfishh init
 fix: correct hook routing for PreCompact events
 chore: update dependencies
 docs: add CONTRIBUTING.md
@@ -886,7 +886,7 @@ uv sync --group dev      # install all dependencies including dev tools
 uv run pytest            # run test suite (~110 tests, ~0.3s)
 uv run ruff check .      # lint
 uv run ruff format .     # format
-uv run mypy src/goldfish/ # type check
+uv run mypy src/goldfishh/ # type check
 uv run bandit -r src/ -ll # security scan
 uv run pip-audit         # dependency vulnerability scan
 ```
@@ -908,7 +908,7 @@ act push           # simulate a full push event
 ```
 
 **Note:** `act` maps macOS and Windows runners to Linux containers. This is
-sufficient for goldfish — the platform-specific risk (shell path formatting
+sufficient for goldfishh — the platform-specific risk (shell path formatting
 in settings.json) is validated by the real GitHub macOS/Windows runners on
 push to main.
 ```
@@ -945,7 +945,7 @@ automated versioning (git-cliff + hatch-vcs), and PyPI publishing.
 
 ## Longer-term direction
 
-- uvbox-based self-bootstrapping binary distribution (users get goldfish
+- uvbox-based self-bootstrapping binary distribution (users get goldfishh
   without needing Python or uv pre-installed)
 - Broader platform support (ARM runners once GitHub Actions free tier
   includes them)
@@ -953,7 +953,7 @@ automated versioning (git-cliff + hatch-vcs), and PyPI publishing.
 
 ## Out of scope
 
-- goldfish does not build search, embeddings, or graph functionality —
+- goldfishh does not build search, embeddings, or graph functionality —
   those are provided by Semble, GitNexus, and OMEGA respectively
 - No always-on processes or daemons — every operation opens, executes, closes
 ```
@@ -974,12 +974,12 @@ Expected: each command outputs the created label. Some labels (`bug`, `documenta
 - [ ] **Step 3: Create initial milestones**
 
 ```bash
-gh api repos/miztertea/goldfish/milestones \
+gh api repos/miztertea/goldfishh/milestones \
   -X POST \
   -f title="v0.1.0 — CI/CD pipeline" \
   -f description="First public release with full CI/CD pipeline"
 
-gh api repos/miztertea/goldfish/milestones \
+gh api repos/miztertea/goldfishh/milestones \
   -X POST \
   -f title="v0.2.0 — Platform validation" \
   -f description="Windows hook path fix, full cross-platform green CI"

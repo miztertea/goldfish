@@ -8,7 +8,7 @@
 
 ## Problem
 
-The goldfish repo contains excellent internal design artifacts (PRD.md at 38KB, DESIGN-COMPANION.MD at 26KB) written as working documents during the design phase. These served their purpose but are now:
+The goldfishh repo contains excellent internal design artifacts (PRD.md at 38KB, DESIGN-COMPANION.MD at 26KB) written as working documents during the design phase. These served their purpose but are now:
 - Mixed audience (spec + rationale + user stories + history all combined)
 - Too heavy for the repo root
 - Not decomposed into purpose-built files for external contributors or agents
@@ -17,7 +17,7 @@ The README references an Obsidian integration without instructions, uses PyPI-st
 
 CLAUDE.md is bloated — it includes full reference content (five failures, tool stack, frontmatter schemas, vault layout) that duplicates what's in PRD.md and should live in docs/.
 
-AGENTS.md is currently just the GitNexus managed block with no goldfish-specific agent constitution.
+AGENTS.md is currently just the GitNexus managed block with no goldfishh-specific agent constitution.
 
 ---
 
@@ -31,12 +31,12 @@ A key architectural insight that governs all file design decisions:
 - Semble → `.claude/agents/semble-search.md` (sub-agent file)
 
 **Layer 2 — Goldfish coordination block** (project-agnostic, installed in every project)
-- `## Agent Knowledge Tools (managed by goldfish)` sentinel in `init.py`
+- `## Agent Knowledge Tools (managed by goldfishh)` sentinel in `init.py`
 - Purpose: cross-tool orchestration. Tells agents to query all three layers before any non-trivial task.
-- Must work coherently with Layer 1 in any codebase, not just goldfish itself.
+- Must work coherently with Layer 1 in any codebase, not just goldfishh itself.
 - Open design note: current block lists per-tool API signatures — these are Layer 1 content. A future revision should focus this block purely on cross-tool coordination, leaving specific API usage to each tool's own block.
 
-**Layer 3 — Project-specific hand-authored content** (goldfish repo only)
+**Layer 3 — Project-specific hand-authored content** (goldfishh repo only)
 - Module map, non-negotiable constraints, five failures as design guardrail, hook routing, testing approach, superpowers contributor workflow
 - Lives in the hand-authored sections above the maintained blocks in CLAUDE.md and AGENTS.md
 
@@ -47,15 +47,15 @@ A key architectural insight that governs all file design decisions:
 ## Repo Root Layout (final state)
 
 ```
-goldfish/
+goldfishh/
 ├── README.md              ← hero, badges, quick start, how it works, CLI ref, dev, contributing
-├── CLAUDE.md              ← Layer 3 operational content + Layer 2 goldfish block + Layer 1 GitNexus block
-├── AGENTS.md              ← Layer 3 agent constitution + Layer 1 GitNexus block (goldfish block not written here)
+├── CLAUDE.md              ← Layer 3 operational content + Layer 2 goldfishh block + Layer 1 GitNexus block
+├── AGENTS.md              ← Layer 3 agent constitution + Layer 1 GitNexus block (goldfishh block not written here)
 ├── CONTRIBUTING.md        ← human contributor guide: setup, tests, PR process, code style
 ├── SECURITY.md            ← scope, responsible disclosure
 ├── LICENSE                ← MIT
 ├── assets/
-│   └── goldfish-logo.png  ← moved from repo root
+│   └── goldfishh-logo.png  ← moved from repo root
 ├── docs/
 │   ├── architecture.md    ← from PRD: system architecture, runtime flows, module definitions
 │   ├── five-failures.md   ← the framework as a standalone reference
@@ -70,7 +70,7 @@ goldfish/
 │   │   ├── omega.md       ← existing, unchanged
 │   │   └── semble.md      ← existing, unchanged
 │   └── superpowers/       ← existing plans/specs, unchanged
-├── src/goldfish/          ← unchanged
+├── src/goldfishh/          ← unchanged
 ├── tests/                 ← unchanged
 └── pyproject.toml         ← add [project.urls] Homepage + Repository
 ```
@@ -86,7 +86,7 @@ Modeled on clean AI CLI tools (uv, ruff, aider). One job per section.
 Get to Quick Start immediately — hero, one-liner, badges, then the action. Explanation follows.
 
 ```
-[Hero image — centered goldfish-logo.png, width 280]
+[Hero image — centered goldfishh-logo.png, width 280]
 [One-line pitch in bold]
 [License badge] [Python 3.13+ badge] [Platform badge]
 
@@ -97,9 +97,9 @@ Get to Quick Start immediately — hero, one-liner, badges, then the action. Exp
 [Five failures table — kept verbatim, it's the pitch]
 
 ## How it works         ← introduce the three-layer model here
-[Brief intro: "goldfish installs three layers of intelligence into Claude Code"]
+[Brief intro: "goldfishh installs three layers of intelligence into Claude Code"]
 [Layer 1 table: GitNexus / OMEGA / Semble — what each does]
-[Layer 2 note: goldfish ties them together via a coordination block]
+[Layer 2 note: goldfishh ties them together via a coordination block]
 [Layer 3 note: your project-specific instructions layer on top]
 [Hook lifecycle table — what fires when]
 
@@ -122,23 +122,23 @@ Get to Quick Start immediately — hero, one-liner, badges, then the action. Exp
 [MIT one-liner]
 ```
 
-**The three-layer model in "How it works":** This is where the layer terminology earns its place in user docs. It explains *why* goldfish is only ~500 lines — it's not reimplementing memory or search, it's wiring three maintained layers together. The table makes this concrete:
+**The three-layer model in "How it works":** This is where the layer terminology earns its place in user docs. It explains *why* goldfishh is only ~500 lines — it's not reimplementing memory or search, it's wiring three maintained layers together. The table makes this concrete:
 
 | Layer | Installed by | What it provides |
 |-------|-------------|-----------------|
-| Layer 1 — Tool-native | GitNexus, OMEGA, Semble (via `goldfish init`) | Each tool's own hooks, MCP server, and agent instructions |
-| Layer 2 — Coordination | goldfish | A single block that tells agents to query all three layers before acting |
+| Layer 1 — Tool-native | GitNexus, OMEGA, Semble (via `goldfishh init`) | Each tool's own hooks, MCP server, and agent instructions |
+| Layer 2 — Coordination | goldfishh | A single block that tells agents to query all three layers before acting |
 | Layer 3 — Project-specific | You (or your agent) | Codebase-specific guardrails, architecture context, contributor workflow |
 
 ### Quick start (key change — uvx from repo, not PyPI)
 
 ```bash
 # Run directly from GitHub (PyPI listing coming soon)
-uvx --from git+https://github.com/miztertea/goldfish goldfish init
+uvx --from git+https://github.com/miztertea/goldfishh goldfishh init
 
 # Or install as a persistent tool
-uv tool install git+https://github.com/miztertea/goldfish
-goldfish init
+uv tool install git+https://github.com/miztertea/goldfishh
+goldfishh init
 ```
 
 ### Platform support section
@@ -167,7 +167,7 @@ Layer 3 content only — sits above the maintained blocks. No tool API signature
 # CLAUDE.md
 
 ## What this is
-[2 lines: goldfish is an orchestration layer (~500 lines Python) that installs and
+[2 lines: goldfishh is an orchestration layer (~500 lines Python) that installs and
 connects GitNexus, OMEGA, and Semble. It does not build search, embeddings, or graphs.]
 
 ## Module map
@@ -191,7 +191,7 @@ Tool selection → docs/tool-selection.md
 Design decisions → docs/design-decisions.md
 
 ---
-[Layer 2: goldfish coordination block — maintained by goldfish]
+[Layer 2: goldfishh coordination block — maintained by goldfishh]
 [Layer 1: GitNexus block — maintained by gitnexus]
 ```
 
@@ -207,7 +207,7 @@ Sits above the GitNexus managed block. References maintained sections rather tha
 # AGENTS.md
 
 ## What you're working in
-[1 paragraph: goldfish is an orchestration layer, ~500 lines Python, 9 modules.
+[1 paragraph: goldfishh is an orchestration layer, ~500 lines Python, 9 modules.
 Every function is a subprocess call, a file write, or a config read. No algorithms.]
 
 ## The five failures (your contribution guardrail)
@@ -225,7 +225,7 @@ Independent tasks: use dispatching-parallel-agents skill
 
 For all code exploration, use the tools in the maintained sections below — not grep or bash.
 
-## What goldfish contributes (don't rebuild this)
+## What goldfishh contributes (don't rebuild this)
 [9-item list: init wizard, coordination CLAUDE.md block, event processing,
 queue decoupling, vault writes, prompt enrichment fan-out, manifest tracking,
 wake-up context generation, new vs existing project distinction]
@@ -245,20 +245,20 @@ CONTRIBUTING.md — dev setup and PR process
 ## CONTRIBUTING.md (new, human-focused)
 
 ```
-# Contributing to goldfish
+# Contributing to goldfishh
 
 ## Prerequisites
 [Python 3.13+, Node.js 18+, uv]
 
 ## Dev setup
-git clone https://github.com/miztertea/goldfish
-cd goldfish
+git clone https://github.com/miztertea/goldfishh
+cd goldfishh
 uv sync
 uv run pytest          # ~100 tests, ~0.3s, no live installs needed
 
 ## Running tests
 uv run pytest -v
-uv run goldfish --help  # run CLI from source
+uv run goldfishh --help  # run CLI from source
 
 ## Project structure
 [brief module map pointing to CLAUDE.md for detail]
@@ -272,7 +272,7 @@ Stub subprocess calls and the OMEGA API in tests.
 [standard: branch, tests pass, description covers the why]
 
 ## AI agents contributing
-See AGENTS.md for the agent constitution, superpowers workflow, and goldfish-specific guardrails.
+See AGENTS.md for the agent constitution, superpowers workflow, and goldfishh-specific guardrails.
 ```
 
 ---
@@ -283,24 +283,24 @@ See AGENTS.md for the agent constitution, superpowers workflow, and goldfish-spe
 # Security
 
 ## Scope
-goldfish is a local CLI orchestration tool. It does not handle user authentication,
+goldfishh is a local CLI orchestration tool. It does not handle user authentication,
 store credentials, transmit data over the network, or run as a server.
 
-The primary security surface is the hook integration: goldfish registers shell
-commands that Claude Code executes on lifecycle events. A compromised goldfish
+The primary security surface is the hook integration: goldfishh registers shell
+commands that Claude Code executes on lifecycle events. A compromised goldfishh
 binary or malicious CLAUDE.md could execute arbitrary commands.
 
 ## Responsible disclosure
 Report security issues via GitHub's private vulnerability reporting:
-https://github.com/miztertea/goldfish/security/advisories/new
+https://github.com/miztertea/goldfishh/security/advisories/new
 
 Please do not open public issues for security vulnerabilities.
 
 ## What's in scope
-- Dependency vulnerabilities in goldfish's own dependencies
+- Dependency vulnerabilities in goldfishh's own dependencies
 - Hook command injection via malformed event payloads
 - Vault path traversal
-- Any scenario where goldfish could be used to escalate privileges
+- Any scenario where goldfishh could be used to escalate privileges
 
 ## What's out of scope
 - Vulnerabilities in GitNexus, OMEGA, or Semble themselves (report to their maintainers)
@@ -336,9 +336,9 @@ The current block lists per-tool API signatures that duplicate Layer 1 content a
 **Optimized `_CLAUDE_MD_BLOCK`:**
 
 ```
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
-goldfish wires together three intelligence layers. Query all three before any non-trivial task.
+goldfishh wires together three intelligence layers. Query all three before any non-trivial task.
 
 | Layer | Tool | What it knows |
 |-------|------|---------------|
@@ -355,7 +355,7 @@ goldfish wires together three intelligence layers. Query all three before any no
 Each tool's full usage instructions are in its own maintained section in this file.
 ```
 
-This block works coherently in any project goldfish is installed in. The tool blocks below it supply the specific call signatures and examples — no duplication.
+This block works coherently in any project goldfishh is installed in. The tool blocks below it supply the specific call signatures and examples — no duplication.
 
 ---
 
@@ -363,8 +363,8 @@ This block works coherently in any project goldfish is installed in. The tool bl
 
 ```toml
 [project.urls]
-Homepage = "https://github.com/miztertea/goldfish"
-Repository = "https://github.com/miztertea/goldfish"
+Homepage = "https://github.com/miztertea/goldfishh"
+Repository = "https://github.com/miztertea/goldfishh"
 ```
 
 ---

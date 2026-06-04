@@ -10,12 +10,12 @@
 
 ---
 
-### Task 1: Update `_CLAUDE_MD_BLOCK` in `src/goldfish/init.py`
+### Task 1: Update `_CLAUDE_MD_BLOCK` in `src/goldfishh/init.py`
 
 **Files:**
-- Modify: `src/goldfish/init.py:25-52`
+- Modify: `src/goldfishh/init.py:25-52`
 
-This is the source-of-truth for the goldfish Layer 2 block installed into every project's CLAUDE.md. The current version has stale content that predates the 4-layer model and lacks the memory division note, session-start clarification, and Layer 1 handoff line.
+This is the source-of-truth for the goldfishh Layer 2 block installed into every project's CLAUDE.md. The current version has stale content that predates the 4-layer model and lacks the memory division note, session-start clarification, and Layer 1 handoff line.
 
 - [ ] **Step 1: Replace `_CLAUDE_MD_BLOCK`**
 
@@ -23,7 +23,7 @@ Use the Edit tool. `old_string`:
 ```
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish wires together four layers of agent intelligence. All four activate at session start.
+goldfishh wires together four layers of agent intelligence. All four activate at session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -55,7 +55,7 @@ Each tool's full usage instructions are in its own maintained section in this fi
 ```
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish wires together four layers of agent intelligence. All four activate at session start.
+goldfishh wires together four layers of agent intelligence. All four activate at session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -90,7 +90,7 @@ Each tool's full usage instructions are in its own auto-maintained block below (
 - [ ] **Step 2: Verify the change looks correct**
 
 ```bash
-grep -n "Memory systems\|initialization calls\|auto-maintained block below" src/goldfish/init.py
+grep -n "Memory systems\|initialization calls\|auto-maintained block below" src/goldfishh/init.py
 ```
 
 Expected output (3 lines):
@@ -104,7 +104,7 @@ Expected output (3 lines):
 - [ ] **Step 3: Run existing tests**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 Expected: all tests pass. `_CLAUDE_MD_BLOCK` is a string constant — no test directly asserts its content, but `test_claude_md.py` exercises `append_claude_md_block` which uses `GOLDFISH_SENTINEL`. That sentinel is unchanged so tests must still pass.
@@ -112,7 +112,7 @@ Expected: all tests pass. `_CLAUDE_MD_BLOCK` is a string constant — no test di
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/goldfish/init.py
+git add src/goldfishh/init.py
 git commit -m "fix: update _CLAUDE_MD_BLOCK with memory division, session-start clarification, layer boundary"
 ```
 
@@ -123,7 +123,7 @@ git commit -m "fix: update _CLAUDE_MD_BLOCK with memory division, session-start 
 **Files:**
 - Modify: `CLAUDE.md`
 
-Three changes in one commit: (A) delete hook routing section, (B) replace stale goldfish block with new content, (C) remove orphaned gitnexus block. All three are in the same file; committing together keeps the file in a consistent state at every commit.
+Three changes in one commit: (A) delete hook routing section, (B) replace stale goldfishh block with new content, (C) remove orphaned gitnexus block. All three are in the same file; committing together keeps the file in a consistent state at every commit.
 
 - [ ] **Step 1: Delete the hook routing section (Edit A)**
 
@@ -134,7 +134,7 @@ Use the Edit tool. `old_string`:
 Synchronous (Claude waits for stdout): `SessionStart`, `UserPromptSubmit`, `PreCompact`
 Async (`async: true`): `PostToolUse`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `Stop`, `SessionEnd`
 
-goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus registers its own `PreToolUse` and `PostToolUse` during `gitnexus analyze` — both sets coexist without conflict.
+goldfishh registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus registers its own `PreToolUse` and `PostToolUse` during `gitnexus analyze` — both sets coexist without conflict.
 
 ## Testing approach
 ```
@@ -144,15 +144,15 @@ goldfish registers `PostToolUse` so GitNexus hooks coexist cleanly. GitNexus reg
 ## Testing approach
 ```
 
-- [ ] **Step 2: Replace the stale goldfish block (Edit B)**
+- [ ] **Step 2: Replace the stale goldfishh block (Edit B)**
 
 Use the Edit tool. `old_string`:
 ```
-<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
-goldfish wires together three intelligence layers. Query all three before any non-trivial task.
+goldfishh wires together three intelligence layers. Query all three before any non-trivial task.
 
 | Layer | Tool | What it knows |
 |-------|------|---------------|
@@ -176,11 +176,11 @@ Each tool's full usage instructions are in its own maintained section in this fi
 
 `new_string`:
 ```
-<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
-goldfish wires together four layers of agent intelligence. All four activate at session start.
+goldfishh wires together four layers of agent intelligence. All four activate at session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -240,10 +240,10 @@ The orphaned block is everything between `<!-- layer 1: tool blocks -->` and the
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/goldfish/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/goldfish/clusters` | All functional areas |
-| `gitnexus://repo/goldfish/processes` | All execution flows |
-| `gitnexus://repo/goldfish/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/goldfishh/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/goldfishh/clusters` | All functional areas |
+| `gitnexus://repo/goldfishh/processes` | All execution flows |
+| `gitnexus://repo/goldfishh/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
@@ -285,7 +285,7 @@ Expected output — confirm:
 
 ```bash
 git add CLAUDE.md
-git commit -m "fix: tighten CLAUDE.md layers — remove hook routing, refresh goldfish block, drop orphaned gitnexus duplicate"
+git commit -m "fix: tighten CLAUDE.md layers — remove hook routing, refresh goldfishh block, drop orphaned gitnexus duplicate"
 ```
 
 ---
@@ -295,7 +295,7 @@ git commit -m "fix: tighten CLAUDE.md layers — remove hook routing, refresh go
 **Files:**
 - Modify: `AGENTS.md`
 
-"What goldfish contributes" and "Further reading" are project-level facts (Layer 3) but currently sit inside the `<!-- layer 2: goldfish -->` block. Move them above the layer 2 marker. The superpowers workflow (goldfish coordination instruction) stays in Layer 2.
+"What goldfishh contributes" and "Further reading" are project-level facts (Layer 3) but currently sit inside the `<!-- layer 2: goldfishh -->` block. Move them above the layer 2 marker. The superpowers workflow (goldfishh coordination instruction) stays in Layer 2.
 
 - [ ] **Step 1: Restructure AGENTS.md layer boundary**
 
@@ -303,11 +303,11 @@ Use the Edit tool. `old_string`:
 ```
 ---
 
-<!-- layer 2: goldfish — superpowers workflow for contributors -->
+<!-- layer 2: goldfishh — superpowers workflow for contributors -->
 
 ## Superpowers workflow (required for all contributors)
 
-goldfish uses superpowers skills for all development. When contributing:
+goldfishh uses superpowers skills for all development. When contributing:
 
 - **Before any feature work:** invoke `brainstorming` skill — design before code
 - **Before implementation:** invoke `writing-plans` skill — plan before writing
@@ -317,9 +317,9 @@ goldfish uses superpowers skills for all development. When contributing:
 
 For all code exploration, use the tools in the maintained sections below — not grep or bash.
 
-## What goldfish contributes (don't rebuild this)
+## What goldfishh contributes (don't rebuild this)
 
-goldfish does exactly these things and nothing more:
+goldfishh does exactly these things and nothing more:
 
 1. Init wizard that installs all tools via their official methods
 2. The Layer 2 coordination block written to every project's CLAUDE.md
@@ -343,9 +343,9 @@ goldfish does exactly these things and nothing more:
 
 `new_string`:
 ```
-## What goldfish contributes (don't rebuild this)
+## What goldfishh contributes (don't rebuild this)
 
-goldfish does exactly these things and nothing more:
+goldfishh does exactly these things and nothing more:
 
 1. Init wizard that installs all tools via their official methods
 2. The Layer 2 coordination block written to every project's CLAUDE.md
@@ -366,11 +366,11 @@ goldfish does exactly these things and nothing more:
 
 ---
 
-<!-- layer 2: goldfish — superpowers workflow for contributors -->
+<!-- layer 2: goldfishh — superpowers workflow for contributors -->
 
 ## Superpowers workflow (required for all contributors)
 
-goldfish uses superpowers skills for all development. When contributing:
+goldfishh uses superpowers skills for all development. When contributing:
 
 - **Before any feature work:** invoke `brainstorming` skill — design before code
 - **Before implementation:** invoke `writing-plans` skill — plan before writing
@@ -386,16 +386,16 @@ For all code exploration, use the tools in the maintained sections below — not
 - [ ] **Step 2: Verify AGENTS.md layer boundary**
 
 ```bash
-grep -n "layer 2\|layer 3\|What goldfish contributes\|Further reading\|Superpowers workflow" AGENTS.md
+grep -n "layer 2\|layer 3\|What goldfishh contributes\|Further reading\|Superpowers workflow" AGENTS.md
 ```
 
-Expected output — confirm `What goldfish contributes` and `Further reading` appear at lower line numbers than `<!-- layer 2:`, and `Superpowers workflow` appears after it:
+Expected output — confirm `What goldfishh contributes` and `Further reading` appear at lower line numbers than `<!-- layer 2:`, and `Superpowers workflow` appears after it:
 ```
 1:  <!-- layer 3: project — maintained by project team -->
-~30: ## What goldfish contributes (don't rebuild this)
+~30: ## What goldfishh contributes (don't rebuild this)
 ~44: ## Further reading
 ~50: ---
-~52: <!-- layer 2: goldfish — superpowers workflow for contributors -->
+~52: <!-- layer 2: goldfishh — superpowers workflow for contributors -->
 ~56: ## Superpowers workflow (required for all contributors)
 ```
 (Line numbers approximate; what matters is the order.)
@@ -404,7 +404,7 @@ Expected output — confirm `What goldfish contributes` and `Further reading` ap
 
 ```bash
 git add AGENTS.md
-git commit -m "fix: move 'What goldfish contributes' and 'Further reading' to Layer 3 in AGENTS.md"
+git commit -m "fix: move 'What goldfishh contributes' and 'Further reading' to Layer 3 in AGENTS.md"
 ```
 
 ---
@@ -419,12 +419,12 @@ grep -c "gitnexus:start" CLAUDE.md
 
 Expected: `1`
 
-- [ ] **Step 2: Confirm `_CLAUDE_MD_BLOCK` matches CLAUDE.md goldfish content**
+- [ ] **Step 2: Confirm `_CLAUDE_MD_BLOCK` matches CLAUDE.md goldfishh content**
 
-The goldfish block in CLAUDE.md (between the sentinel and `<!-- layer 1:`) must match `_CLAUDE_MD_BLOCK` in `init.py`. Quick check — both should contain "auto-maintained block below (Layer 1)":
+The goldfishh block in CLAUDE.md (between the sentinel and `<!-- layer 1:`) must match `_CLAUDE_MD_BLOCK` in `init.py`. Quick check — both should contain "auto-maintained block below (Layer 1)":
 
 ```bash
-grep "auto-maintained block below" CLAUDE.md src/goldfish/init.py
+grep "auto-maintained block below" CLAUDE.md src/goldfishh/init.py
 ```
 
 Expected: appears in both files.
@@ -432,7 +432,7 @@ Expected: appears in both files.
 - [ ] **Step 3: Run full test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 Expected: all tests pass.

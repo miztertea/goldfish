@@ -1,11 +1,11 @@
 <!-- layer 3: project — maintained by project team -->
 # AGENTS.md
 
-This is the agent constitution for goldfish development. Read this before touching any code.
+This is the agent constitution for goldfishh development. Read this before touching any code.
 
 ## What you're working in
 
-goldfish is an orchestration layer (~500 lines of Python, 9 modules). Every function is a subprocess call, a file write, or a config read. There is no search code, no embedding code, no graph code — those problems are solved by GitNexus, OMEGA, and Semble. goldfish wires them together.
+goldfishh is an orchestration layer (~500 lines of Python, 9 modules). Every function is a subprocess call, a file write, or a config read. There is no search code, no embedding code, no graph code — those problems are solved by GitNexus, OMEGA, and Semble. goldfishh wires them together.
 
 ## The five failures (your contribution guardrail)
 
@@ -26,9 +26,9 @@ Every change must map to at least one of these failures. If your change doesn't 
 - **Hook handlers return in <10ms.** Write to queue.jsonl and exit. Never block Claude.
 - **GitNexus is PolyForm Noncommercial.** Install via `npm install -g gitnexus` only. Never bundle or redistribute.
 
-## What goldfish contributes (don't rebuild this)
+## What goldfishh contributes (don't rebuild this)
 
-goldfish does exactly these things and nothing more:
+goldfishh does exactly these things and nothing more:
 
 1. Init wizard that installs all tools via their official methods
 2. The Layer 2 coordination block written to every project's CLAUDE.md
@@ -49,11 +49,11 @@ goldfish does exactly these things and nothing more:
 
 ---
 
-<!-- layer 2: goldfish — superpowers workflow for contributors -->
+<!-- layer 2: goldfishh — superpowers workflow for contributors -->
 
 ## Superpowers workflow (required for all contributors)
 
-goldfish uses superpowers skills for all development. When contributing:
+goldfishh uses superpowers skills for all development. When contributing:
 
 - **Before any feature work:** invoke `brainstorming` skill — design before code
 - **Before implementation:** invoke `writing-plans` skill — plan before writing
@@ -73,7 +73,7 @@ These blocks are auto-maintained IN THIS FILE by each tool's CLI (see the `<!-- 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **goldfish** (1209 symbols, 1439 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **goldfishh** (1209 symbols, 1439 relationships, 30 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -96,10 +96,10 @@ This project is indexed by GitNexus as **goldfish** (1209 symbols, 1439 relation
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/goldfish/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/goldfish/clusters` | All functional areas |
-| `gitnexus://repo/goldfish/processes` | All execution flows |
-| `gitnexus://repo/goldfish/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/goldfishh/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/goldfishh/clusters` | All functional areas |
+| `gitnexus://repo/goldfishh/processes` | All execution flows |
+| `gitnexus://repo/goldfishh/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

@@ -23,20 +23,20 @@ Add at the end of the file:
 
 ```python
 def test_claude_md_block_describes_four_layer_stack():
-    from goldfish.init import _CLAUDE_MD_BLOCK
+    from goldfishh.init import _CLAUDE_MD_BLOCK
     assert "Layer 0" in _CLAUDE_MD_BLOCK, "Must reference Layer 0 (MEMORY.md)"
     assert "MEMORY.md" in _CLAUDE_MD_BLOCK, "Must name MEMORY.md explicitly"
     assert "omega_welcome()" in _CLAUDE_MD_BLOCK, "Session start must call omega_welcome()"
     assert "Session Start" in _CLAUDE_MD_BLOCK, "Must have Session Start section"
     assert "Layer 1" in _CLAUDE_MD_BLOCK, "Must reference Layer 1 (tool blocks)"
-    assert "Layer 2" in _CLAUDE_MD_BLOCK, "Must reference Layer 2 (goldfish)"
+    assert "Layer 2" in _CLAUDE_MD_BLOCK, "Must reference Layer 2 (goldfishh)"
     assert "Layer 3" in _CLAUDE_MD_BLOCK, "Must reference Layer 3 (project)"
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/test_init.py::test_claude_md_block_describes_four_layer_stack -v
+cd /home/tchawes/goldfishh && python -m pytest tests/test_init.py::test_claude_md_block_describes_four_layer_stack -v
 ```
 
 Expected output: `FAILED tests/test_init.py::test_claude_md_block_describes_four_layer_stack`
@@ -45,7 +45,7 @@ Expected failure message: `AssertionError: Must reference Layer 0 (MEMORY.md)`
 - [ ] **Step 3: Run the full test suite to confirm baseline**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest --tb=short -q
+cd /home/tchawes/goldfishh && python -m pytest --tb=short -q
 ```
 
 Expected: All existing tests pass (only the new test fails).
@@ -59,21 +59,21 @@ git commit -m "test: add failing test for four-layer _CLAUDE_MD_BLOCK"
 
 ---
 
-### Task 2: Update `_CLAUDE_MD_BLOCK` in `src/goldfish/init.py`
+### Task 2: Update `_CLAUDE_MD_BLOCK` in `src/goldfishh/init.py`
 
 **Files:**
-- Modify: `src/goldfish/init.py:25-42`
+- Modify: `src/goldfishh/init.py:25-42`
 
-Replace the `_CLAUDE_MD_BLOCK` string. The sentinel heading (`GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"`) stays unchanged — `append_claude_md_block` uses it as the match key.
+Replace the `_CLAUDE_MD_BLOCK` string. The sentinel heading (`GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"`) stays unchanged — `append_claude_md_block` uses it as the match key.
 
-- [ ] **Step 1: Replace `_CLAUDE_MD_BLOCK` in `src/goldfish/init.py`**
+- [ ] **Step 1: Replace `_CLAUDE_MD_BLOCK` in `src/goldfishh/init.py`**
 
 Replace lines 25–42 (the entire `_CLAUDE_MD_BLOCK = f"""..."""` block):
 
 ```python
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish wires together four layers of agent intelligence. All four activate at session start.
+goldfishh wires together four layers of agent intelligence. All four activate at session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -103,7 +103,7 @@ Each tool's full usage instructions are in its own maintained section in this fi
 - [ ] **Step 2: Run the new test to verify it passes**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/test_init.py::test_claude_md_block_describes_four_layer_stack -v
+cd /home/tchawes/goldfishh && python -m pytest tests/test_init.py::test_claude_md_block_describes_four_layer_stack -v
 ```
 
 Expected: `PASSED`
@@ -111,7 +111,7 @@ Expected: `PASSED`
 - [ ] **Step 3: Run the full test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest --tb=short -q
+cd /home/tchawes/goldfishh && python -m pytest --tb=short -q
 ```
 
 Expected: All tests pass. Count should be unchanged from baseline (one new test added in Task 1, now passing).
@@ -119,7 +119,7 @@ Expected: All tests pass. Count should be unchanged from baseline (one new test 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/goldfish/init.py
+git add src/goldfishh/init.py
 git commit -m "feat: update _CLAUDE_MD_BLOCK to four-layer model with session start sequence"
 ```
 
@@ -130,7 +130,7 @@ git commit -m "feat: update _CLAUDE_MD_BLOCK to four-layer model with session st
 **Files:**
 - Modify: `CLAUDE.md`
 
-The file currently has three logical layers with no visual boundaries. Add a `<!-- layer 3: project -->` comment and `---` rule before the Layer 3 project section (top of file), and a `<!-- layer 2: goldfish — do not edit, maintained by goldfish -->` comment before the goldfish block. Layer 1 (GitNexus) already has `<!-- gitnexus:end -->` — add `<!-- layer 1: tool blocks — do not edit, maintained by tools -->` before it.
+The file currently has three logical layers with no visual boundaries. Add a `<!-- layer 3: project -->` comment and `---` rule before the Layer 3 project section (top of file), and a `<!-- layer 2: goldfishh — do not edit, maintained by goldfishh -->` comment before the goldfishh block. Layer 1 (GitNexus) already has `<!-- gitnexus:end -->` — add `<!-- layer 1: tool blocks — do not edit, maintained by tools -->` before it.
 
 No content is moved or rewritten in this task — only separators are added.
 
@@ -144,14 +144,14 @@ The file currently starts with `# CLAUDE.md`. Add the Layer 3 marker at the very
 # CLAUDE.md
 ```
 
-Before the line `## Agent Knowledge Tools (managed by goldfish)`, add the Layer 2 marker:
+Before the line `## Agent Knowledge Tools (managed by goldfishh)`, add the Layer 2 marker:
 
 ```
 ---
 
-<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 ```
 
 Before the `## Always Do` section (which is the start of the GitNexus tool block), add the Layer 1 marker:
@@ -167,13 +167,13 @@ Before the `## Always Do` section (which is the start of the GitNexus tool block
 - [ ] **Step 2: Verify the file renders as expected**
 
 ```bash
-grep -n "layer 1\|layer 2\|layer 3\|gitnexus:end" /home/tchawes/goldfish/CLAUDE.md
+grep -n "layer 1\|layer 2\|layer 3\|gitnexus:end" /home/tchawes/goldfishh/CLAUDE.md
 ```
 
 Expected output (approximate line numbers):
 ```
 1:<!-- layer 3: project — maintained by project team -->
-55:<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+55:<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->
 74:<!-- layer 1: tool blocks — do not edit, maintained by each tool -->
 110:<!-- gitnexus:end -->
 ```
@@ -209,7 +209,7 @@ GitNexus, OMEGA, and Semble each maintain their own instruction blocks automatic
 - [ ] **Step 2: Verify AGENTS.md no longer contains gitnexus block content**
 
 ```bash
-grep -n "gitnexus:start\|gitnexus:end\|MUST run impact" /home/tchawes/goldfish/AGENTS.md
+grep -n "gitnexus:start\|gitnexus:end\|MUST run impact" /home/tchawes/goldfishh/AGENTS.md
 ```
 
 Expected: No output (zero matches).
@@ -217,7 +217,7 @@ Expected: No output (zero matches).
 - [ ] **Step 3: Verify AGENTS.md still contains the five failures and constraints**
 
 ```bash
-grep -n "five failures\|Non-negotiable\|Superpowers workflow" /home/tchawes/goldfish/AGENTS.md
+grep -n "five failures\|Non-negotiable\|Superpowers workflow" /home/tchawes/goldfishh/AGENTS.md
 ```
 
 Expected: Three matches, confirming the project constitution content is intact.
@@ -234,13 +234,13 @@ git commit -m "docs: strip Layer 1 tool blocks from AGENTS.md, add pointer to CL
 ### Task 5: Manual step — update global `~/.claude/CLAUDE.md`
 
 **Files:**
-- `~/.claude/CLAUDE.md` (user's private global config — NOT touched by goldfish)
+- `~/.claude/CLAUDE.md` (user's private global config — NOT touched by goldfishh)
 
-goldfish cannot write to this file. The user must update it manually after this implementation is complete.
+goldfishh cannot write to this file. The user must update it manually after this implementation is complete.
 
 - [ ] **Step 1: Note the required manual change**
 
-The global `~/.claude/CLAUDE.md` currently instructs the agent to call `omega_welcome()` and `omega_protocol()` at session start. With the four-layer model, this instruction now lives in the Layer 2 goldfish block of each project's `CLAUDE.md`. The global file's session-start rule can be simplified to a short pointer.
+The global `~/.claude/CLAUDE.md` currently instructs the agent to call `omega_welcome()` and `omega_protocol()` at session start. With the four-layer model, this instruction now lives in the Layer 2 goldfishh block of each project's `CLAUDE.md`. The global file's session-start rule can be simplified to a short pointer.
 
 Open `~/.claude/CLAUDE.md` and find the `## Memory (OMEGA)` section. The existing rule is correct and does not contradict the new model — the new Layer 2 block in each project reinforces it. No breaking change. This is an optional cleanup: the user may simplify the global rule to remove redundancy, but it is not required for the system to work correctly.
 
@@ -249,7 +249,7 @@ Document this in the spec by appending the following section to `docs/superpower
 ```
 ## Post-Implementation Note
 
-The global ~/.claude/CLAUDE.md OMEGA startup rule is now reinforced by the Layer 2 goldfish block
+The global ~/.claude/CLAUDE.md OMEGA startup rule is now reinforced by the Layer 2 goldfishh block
 in every project. No breaking change. The global rule may be simplified to remove redundancy,
 but is not required for the system to work correctly.
 ```
@@ -268,7 +268,7 @@ git commit -m "docs: note manual global CLAUDE.md step as optional cleanup post-
 - [ ] **Step 1: Run full test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest --tb=short -q
+cd /home/tchawes/goldfishh && python -m pytest --tb=short -q
 ```
 
 Expected: All tests pass.
@@ -276,7 +276,7 @@ Expected: All tests pass.
 - [ ] **Step 2: Verify layer structure across all three files**
 
 ```bash
-grep -n "layer 0\|layer 1\|layer 2\|layer 3\|Layer 0\|Layer 1\|Layer 2\|Layer 3" /home/tchawes/goldfish/CLAUDE.md /home/tchawes/goldfish/AGENTS.md /home/tchawes/goldfish/src/goldfish/init.py
+grep -n "layer 0\|layer 1\|layer 2\|layer 3\|Layer 0\|Layer 1\|Layer 2\|Layer 3" /home/tchawes/goldfishh/CLAUDE.md /home/tchawes/goldfishh/AGENTS.md /home/tchawes/goldfishh/src/goldfishh/init.py
 ```
 
 Expected: Hits in all three files. `CLAUDE.md` has the comment markers. `AGENTS.md` has "Layer 1" in the pointer section. `init.py` has all four layers in `_CLAUDE_MD_BLOCK`.
@@ -284,7 +284,7 @@ Expected: Hits in all three files. `CLAUDE.md` has the comment markers. `AGENTS.
 - [ ] **Step 3: Verify GitNexus block is only in CLAUDE.md, not AGENTS.md**
 
 ```bash
-grep -l "gitnexus:end" /home/tchawes/goldfish/CLAUDE.md /home/tchawes/goldfish/AGENTS.md
+grep -l "gitnexus:end" /home/tchawes/goldfishh/CLAUDE.md /home/tchawes/goldfishh/AGENTS.md
 ```
 
 Expected: Only `CLAUDE.md` is listed.
@@ -292,9 +292,9 @@ Expected: Only `CLAUDE.md` is listed.
 - [ ] **Step 4: Verify `append_claude_md_block` still works with new block**
 
 ```bash
-cd /home/tchawes/goldfish && python -c "
-from goldfish.init import _CLAUDE_MD_BLOCK
-from goldfish.claude_md import GOLDFISH_SENTINEL, append_claude_md_block
+cd /home/tchawes/goldfishh && python -c "
+from goldfishh.init import _CLAUDE_MD_BLOCK
+from goldfishh.claude_md import GOLDFISH_SENTINEL, append_claude_md_block
 import tempfile, pathlib
 with tempfile.NamedTemporaryFile(suffix='.md', delete=False, mode='w') as f:
     f.write('# Test\n')

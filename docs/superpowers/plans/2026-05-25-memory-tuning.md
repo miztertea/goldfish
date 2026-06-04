@@ -4,9 +4,9 @@
 
 **Goal:** Resolve all 6 YELLOW findings from memory diagnostic Run 3, tighten the diagnostic framework so intentional design choices don't re-flag as gaps, and store architectural rationale as OMEGA decisions.
 
-**Architecture:** Four files receive instruction edits (no Python logic changes). `goldfish/CLAUDE.md` and `src/goldfish/init.py`'s `_CLAUDE_MD_BLOCK` must be kept in sync — edit CLAUDE.md first, then apply identical text changes to `_CLAUDE_MD_BLOCK`. A stale reference sweep follows all targeted edits. Six OMEGA decisions reinforce the architectural rationale via CLI.
+**Architecture:** Four files receive instruction edits (no Python logic changes). `goldfishh/CLAUDE.md` and `src/goldfishh/init.py`'s `_CLAUDE_MD_BLOCK` must be kept in sync — edit CLAUDE.md first, then apply identical text changes to `_CLAUDE_MD_BLOCK`. A stale reference sweep follows all targeted edits. Six OMEGA decisions reinforce the architectural rationale via CLI.
 
-**Tech Stack:** Python (goldfish), Markdown instruction files, OMEGA CLI (`omega store`), shell grep for stale reference sweep.
+**Tech Stack:** Python (goldfishh), Markdown instruction files, OMEGA CLI (`omega store`), shell grep for stale reference sweep.
 
 ---
 
@@ -18,7 +18,7 @@
 - [ ] **Step 1: Confirm the stale line exists**
 
 ```bash
-grep -n "omega flush" /home/tchawes/goldfish/docs/architecture.md
+grep -n "omega flush" /home/tchawes/goldfishh/docs/architecture.md
 ```
 
 Expected output:
@@ -56,7 +56,7 @@ PreCompact returns → compaction proceeds
 - [ ] **Step 3: Verify no `omega flush` remains in docs**
 
 ```bash
-grep -rn "omega flush" /home/tchawes/goldfish/docs/ /home/tchawes/goldfish/CLAUDE.md /home/tchawes/goldfish/AGENTS.md
+grep -rn "omega flush" /home/tchawes/goldfishh/docs/ /home/tchawes/goldfishh/CLAUDE.md /home/tchawes/goldfishh/AGENTS.md
 ```
 
 Expected: no output.
@@ -67,7 +67,7 @@ Expected: no output.
 git add docs/architecture.md
 git commit -m "fix: remove stale omega flush from PreCompact flow in architecture.md
 
-omega flush was removed in goldfish v1.0 polish. PreCompact now writes
+omega flush was removed in goldfishh v1.0 polish. PreCompact now writes
 vault checkpoint only.
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
@@ -80,13 +80,13 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 **Files:**
 - Modify: `CLAUDE.md` (project root — not `~/.claude/CLAUDE.md`)
 
-Four edits to the Agent Knowledge Tools section (managed by goldfish, layer 2). Make them all before committing.
+Four edits to the Agent Knowledge Tools section (managed by goldfishh, layer 2). Make them all before committing.
 
 - [ ] **Step 1: Fix the vault row in the Memory Router table**
 
 Find this line in the Memory Router table:
 ```
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfishh hooks |
 ```
 
 Replace with:
@@ -188,18 +188,18 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 ---
 
-### Task 3: Sync `_CLAUDE_MD_BLOCK` in `src/goldfish/init.py`
+### Task 3: Sync `_CLAUDE_MD_BLOCK` in `src/goldfishh/init.py`
 
 **Files:**
-- Modify: `src/goldfish/init.py:25-69`
+- Modify: `src/goldfishh/init.py:25-69`
 
-`_CLAUDE_MD_BLOCK` is the template goldfish writes to new project CLAUDE.md files. It must mirror the Agent Knowledge Tools section in `goldfish/CLAUDE.md`. Apply identical text changes to the four sections edited in Task 2.
+`_CLAUDE_MD_BLOCK` is the template goldfishh writes to new project CLAUDE.md files. It must mirror the Agent Knowledge Tools section in `goldfishh/CLAUDE.md`. Apply identical text changes to the four sections edited in Task 2.
 
 - [ ] **Step 1: Apply the vault row fix**
 
-In `src/goldfish/init.py`, find:
+In `src/goldfishh/init.py`, find:
 ```python
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfishh hooks |
 ```
 
 Replace with:
@@ -209,7 +209,7 @@ Replace with:
 
 - [ ] **Step 2: Apply the post-table explanation fix**
 
-In `src/goldfish/init.py`, find:
+In `src/goldfishh/init.py`, find:
 ```python
 Vault = human-readable architectural summaries; OMEGA = machine-queryable decision records. The same decision can produce both — one for reading, one for querying.
 ```
@@ -223,7 +223,7 @@ Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = cons
 
 - [ ] **Step 3: Apply the session start arrival gap note**
 
-In `src/goldfish/init.py`, find:
+In `src/goldfishh/init.py`, find:
 ```python
 4. Check for applicable skills before responding to the user's first request
 5. Work begins
@@ -239,7 +239,7 @@ Replace with:
 
 - [ ] **Step 4: Apply the staleness cadence note**
 
-In `src/goldfish/init.py`, find:
+In `src/goldfishh/init.py`, find:
 ```python
 - **GitNexus** — call graph, blast radius, execution flows
 - **OMEGA** — prior decisions, session history, known issues
@@ -262,7 +262,7 @@ Before spawning subagents:
 - [ ] **Step 5: Run the test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 Expected: all tests pass (≈100 tests, ~0.3s). No failures.
@@ -270,7 +270,7 @@ Expected: all tests pass (≈100 tests, ~0.3s). No failures.
 - [ ] **Step 6: Verify _CLAUDE_MD_BLOCK matches CLAUDE.md**
 
 ```bash
-grep -c "authoritative for user preferences\|consumer is human\|just-in-time delivery\|stale warning fires after every commit" /home/tchawes/goldfish/src/goldfish/init.py
+grep -c "authoritative for user preferences\|consumer is human\|just-in-time delivery\|stale warning fires after every commit" /home/tchawes/goldfishh/src/goldfishh/init.py
 ```
 
 Expected: `4`
@@ -278,10 +278,10 @@ Expected: `4`
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/goldfish/init.py
+git add src/goldfishh/init.py
 git commit -m "fix: sync _CLAUDE_MD_BLOCK in init.py with updated CLAUDE.md
 
-Mirrors all four edits from goldfish/CLAUDE.md: routing fog tiebreaker,
+Mirrors all four edits from goldfishh/CLAUDE.md: routing fog tiebreaker,
 boundary blur consumer rule, arrival gap note, GitNexus staleness guidance.
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
@@ -309,11 +309,11 @@ Insert before it:
 ```
 ### Goldfish Architecture Notes
 
-These qualifiers apply when scoring goldfish's instruction set specifically:
+These qualifiers apply when scoring goldfishh's instruction set specifically:
 
 **Arrival gap:** Just-in-time on-demand delivery counts as arrival — pre-loading is not required if targeted delivery is the architectural intent. GitNexus/Semble loading on-demand when a code question is asked satisfies the arrival gap criterion.
 
-**Dark corner:** A context type is NOT a dark corner if: (a) it is re-derivable on demand in <1 second, and (b) a CLI diagnostic command exists (e.g., `goldfish doctor`). Document the CLI, close the finding. Tool health state meets both criteria.
+**Dark corner:** A context type is NOT a dark corner if: (a) it is re-derivable on demand in <1 second, and (b) a CLI diagnostic command exists (e.g., `goldfishh doctor`). Document the CLI, close the finding. Tool health state meets both criteria.
 
 **Stale signal:** A "verify before acting" instruction in the agent's constitution is a valid validation mechanism. Absence of an automated cadence is not automatically YELLOW if explicit verification is instructed.
 
@@ -331,7 +331,7 @@ Find the entire Current State Assessment section:
 |---------|-------|-------------|
 | Routing fog | 🔴 RED | No routing decision table; user prefs claimed by both auto-memory and OMEGA quick reference |
 | Dark corner | 🟡 YELLOW | Tool health state + KPI timeseries have no home |
-| Arrival gap | 🟡 YELLOW | `omega_protocol()` framing misleading; CLAUDE.md guaranteed by goldfish init so absence not a real failure |
+| Arrival gap | 🟡 YELLOW | `omega_protocol()` framing misleading; CLAUDE.md guaranteed by goldfishh init so absence not a real failure |
 | Stale signal | 🟡 YELLOW | `project_goldfish.md` stale; no structured validation cadence |
 | Boundary blur | 🔴 RED | Layer 0/OMEGA user-pref overlap; vault vs OMEGA scope undefined |
 | Instruction fiction | 🔴 RED | `omega_protocol` framing aspirational vs thin free-tier reality; OMEGA labeled "on demand" but required |
@@ -346,7 +346,7 @@ Replace with:
 | Failure | Score | Key Evidence |
 |---------|-------|-------------|
 | Routing fog | 🟡 YELLOW | Read-side tiebreaker added (auto-memory authoritative, omega_profile supplemental); write routing clear |
-| Dark corner | 🟢 GREEN | Tools assumed installed; `goldfish doctor` CLI is the diagnostic path — justified absence |
+| Dark corner | 🟢 GREEN | Tools assumed installed; `goldfishh doctor` CLI is the diagnostic path — justified absence |
 | Arrival gap | 🟢 GREEN | On-demand = just-in-time; intentional architectural design, documented in coordination block |
 | Stale signal | 🟢 GREEN | "Verify code claims before acting" instruction is the validation cadence |
 | Boundary blur | 🟡 YELLOW | Consumer-driven rule added; explicit vs automatic vault write distinction documented |
@@ -358,7 +358,7 @@ Replace with:
 - [ ] **Step 3: Verify the table updated correctly**
 
 ```bash
-grep -n "GREEN\|YELLOW\|RED" /home/tchawes/goldfish/docs/memory-diagnostic.md | tail -10
+grep -n "GREEN\|YELLOW\|RED" /home/tchawes/goldfishh/docs/memory-diagnostic.md | tail -10
 ```
 
 Expected: 3 GREEN lines, 3 YELLOW lines, 0 RED lines in the assessment table.
@@ -385,7 +385,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - [ ] **Step 1: Grep for `omega flush`**
 
 ```bash
-grep -rn "omega flush" /home/tchawes/goldfish/ --include="*.md" --include="*.py" --include="*.toml"
+grep -rn "omega flush" /home/tchawes/goldfishh/ --include="*.md" --include="*.py" --include="*.toml"
 ```
 
 Expected: no output (Task 1 removed the only instance).
@@ -393,7 +393,7 @@ Expected: no output (Task 1 removed the only instance).
 - [ ] **Step 2: Grep for three-layer references**
 
 ```bash
-grep -rni "three-layer\|three layer\|3-layer" /home/tchawes/goldfish/ --include="*.md" --include="*.py"
+grep -rni "three-layer\|three layer\|3-layer" /home/tchawes/goldfishh/ --include="*.md" --include="*.py"
 ```
 
 Expected: no output. If any found, update them to "four-layer" with appropriate context.
@@ -401,7 +401,7 @@ Expected: no output. If any found, update them to "four-layer" with appropriate 
 - [ ] **Step 3: Grep for removed CLI commands**
 
 ```bash
-grep -rn "omega mine\|omega note\|semble reindex\|semble index\b" /home/tchawes/goldfish/ --include="*.md" --include="*.py"
+grep -rn "omega mine\|omega note\|semble reindex\|semble index\b" /home/tchawes/goldfishh/ --include="*.md" --include="*.py"
 ```
 
 Expected: no output. If any found in docs, remove or replace with the current correct command.
@@ -433,7 +433,7 @@ omega store "Arrival gap: GitNexus/Semble load on-demand by design — just-in-t
 - [ ] **Step 2: Store dark corner decision**
 
 ```bash
-omega store "Dark corner: Tool health state (gitnexus/omega/semble installed?) has no persistent memory home by design. Assumption is goldfish is installed and running. User diagnoses with goldfish doctor CLI when needed. Re-derivation <1s. Dark corner diagnostic scores GREEN for this architecture." "decision"
+omega store "Dark corner: Tool health state (gitnexus/omega/semble installed?) has no persistent memory home by design. Assumption is goldfishh is installed and running. User diagnoses with goldfishh doctor CLI when needed. Re-derivation <1s. Dark corner diagnostic scores GREEN for this architecture." "decision"
 ```
 
 - [ ] **Step 3: Store boundary blur decision**
@@ -451,7 +451,7 @@ omega store "Routing fog tiebreaker: For user preference reads, auto-memory (mem
 - [ ] **Step 5: Store instruction fiction guard decision**
 
 ```bash
-omega store "Instruction fiction guard: PreCompact no longer calls omega flush — removed in goldfish v1.0 polish. PreCompact writes vault checkpoint via vault.write() only. Any doc showing omega flush in PreCompact flow is stale." "decision"
+omega store "Instruction fiction guard: PreCompact no longer calls omega flush — removed in goldfishh v1.0 polish. PreCompact writes vault checkpoint via vault.write() only. Any doc showing omega flush in PreCompact flow is stale." "decision"
 ```
 
 - [ ] **Step 6: Store GitNexus staleness decision**
@@ -475,7 +475,7 @@ Expected: recent entries mentioning the decisions just stored.
 - [ ] **Step 1: Run the full test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 Expected: all tests pass.
@@ -483,7 +483,7 @@ Expected: all tests pass.
 - [ ] **Step 2: Verify no omega flush remains anywhere**
 
 ```bash
-grep -rn "omega flush" /home/tchawes/goldfish/ --include="*.md" --include="*.py"
+grep -rn "omega flush" /home/tchawes/goldfishh/ --include="*.md" --include="*.py"
 ```
 
 Expected: no output.
@@ -493,8 +493,8 @@ Expected: no output.
 ```bash
 python3 -c "
 import sys
-sys.path.insert(0, '/home/tchawes/goldfish/src')
-from goldfish.init import _CLAUDE_MD_BLOCK
+sys.path.insert(0, '/home/tchawes/goldfishh/src')
+from goldfishh.init import _CLAUDE_MD_BLOCK
 block_lines = set(_CLAUDE_MD_BLOCK.split('\n'))
 markers = [
     'authoritative for user preferences',
@@ -510,9 +510,9 @@ for m in markers:
 
 Expected: all four markers print `OK`.
 
-- [ ] **Step 4: Run goldfish-diagnostic**
+- [ ] **Step 4: Run goldfishh-diagnostic**
 
-In Claude Code, invoke: `/goldfish-diagnostic`
+In Claude Code, invoke: `/goldfishh-diagnostic`
 
 Expected scorecard:
 ```

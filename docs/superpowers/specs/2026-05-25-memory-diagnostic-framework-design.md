@@ -19,8 +19,8 @@ Four cycles of memory layer tuning have been reactive (fix what hurts) rather th
 |---|-------------|-------|-------------|
 | 1 | Routing fog | 🔴 RED | No routing decision table; user prefs claimed by both auto-memory and OMEGA |
 | 2 | Dark corner | 🟡 YELLOW | Tool health state + KPI timeseries have no home |
-| 3 | Arrival gap | 🟡 YELLOW | `omega_protocol()` thinness — CLAUDE.md absence not a concern (goldfish ensures it) |
-| 4 | Stale signal | 🟡 YELLOW | `project_goldfish.md` stale; no structured validation cadence |
+| 3 | Arrival gap | 🟡 YELLOW | `omega_protocol()` thinness — CLAUDE.md absence not a concern (goldfishhh ensures it) |
+| 4 | Stale signal | 🟡 YELLOW | `project_goldfishhh.md` stale; no structured validation cadence |
 | 5 | Boundary blur | 🔴 RED | Layer 0/OMEGA user-pref overlap; vault vs OMEGA scope undefined |
 | 6 | Instruction fiction | 🔴 RED | `omega_protocol` framing; OMEGA labeled "on demand" but is mandatory |
 
@@ -50,7 +50,7 @@ A sibling document to `docs/five-failures.md`. Same design language: named failu
 - 🟡 YELLOW: partial coverage, edge cases, or judgment-dependent gaps
 - 🔴 RED: structural gap — agents will misroute without correction
 
-**Current State Assessment section:** A table with the 6 rows, score, and one line of key evidence. Updated by the `goldfish-diagnostic` skill each time it runs and committed to the doc.
+**Current State Assessment section:** A table with the 6 rows, score, and one line of key evidence. Updated by the `goldfishhh-diagnostic` skill each time it runs and committed to the doc.
 
 ---
 
@@ -66,7 +66,7 @@ Add a **Memory Router** table to the CLAUDE.md quick reference section. Three ro
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfishh vault | `write_note()` via goldfishhh hooks |
 
 Remove the line `"User says 'remember': omega_store(text, 'user_preference')"` from the CLAUDE.md quick reference. User preferences route to auto-memory, not OMEGA.
 
@@ -98,9 +98,9 @@ Split OMEGA into its own row:
 | Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
-#### Fix 5 — Stale signal: Update `project_goldfish.md`
+#### Fix 5 — Stale signal: Update `project_goldfishhh.md`
 
-Update the auto-memory file to reflect current state: goldfish has shipped v0.9.6+ with full code implementation. The "design phase — no code written yet" claim is stale and would mislead a fresh agent.
+Update the auto-memory file to reflect current state: goldfishhh has shipped v0.9.6+ with full code implementation. The "design phase — no code written yet" claim is stale and would mislead a fresh agent.
 
 Also add a staleness note to the CLAUDE.md quick reference under the Memory Router table:
 > "Before acting on a project memory that makes code-specific claims (file paths, function names, shipped state), verify against `git log` or a file read."
@@ -108,19 +108,19 @@ Also add a staleness note to the CLAUDE.md quick reference under the Memory Rout
 #### Fix 6 — Instruction fiction: Clarify "project-agnostic" in Layer 2 description
 
 Clarify Layer 2's "project-agnostic" label:
-> "project-agnostic in the sense that goldfish generates this block for any project it initializes; the referenced tools are goldfish's contribution to every project, not goldfish-specific content."
+> "project-agnostic in the sense that goldfishhh generates this block for any project it initializes; the referenced tools are goldfishhh's contribution to every project, not goldfishhh-specific content."
 
 #### Mirror all CLAUDE.md fixes in `init.py` `_CLAUDE_MD_BLOCK`
 
-`_CLAUDE_MD_BLOCK` in `src/goldfish/init.py` is the source of truth for new installs. All fixes to CLAUDE.md must be reflected there so newly initialized projects get the correct text.
+`_CLAUDE_MD_BLOCK` in `src/goldfishhh/init.py` is the source of truth for new installs. All fixes to CLAUDE.md must be reflected there so newly initialized projects get the correct text.
 
 ---
 
-### Part 3 — `goldfish-diagnostic` Skill
+### Part 3 — `goldfishhh-diagnostic` Skill
 
-**Location:** `.claude/skills/goldfish/goldfish-diagnostic/SKILL.md`
+**Location:** `.claude/skills/goldfishhh/goldfishhh-diagnostic/SKILL.md`
 
-**Trigger:** User invokes `/goldfish-diagnostic` — manual, not automatic.
+**Trigger:** User invokes `/goldfishhh-diagnostic` — manual, not automatic.
 
 **Sequence when invoked:**
 
@@ -142,7 +142,7 @@ Clarify Layer 2's "project-agnostic" label:
 
 ---
 
-### Part 4 — `goldfish-session-retrospective` Skill Update
+### Part 4 — `goldfishh-session-retrospective` Skill Update
 
 Add a new **Memory Layer Health** section after the KPI Scorecard (Section 4), before "What Worked / What Didn't" (Section 5).
 
@@ -169,7 +169,7 @@ If diagnostic found this session:
 **Headline:** Memory layer: X RED / Y YELLOW / Z GREEN [↑↓→ vs last diagnostic]
 
 If no diagnostic was run this session:
-"No diagnostic run this session — invoke /goldfish-diagnostic to establish baseline."
+"No diagnostic run this session — invoke /goldfishh-diagnostic to establish baseline."
 ```
 
 ---
@@ -180,10 +180,10 @@ If no diagnostic was run this session:
 |------|--------|
 | `docs/memory-diagnostic.md` | New — the Six Failure Modes framework doc |
 | `CLAUDE.md` | Fix 1–4, 6: Memory Router table, vault scope, omega_protocol framing, Layer 1 table split, project-agnostic clarification |
-| `src/goldfish/init.py` | Mirror all CLAUDE.md changes in `_CLAUDE_MD_BLOCK` |
-| `memory/project_goldfish.md` | Fix 5: Update stale "design phase" claim |
-| `.claude/skills/goldfish/goldfish-diagnostic/SKILL.md` | New skill |
-| `.claude/skills/goldfish-session-retrospective/SKILL.md` | Add Section 4.5 Memory Layer Health |
+| `src/goldfishhh/init.py` | Mirror all CLAUDE.md changes in `_CLAUDE_MD_BLOCK` |
+| `memory/project_goldfishhh.md` | Fix 5: Update stale "design phase" claim |
+| `.claude/skills/goldfishhh/goldfishhh-diagnostic/SKILL.md` | New skill |
+| `.claude/skills/goldfishhh-session-retrospective/SKILL.md` | Add Section 4.5 Memory Layer Health |
 
 No logic changes to any Python module. No new Python functions.
 
@@ -193,12 +193,12 @@ No logic changes to any Python module. No new Python functions.
 
 After implementation:
 
-- Running `/goldfish-diagnostic` produces a 6-row scorecard with GREEN/YELLOW/RED scores and specific evidence for each dimension
+- Running `/goldfishhh-diagnostic` produces a 6-row scorecard with GREEN/YELLOW/RED scores and specific evidence for each dimension
 - The diagnostic output is stored in OMEGA and retrievable by the retrospective skill
 - CLAUDE.md contains a Memory Router table — a fresh agent can determine the correct system for any content type without inferring
 - Layer 1 table correctly shows OMEGA as "Required at session start" not "on demand"
 - `omega_protocol()` is framed as a supplement to CLAUDE.md, not the authoritative playbook
-- `project_goldfish.md` reflects goldfish's shipped state (v0.9.6+, full code)
+- `project_goldfishhh.md` reflects goldfishhh's shipped state (v0.9.6+, full code)
 - The retrospective skill includes a Memory Layer Health section that shows trend vs prior session when a diagnostic exists
-- All CLAUDE.md changes are mirrored in `init.py` `_CLAUDE_MD_BLOCK`
+- All CLAUDE.md changes are mirrored in `goldfishhh/init.py` `_CLAUDE_MD_BLOCK`
 - Diagnostic baseline recorded: 3 RED / 3 YELLOW / 0 GREEN (2026-05-25)

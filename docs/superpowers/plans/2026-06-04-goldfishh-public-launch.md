@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fully rebrand the `goldfish` CLI/module to `goldfishh`, update all public-facing metadata and docs, and add a consumer-intent routing rule to the CLAUDE.md coordination block.
+**Goal:** Fully rebrand the `goldfishh` CLI/module to `goldfishh`, update all public-facing metadata and docs, and add a consumer-intent routing rule to the CLAUDE.md coordination block.
 
-**Architecture:** Mechanical Python module rename (`src/goldfish/` → `src/goldfishh/`) plus constant/path updates throughout the source, test, and doc tree. One new behavior: `append_claude_md_block` must detect and remove the old `"managed by goldfish"` sentinel before inserting the new `"managed by goldfishh"` one. All other changes are string substitutions.
+**Architecture:** Mechanical Python module rename (`src/goldfishh/` → `src/goldfishh/`) plus constant/path updates throughout the source, test, and doc tree. One new behavior: `append_claude_md_block` must detect and remove the old `"managed by goldfishh"` sentinel before inserting the new `"managed by goldfishh"` one. All other changes are string substitutions.
 
 **Tech Stack:** Python 3.13, uv, pytest, Typer CLI, GitHub CLI (`gh`)
 
@@ -14,22 +14,22 @@
 
 | File | Change |
 |------|--------|
-| `src/goldfish/` → `src/goldfishh/` | Rename entire directory |
-| `src/goldfishh/config.py` | `~/.goldfish/` → `~/.goldfishh/` in VAULTS_ROOT + CONFIG_PATH |
+| `src/goldfishh/` → `src/goldfishh/` | Rename entire directory |
+| `src/goldfishh/config.py` | `~/.goldfishh/` → `~/.goldfishh/` in VAULTS_ROOT + CONFIG_PATH |
 | `src/goldfishh/vault.py` | VAULTS_ROOT constant update |
 | `src/goldfishh/claude_md.py` | Rename GOLDFISH_SENTINEL constant + value; binary detection `goldfishh`; old-sentinel migration in `append_claude_md_block`; hook detection matches both old and new |
 | `src/goldfishh/init.py` | Binary path, vault path, `shutil.which`, print messages, `_PACKAGE_SOURCE`, routing rule + branding in `_CLAUDE_MD_BLOCK`, import of `GOLDFISHH_SENTINEL` |
-| `src/goldfishh/cli.py` | Hook detection string, all error messages `run: goldfish` → `run: goldfishh` |
+| `src/goldfishh/cli.py` | Hook detection string, all error messages `run: goldfishh` → `run: goldfishh` |
 | `pyproject.toml` | packages, script entry, description, readme, keywords, classifiers |
 | `tests/test_claude_md.py` | Imports, sentinel constant, binary name assertions, new migration test |
 | `tests/test_init.py` | Imports, binary name assertions |
-| `tests/test_*.py` (all others) | Import updates only (`goldfish.` → `goldfishh.`) |
+| `tests/test_*.py` (all others) | Import updates only (`goldfishh.` → `goldfishh.`) |
 | `CLAUDE.md` | CLI references, routing rule, branding |
 | `README.md` | h1, quick start, platform badges/section, CLI reference, Python note |
 | `AGENTS.md` | CLI references and branding |
 | `CONTRIBUTING.md` | CLI references and branding |
-| `docs/architecture.md` | `goldfish hook` → `goldfishh hook` |
-| `docs/memory-diagnostic.md` | `goldfish doctor` → `goldfishh doctor` |
+| `docs/architecture.md` | `goldfishh hook` → `goldfishh hook` |
+| `docs/memory-diagnostic.md` | `goldfishh doctor` → `goldfishh doctor` |
 | `docs/five-failures.md` | Project name references |
 | `docs/tool-selection.md` | Project name references |
 
@@ -38,13 +38,13 @@
 ### Task 1: Rename Python module directory
 
 **Files:**
-- Rename: `src/goldfish/` → `src/goldfishh/`
+- Rename: `src/goldfishh/` → `src/goldfishh/`
 - Modify: `pyproject.toml`
 
 - [ ] **Step 1: Rename the source directory**
 
 ```bash
-git mv src/goldfish src/goldfishh
+git mv src/goldfishh src/goldfishh
 ```
 
 - [ ] **Step 2: Update pyproject.toml packages entry**
@@ -52,7 +52,7 @@ git mv src/goldfish src/goldfishh
 In `pyproject.toml`, change:
 ```toml
 [tool.hatch.build.targets.wheel]
-packages = ["src/goldfish"]
+packages = ["src/goldfishh"]
 ```
 to:
 ```toml
@@ -65,13 +65,13 @@ packages = ["src/goldfishh"]
 ```bash
 uv run pytest -x 2>&1 | head -20
 ```
-Expected: `ModuleNotFoundError: No module named 'goldfish'`
+Expected: `ModuleNotFoundError: No module named 'goldfishh'`
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add pyproject.toml
-git commit -m "refactor: rename src/goldfish → src/goldfishh"
+git commit -m "refactor: rename src/goldfishh → src/goldfishh"
 ```
 
 ---
@@ -86,22 +86,22 @@ git commit -m "refactor: rename src/goldfish → src/goldfishh"
 
 Run this to confirm what needs changing:
 ```bash
-grep -rn "from goldfish\." src/goldfishh/ tests/
+grep -rn "from goldfishh\." src/goldfishh/ tests/
 ```
 
-In every file listed, change `from goldfish.` to `from goldfishh.` and `import goldfish.` to `import goldfishh.`. Also change module-path strings used in `patch()` calls in tests: `"goldfish.xxx"` → `"goldfishh.xxx"`.
+In every file listed, change `from goldfishh.` to `from goldfishh.` and `import goldfishh.` to `import goldfishh.`. Also change module-path strings used in `patch()` calls in tests: `"goldfishh.xxx"` → `"goldfishh.xxx"`.
 
 Files to update in `src/goldfishh/`:
-- `cli.py`: `from goldfish import ...`, `from goldfish.xxx import ...`
-- `drain.py`: `from goldfish.xxx import ...`
-- `enricher.py`: `from goldfish.xxx import ...`
-- `hook.py`: `from goldfish.xxx import ...`
-- `init.py`: all `from goldfish.xxx import ...`
-- `miner.py`: `from goldfish.xxx import ...`
+- `cli.py`: `from goldfishh import ...`, `from goldfishh.xxx import ...`
+- `drain.py`: `from goldfishh.xxx import ...`
+- `enricher.py`: `from goldfishh.xxx import ...`
+- `hook.py`: `from goldfishh.xxx import ...`
+- `init.py`: all `from goldfishh.xxx import ...`
+- `miner.py`: `from goldfishh.xxx import ...`
 
 Files to update in `tests/`:
-- Every test file: `from goldfish.xxx import ...` → `from goldfishh.xxx import ...`
-- Every `patch("goldfish.xxx.yyy")` → `patch("goldfishh.xxx.yyy")`
+- Every test file: `from goldfishh.xxx import ...` → `from goldfishh.xxx import ...`
+- Every `patch("goldfishh.xxx.yyy")` → `patch("goldfishh.xxx.yyy")`
 
 - [ ] **Step 2: Run tests to verify they pass**
 
@@ -114,7 +114,7 @@ Expected: all tests pass (or fail only for reasons unrelated to imports)
 
 ```bash
 git add src/goldfishh/ tests/
-git commit -m "refactor: update all imports goldfish → goldfishh"
+git commit -m "refactor: update all imports goldfishh → goldfishh"
 ```
 
 ---
@@ -135,8 +135,8 @@ git commit -m "refactor: update all imports goldfish → goldfishh"
 
 In `src/goldfishh/config.py`, change:
 ```python
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
-CONFIG_PATH = Path.home() / ".goldfish" / "config.toml"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
+CONFIG_PATH = Path.home() / ".goldfishh" / "config.toml"
 ```
 to:
 ```python
@@ -148,7 +148,7 @@ CONFIG_PATH = Path.home() / ".goldfishh" / "config.toml"
 
 In `src/goldfishh/vault.py`, change:
 ```python
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
 ```
 to:
 ```python
@@ -172,23 +172,23 @@ def _detect_goldfish_bin() -> str:
     return "goldfishh"
 ```
 
-Also update `_is_goldfish_hook` to match the renamed binary (the old-sentinel migration that strips `"goldfish hook"` entries is handled in Task 4):
+Also update `_is_goldfish_hook` to match the renamed binary (the old-sentinel migration that strips `"goldfishh hook"` entries is handled in Task 4):
 ```python
 def _is_goldfish_hook(h: object) -> bool:
     if not isinstance(h, dict):
         return False
     cmd = h.get("command", "")
-    return isinstance(cmd, str) and ("goldfishh" in cmd or "goldfish" in cmd) and cmd.endswith(" hook")
+    return isinstance(cmd, str) and ("goldfishh" in cmd or "goldfishh" in cmd) and cmd.endswith(" hook")
 ```
 
-(The `"goldfish" in cmd` clause ensures stale old-binary hook entries are also removed on re-registration.)
+(The `"goldfishh" in cmd` clause ensures stale old-binary hook entries are also removed on re-registration.)
 
 - [ ] **Step 4: Update init.py binary path + print messages**
 
 In `src/goldfishh/init.py`, change:
 ```python
 def _goldfish_stable_path() -> Path:
-    return Path.home() / ".local" / "bin" / "goldfish"
+    return Path.home() / ".local" / "bin" / "goldfishh"
 ```
 to:
 ```python
@@ -210,7 +210,7 @@ Change `run()`:
             print("✓ goldfishh installed at ~/.local/bin/goldfishh")
 ```
 
-Also change the `shutil.which` call in the `elif` branch from `"goldfish"` to `"goldfishh"`.
+Also change the `shutil.which` call in the `elif` branch from `"goldfishh"` to `"goldfishh"`.
 
 Change the final print:
 ```python
@@ -238,7 +238,7 @@ In `src/goldfishh/cli.py`, change line ~104-119:
                 typer.echo("✗ Hooks not registered — run: goldfishh init")
 ```
 
-Change all other `"run: goldfish ..."` messages in `cli.py` to `"run: goldfishh ..."`:
+Change all other `"run: goldfishh ..."` messages in `cli.py` to `"run: goldfishh ..."`:
 - `"run: goldfishh init"` (appears several times)
 - `"run: goldfishh drain"`
 
@@ -247,7 +247,7 @@ Change all other `"run: goldfish ..."` messages in `cli.py` to `"run: goldfishh 
 In `pyproject.toml`, change:
 ```toml
 [project.scripts]
-goldfish = "goldfish.cli:app"
+goldfishh = "goldfishh.cli:app"
 ```
 to:
 ```toml
@@ -258,16 +258,16 @@ goldfishh = "goldfishh.cli:app"
 - [ ] **Step 7: Update tests for binary name**
 
 In `tests/test_claude_md.py`:
-- Line 52: `fake_goldfish = fake_venv_bin / "goldfish"` → `fake_goldfishh = fake_venv_bin / "goldfishh"` (rename variable throughout that test)
+- Line 52: `fake_goldfish = fake_venv_bin / "goldfishh"` → `fake_goldfishh = fake_venv_bin / "goldfishh"` (rename variable throughout that test)
 - Line 53: `fake_goldfish.touch()` → `fake_goldfishh.touch()`
 - Line 69: `assert str(fake_goldfish) in command` → `assert str(fake_goldfishh) in command`
-- Line 74 docstring: `"goldfish hook"` → `"goldfishh hook"`
-- Line 77: old `"goldfish hook"` entry is now the OLD-format case being migrated (keep as-is for the migration test in Task 4, but the idempotency test at line 25 needs `"goldfishh" in str(h)`)
-- Line 25: `[h for h in stop_hooks[0]["hooks"] if "goldfish" in str(h)]` → `if "goldfishh" in str(h)`
-- Line 81: `(fake_venv_bin / "goldfish").touch()` → `(fake_venv_bin / "goldfishh").touch()`
+- Line 74 docstring: `"goldfishh hook"` → `"goldfishh hook"`
+- Line 77: old `"goldfishh hook"` entry is now the OLD-format case being migrated (keep as-is for the migration test in Task 4, but the idempotency test at line 25 needs `"goldfishh" in str(h)`)
+- Line 25: `[h for h in stop_hooks[0]["hooks"] if "goldfishh" in str(h)]` → `if "goldfishh" in str(h)`
+- Line 81: `(fake_venv_bin / "goldfishh").touch()` → `(fake_venv_bin / "goldfishh").touch()`
 - Line 90-92: update assertions to check for `"goldfishh hook"` and `"goldfishh"` in the command
-- Line 135: `assert any("goldfish" in h.get("command", "")` → `"goldfishh"`
-- Line 190: `local_bin = tmp_path / ".local" / "bin" / "goldfish"` → `"goldfishh"`
+- Line 135: `assert any("goldfishh" in h.get("command", "")` → `"goldfishh"`
+- Line 190: `local_bin = tmp_path / ".local" / "bin" / "goldfishh"` → `"goldfishh"`
 - Line 194: update `_detect_goldfish_bin` import from `goldfishh.claude_md`
 
 In `tests/test_init.py`: update any binary path references similarly.
@@ -307,9 +307,9 @@ git commit -m "refactor: rename binary goldfishh, update vault path ~/.goldfishh
 Add to `tests/test_claude_md.py`:
 ```python
 def test_append_claude_md_block_migrates_old_sentinel(tmp_path):
-    """Re-init on a project with old 'managed by goldfish' block must replace it."""
+    """Re-init on a project with old 'managed by goldfishh' block must replace it."""
     claude_md = tmp_path / "CLAUDE.md"
-    old_sentinel = "## Agent Knowledge Tools (managed by goldfish)"
+    old_sentinel = "## Agent Knowledge Tools (managed by goldfishh)"
     claude_md.write_text("# Project\n\n" + old_sentinel + "\n\nOLD CONTENT\n")
 
     from goldfishh.claude_md import GOLDFISHH_SENTINEL, append_claude_md_block
@@ -337,7 +337,7 @@ In `src/goldfishh/claude_md.py`:
 
 Change the sentinel constant:
 ```python
-_OLD_GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+_OLD_GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 GOLDFISHH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 ```
 
@@ -395,10 +395,10 @@ _CLAUDE_MD_BLOCK = f"""{GOLDFISHH_SENTINEL}
 - [ ] **Step 6: Update test_claude_md.py sentinel references**
 
 In `tests/test_claude_md.py`:
-- Line 6: `GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"` → `GOLDFISHH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"`
+- Line 6: `GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"` → `GOLDFISHH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"`
 - All uses of `GOLDFISH_SENTINEL` in tests → `GOLDFISHH_SENTINEL`
-- `test_register_hooks_updates_bare_command_to_full_path`: the initial settings still use `"goldfish hook"` (old format) — this now tests migration of stale hooks
-- Line 135 assertion: `"goldfishh"` instead of `"goldfish"`
+- `test_register_hooks_updates_bare_command_to_full_path`: the initial settings still use `"goldfishh hook"` (old format) — this now tests migration of stale hooks
+- Line 135 assertion: `"goldfishh"` instead of `"goldfishh"`
 
 - [ ] **Step 7: Run the migration test**
 
@@ -435,7 +435,7 @@ In `src/goldfishh/init.py`, in the `_CLAUDE_MD_BLOCK` string:
 
 Change the opening line:
 ```
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 ```
 to:
 ```
@@ -462,9 +462,9 @@ Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = cons
 
 - [ ] **Step 2: Sync the same changes to CLAUDE.md**
 
-In `CLAUDE.md`, find the Layer 2 block. It starts with an HTML comment `<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->` — update that comment to `goldfishh` too. Then apply the identical changes to the heading and body:
-- `"managed by goldfish"` → `"managed by goldfishh"` in the sentinel line
-- `goldfish coordinates` → `goldfishh coordinates`
+In `CLAUDE.md`, find the Layer 2 block. It starts with an HTML comment `<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->` — update that comment to `goldfishh` too. Then apply the identical changes to the heading and body:
+- `"managed by goldfishh"` → `"managed by goldfishh"` in the sentinel line
+- `goldfishh coordinates` → `goldfishh coordinates`
 - `Layer 2 — Goldfish` → `Layer 2 — Goldfishh`
 - Replace the routing rule paragraph with the new consumer-intent text (same as Step 1)
 
@@ -541,7 +541,7 @@ git commit -m "chore: add PyPI metadata — description, readme, keywords, class
 Replace the top of `README.md` (lines 1–17) with:
 ```html
 <p align="center">
-  <img src="assets/goldfish-logo.png" alt="goldfishh — persistent memory for Claude Code" width="280">
+  <img src="assets/goldfishh-logo.png" alt="goldfishh — persistent memory for Claude Code" width="280">
 </p>
 
 <h1 align="center">goldfishh</h1>
@@ -609,7 +609,7 @@ with:
 
 - [ ] **Step 4: Update CLI reference section**
 
-Replace all `goldfish <cmd>` with `goldfishh <cmd>`:
+Replace all `goldfishh <cmd>` with `goldfishh <cmd>`:
 ```
 goldfishh init              Run the setup wizard
 goldfishh mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
@@ -627,8 +627,8 @@ goldfishh drain             Process queued events from ~/.goldfishh/queue.jsonl
 ## Development
 
 ```bash
-git clone https://github.com/miztertea/goldfish
-cd goldfish
+git clone https://github.com/miztertea/goldfishh
+cd goldfishh
 uv sync
 uv run pytest
 ```
@@ -662,30 +662,30 @@ git commit -m "docs: update README — goldfishh branding, uvx install, platform
 
 - [ ] **Step 1: Update docs/architecture.md**
 
-Find all occurrences of `goldfish hook` (in the hook lifecycle diagrams) and replace with `goldfishh hook`. Also update any `goldfish ` (with trailing space, as a command) to `goldfishh `. The project name "goldfish" in prose descriptions becomes "goldfishh".
+Find all occurrences of `goldfishh hook` (in the hook lifecycle diagrams) and replace with `goldfishh hook`. Also update any `goldfishh ` (with trailing space, as a command) to `goldfishh `. The project name "goldfishh" in prose descriptions becomes "goldfishh".
 
 Confirm changes:
 ```bash
-grep -n "goldfish" docs/architecture.md
+grep -n "goldfishh" docs/architecture.md
 ```
-Expected after update: no bare `goldfish` references (only `goldfishh`)
+Expected after update: no bare `goldfishh` references (only `goldfishh`)
 
 - [ ] **Step 2: Update docs/memory-diagnostic.md**
 
-Replace `goldfish doctor` with `goldfishh doctor`. Replace any other `goldfish` CLI references.
+Replace `goldfishh doctor` with `goldfishh doctor`. Replace any other `goldfishh` CLI references.
 
 - [ ] **Step 3: Update docs/five-failures.md and docs/tool-selection.md**
 
-Replace project name references: `goldfish` → `goldfishh` where referring to the tool name.
+Replace project name references: `goldfishh` → `goldfishh` where referring to the tool name.
 
 - [ ] **Step 4: Update AGENTS.md and CONTRIBUTING.md**
 
-Replace all `goldfish <cmd>` references with `goldfishh <cmd>`. Replace project name branding.
+Replace all `goldfishh <cmd>` references with `goldfishh <cmd>`. Replace project name branding.
 
-- [ ] **Step 5: Verify no stale goldfish CLI references remain**
+- [ ] **Step 5: Verify no stale goldfishh CLI references remain**
 
 ```bash
-grep -rn "\bgoldfish\b" docs/ AGENTS.md CONTRIBUTING.md | grep -v "goldfishh\|miztertea/goldfish\|goldfish-logo\|goldfish\.png"
+grep -rn "\bgoldfish\b" docs/ AGENTS.md CONTRIBUTING.md | grep -v "goldfishh\|miztertea/goldfishh\|goldfishh-logo\|goldfishh\.png"
 ```
 Expected: no output (all replaced)
 
@@ -705,7 +705,7 @@ git commit -m "docs: goldfishh branding in all docs, AGENTS.md, CONTRIBUTING.md"
 - [ ] **Step 1: Update repo description and topics**
 
 ```bash
-gh repo edit miztertea/goldfish \
+gh repo edit miztertea/goldfishh \
   --description "Persistent memory for Claude Code — one command installs GitNexus, OMEGA, and Semble" \
   --add-topic claude-code \
   --add-topic ai-memory \
@@ -718,7 +718,7 @@ Expected: no error output
 - [ ] **Step 2: Verify**
 
 ```bash
-gh repo view miztertea/goldfish --json description,repositoryTopics
+gh repo view miztertea/goldfishh --json description,repositoryTopics
 ```
 Expected: description and topics updated
 
@@ -755,5 +755,5 @@ Use the `superpowers:finishing-a-development-branch` skill or create PR directly
 ```bash
 gh pr create \
   --title "feat: full goldfishh rebrand — CLI rename, PyPI metadata, public docs" \
-  --body "Full rebrand from goldfish → goldfishh CLI command, vault path ~/.goldfishh, Python module src/goldfishh. PyPI page now has description and README. Consumer-intent routing rule in CLAUDE.md block. Old-sentinel migration so re-init doesn't create duplicate CLAUDE.md blocks."
+  --body "Full rebrand from goldfishh → goldfishh CLI command, vault path ~/.goldfishh, Python module src/goldfishh. PyPI page now has description and README. Consumer-intent routing rule in CLAUDE.md block. Old-sentinel migration so re-init doesn't create duplicate CLAUDE.md blocks."
 ```

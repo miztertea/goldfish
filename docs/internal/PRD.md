@@ -12,7 +12,7 @@
 
 Goldfish is an agent knowledge operating system for Claude Code — a thin orchestration layer that selects, installs, and wires together a curated set of best-in-class open-source tools to give AI agents persistent, structured, and searchable memory across every session.
 
-**The central principle:** Goldfish is an Ansible playbook, not an application. It does not build memory engines, search indexes, or knowledge graphs. Those problems are already solved by people smarter than us. goldfish selects the right tools, installs them via their official methods, configures them to communicate, and routes Claude Code lifecycle events between them. Its code is ~400–600 lines of Python. Every function is either a subprocess call, a file write, or a config read.
+**The central principle:** Goldfish is an Ansible playbook, not an application. It does not build memory engines, search indexes, or knowledge graphs. Those problems are already solved by people smarter than us. goldfishh selects the right tools, installs them via their official methods, configures them to communicate, and routes Claude Code lifecycle events between them. Its code is ~400–600 lines of Python. Every function is either a subprocess call, a file write, or a config read.
 
 **The five context failures it solves:**
 
@@ -32,15 +32,15 @@ Goldfish is an agent knowledge operating system for Claude Code — a thin orche
 
 Claude Code agents are stateless. Every new session starts from zero. A developer using Claude Code daily loses 10–30 minutes per session re-explaining context that was already established. Agents repeat mistakes. They violate decisions already committed to. They ask questions already answered. They change a function without knowing 47 other functions depended on it.
 
-The tools to solve each of these problems exist in the open-source ecosystem. No single tool solves all five failures. No wiring layer connects them into a coherent system. That is the gap goldfish fills.
+The tools to solve each of these problems exist in the open-source ecosystem. No single tool solves all five failures. No wiring layer connects them into a coherent system. That is the gap goldfishh fills.
 
-A secondary problem is auditability. Whatever an agent learns is locked inside opaque binary formats or in-process state. A developer cannot open it, read it, or audit it. goldfish writes all accumulated knowledge to a folder of plain markdown files — readable with `cat`, searchable with `grep`, versionable with `git`, and optionally visualized as a graph in Obsidian.
+A secondary problem is auditability. Whatever an agent learns is locked inside opaque binary formats or in-process state. A developer cannot open it, read it, or audit it. goldfishh writes all accumulated knowledge to a folder of plain markdown files — readable with `cat`, searchable with `grep`, versionable with `git`, and optionally visualized as a graph in Obsidian.
 
 ---
 
 ## Solution
 
-goldfish is installed with `uvx goldfish init`. An interactive wizard detects and installs each dependency via its official method, registers Claude Code hooks globally, scaffolds a per-project vault, and writes the CLAUDE.md agent instructions. After init, the developer works in Claude Code normally. Everything else is invisible.
+goldfishh is installed with `uvx goldfishh init`. An interactive wizard detects and installs each dependency via its official method, registers Claude Code hooks globally, scaffolds a per-project vault, and writes the CLAUDE.md agent instructions. After init, the developer works in Claude Code normally. Everything else is invisible.
 
 **The chain of record:**
 
@@ -48,8 +48,8 @@ goldfish is installed with `uvx goldfish init`. An interactive wizard detects an
 Claude Code JSONL logs          ← source of truth (immutable, append-only)
         ↓ mined by
 OMEGA SQLite                    ← episodic memory (decisions, lessons, errors)
-        ↓ written by goldfish
-~/.goldfish/vaults/{project}/  ← markdown vault (human-readable knowledge graph)
+        ↓ written by goldfishh
+~/.goldfishh/vaults/{project}/  ← markdown vault (human-readable knowledge graph)
         ↑ indexed by
 GitNexus LadybugDB              ← code knowledge graph (per-project, in .gitnexus/)
         ↑ searched by
@@ -79,7 +79,7 @@ Semble    → prompt deafness (code + vault retrieval)
 Chonkie   → prompt deafness (decomposition)
             splits complex multi-topic prompts into discrete search queries
 
-goldfish → thin orchestrator
+goldfishh → thin orchestrator
             init wizard, event queue, event routing, vault file writes
             wake-up context, prompt enrichment fan-out
 ```
@@ -97,7 +97,7 @@ Rewrite MemPalace in Rust, add Obsidian sync and SurrealDB as the graph backend.
 A proxy MCP server sitting between Claude and MemPalace, mirroring writes to Obsidian. Cleaner than a fork, but still depends on MemPalace/ChromaDB. Obsidian becomes a mirror, not the interface. Eliminated: fragile coupling, wrong data ownership.
 
 **Approach C — Orchestration layer (selected)**
-Treat every specialized tool as a black-box component. goldfish is only the wiring. Each component is maintained by its own team. goldfish inherits improvements automatically. The tool never needs to be a memory engine because it never is one.
+Treat every specialized tool as a black-box component. goldfishh is only the wiring. Each component is maintained by its own team. goldfishh inherits improvements automatically. The tool never needs to be a memory engine because it never is one.
 
 **On the knowledge graph question:**
 Graphiti (Zep) was evaluated for temporal knowledge graphs. It requires Neo4j or FalkorDB (Docker). FalkorDB Lite support in Graphiti is an unmerged GitHub issue. KuzuDB (the only embedded option) was archived in October 2025. Obsidian vault + YAML frontmatter temporal fields cover the same expressiveness for our use case — zero operational overhead, fully local.
@@ -111,7 +111,7 @@ Semble alone covers semantic code search. GitNexus was initially dismissed based
 
 These are not preferences. Violating any of them changes what the product is.
 
-**Ansible playbook, not an application.** goldfish selects tools and wires them. It does not build search, embeddings, graphs, or memory. Every problem that can be solved by an existing tool must be solved by that tool.
+**Ansible playbook, not an application.** goldfishh selects tools and wires them. It does not build search, embeddings, graphs, or memory. Every problem that can be solved by an existing tool must be solved by that tool.
 
 **No always-on processes.** Every dependency (OMEGA's SQLite, Semble's file index, the event queue, vault markdown files) is opened, used, and closed. GitNexus's MCP server is stdio — Claude Code starts it on demand. No daemons, no Docker containers, no cron jobs.
 
@@ -119,11 +119,11 @@ These are not preferences. Violating any of them changes what the product is.
 
 **Queue-decoupled.** Hook handlers write to a JSONL queue and exit immediately. Claude's execution is never blocked by downstream processing.
 
-**One vault per project.** Project identity is `cwd`. Claude Code organizes JSONL transcripts at `~/.claude/projects/{encoded-cwd}/`. goldfish mirrors this: one vault at `~/.goldfish/vaults/{project-name}/`. No cross-project context. No filtering needed.
+**One vault per project.** Project identity is `cwd`. Claude Code organizes JSONL transcripts at `~/.claude/projects/{encoded-cwd}/`. goldfishh mirrors this: one vault at `~/.goldfishh/vaults/{project-name}/`. No cross-project context. No filtering needed.
 
-**Single source of truth.** The JSONL transcripts are the canonical record. All other stores are derived indices. `goldfish replay` rebuilds everything from the JSONL source.
+**Single source of truth.** The JSONL transcripts are the canonical record. All other stores are derived indices. `goldfishh replay` rebuilds everything from the JSONL source.
 
-**Official install methods only.** goldfish never bundles a dependency. It calls `npm install -g gitnexus`, `uv tool install semble`, `pip install omega-memory`. Each tool is installed and updated through its own official channel.
+**Official install methods only.** goldfishh never bundles a dependency. It calls `npm install -g gitnexus`, `uv tool install semble`, `pip install omega-memory`. Each tool is installed and updated through its own official channel.
 
 **Obsidian is optional.** The vault is a folder of plain markdown files. Obsidian provides a beautiful visual graph if the developer has it installed, but nothing in the pipeline requires it. Zero plugins. Zero API keys. Just open the folder.
 
@@ -248,10 +248,10 @@ Maintained:     MIT, chonkie-inc
 └────────────────────────┬─────────────────────────────────┘
                          │ stdin JSON on every event
               ┌──────────▼──────────┐
-              │   goldfish hook    │  fast: append to queue, exit
+              │   goldfishh hook    │  fast: append to queue, exit
               └──────────┬──────────┘
                          │
-              ~/.goldfish/queue.jsonl   append-only, atomic
+              ~/.goldfishh/queue.jsonl   append-only, atomic
                          │
               ┌──────────▼──────────┐
               │    queue drain      │  200ms budget, priority lanes
@@ -278,7 +278,7 @@ hook.py         ← reads stdin, appends to queue.jsonl, exits (<5ms)
 drain.py        ← processes queue: subprocess calls + omega API + file writes
 vault.py        ← pathlib file writes only, no other dependencies
 claude_md.py    ← writes/appends CLAUDE.md block + settings.json hooks
-config.py       ← reads/writes ~/.goldfish/config.toml
+config.py       ← reads/writes ~/.goldfishh/config.toml
 ```
 
 Total: ~400–600 lines of Python. No algorithms. No models. No search. Every function is a subprocess call, a file write, or a config read.
@@ -286,7 +286,7 @@ Total: ~400–600 lines of Python. No algorithms. No models. No search. Every fu
 ### Vault Structure Per Project
 
 ```
-~/.goldfish/vaults/my-project/
+~/.goldfishh/vaults/my-project/
 ├── .manifest.toml          ← sync state: JSONL offset, bootstrap status
 ├── Memory/
 │   ├── Decisions/          ← OMEGA-derived: why choices were made
@@ -320,7 +320,7 @@ Enrichment excludes notes where `superseded_by` is non-null. Old notes are never
 
 ### Project Identity
 
-Project identity is `cwd`. Claude Code organizes transcripts at `~/.claude/projects/{encoded-cwd}/` where encoding is `/Users/dev/my-project` → `-Users-dev-my-project`. goldfish mirrors this. Vault lives at `~/.goldfish/vaults/{Path(cwd).name}/`. GitNexus index lives at `{cwd}/.gitnexus/`. No scanning, no discovery — everything is deterministic from `cwd`.
+Project identity is `cwd`. Claude Code organizes transcripts at `~/.claude/projects/{encoded-cwd}/` where encoding is `/Users/dev/my-project` → `-Users-dev-my-project`. goldfishh mirrors this. Vault lives at `~/.goldfishh/vaults/{Path(cwd).name}/`. GitNexus index lives at `{cwd}/.gitnexus/`. No scanning, no discovery — everything is deterministic from `cwd`.
 
 ---
 
@@ -331,7 +331,7 @@ Project identity is `cwd`. Claude Code organizes transcripts at `~/.claude/proje
 ```
 Claude Code launches from /Users/dev/my-project
         ↓
-goldfish hook fires: .manifest.toml absent → NEW PROJECT
+goldfishh hook fires: .manifest.toml absent → NEW PROJECT
         ↓
 subprocess: npx gitnexus analyze
   → indexes code into .gitnexus/
@@ -397,7 +397,7 @@ Total: ~25ms
 ```
 Claude edits src/auth.rs
         ↓
-PostToolUse(Write, async:true) → goldfish appends to queue, exits
+PostToolUse(Write, async:true) → goldfishh appends to queue, exits
 Claude continues immediately
         ↓
 Next drain cycle picks up FileEdit event:
@@ -431,18 +431,18 @@ Registered globally at `~/.claude/settings.json` — fires for every Claude Code
 
 ```
 Synchronous (Claude waits):
-  SessionStart       → goldfish hook  (bootstrap or catchup + wake-up)
-  UserPromptSubmit   → goldfish hook  (enrichment → stdout)
-  PreCompact         → goldfish hook  (session snapshot)
+  SessionStart       → goldfishh hook  (bootstrap or catchup + wake-up)
+  UserPromptSubmit   → goldfishh hook  (enrichment → stdout)
+  PreCompact         → goldfishh hook  (session snapshot)
 
 Async (Claude does not wait, async: true):
-  PostToolUse(Write|Edit)           → goldfish hook (reindex)
-  PostToolUse(Bash(git commit*))    → goldfish hook (checkpoint)
-  SubagentStop                      → goldfish hook (flush agent memory)
-  TaskCreated                       → goldfish hook (scaffold task note)
-  TaskCompleted                     → goldfish hook (mark done)
-  Stop                              → goldfish hook (full session flush)
-  SessionEnd                        → goldfish hook (cleanup _context/)
+  PostToolUse(Write|Edit)           → goldfishh hook (reindex)
+  PostToolUse(Bash(git commit*))    → goldfishh hook (checkpoint)
+  SubagentStop                      → goldfishh hook (flush agent memory)
+  TaskCreated                       → goldfishh hook (scaffold task note)
+  TaskCompleted                     → goldfishh hook (mark done)
+  Stop                              → goldfishh hook (full session flush)
+  SessionEnd                        → goldfishh hook (cleanup _context/)
 
 GitNexus registers its own hooks during gitnexus analyze:
   PreToolUse         → gitnexus hook  (enrich searches with graph context)
@@ -454,7 +454,7 @@ GitNexus registers its own hooks during gitnexus analyze:
 ## Init Wizard Flow
 
 ```
-goldfish init
+goldfishh init
 
 ── Checking dependencies ─────────────────────────────────
 ✓ uv found
@@ -476,28 +476,28 @@ Running: omega setup
   ✓ CLAUDE.md block appended
 
 ── Configuring vault ─────────────────────────────────────
-Vault location: ~/.goldfish/vaults/my-project/ [Enter to confirm]
+Vault location: ~/.goldfishh/vaults/my-project/ [Enter to confirm]
   ✓ Vault scaffolded
   ✓ .manifest.toml written
 
 ── Optional: Obsidian visualization ──────────────────────
 Want a visual graph of your agent's knowledge? (free at obsidian.md)
-Open ~/.goldfish/vaults/my-project/ as an Obsidian vault.
+Open ~/.goldfishh/vaults/my-project/ as an Obsidian vault.
 No plugins needed. No API key. Just open the folder.
 [Enter to continue]
 
 ── Done ──────────────────────────────────────────────────
-goldfish is ready. Launch Claude Code to begin.
+goldfishh is ready. Launch Claude Code to begin.
 ```
 
 ---
 
 ## The CLAUDE.md Active Layer
 
-goldfish appends this block to `.claude/CLAUDE.md` (GitNexus writes its own block; these are additive):
+goldfishh appends this block to `.claude/CLAUDE.md` (GitNexus writes its own block; these are additive):
 
 ```markdown
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
 ### Before any non-trivial task — query all three layers:
 
@@ -514,7 +514,7 @@ omega_query("Sarah rate limiter")      # person + topic references
 
 #### Semantic Search — Semble (MCP)
 semble_search(query, path=./src)                           # code by meaning
-semble_search(query, path=~/.goldfish/vaults/X, content=docs)  # vault notes
+semble_search(query, path=~/.goldfishh/vaults/X, content=docs)  # vault notes
 
 ### Mandatory workflow before refactoring:
 1. gitnexus context({name})  → understand the symbol
@@ -541,7 +541,7 @@ Each module is a deep module: significant functionality behind a simple, stable 
 
 **claude_md.py** — Reads and surgically appends/updates CLAUDE.md. Reads and updates `~/.claude/settings.json`. Never overwrites. Always appends or updates in-place.
 
-**config.py** — Reads and writes `~/.goldfish/config.toml`. Provides defaults. Owns the manifest read/write for per-project state (`last_byte_offset`, `bootstrap_complete`, etc.).
+**config.py** — Reads and writes `~/.goldfishh/config.toml`. Provides defaults. Owns the manifest read/write for per-project state (`last_byte_offset`, `bootstrap_complete`, etc.).
 
 ---
 
@@ -549,7 +549,7 @@ Each module is a deep module: significant functionality behind a simple, stable 
 
 ### Installation
 
-1. As a developer, I want to run `uvx goldfish init` from my project directory and have a wizard guide me through the full setup, so I don't have to read documentation.
+1. As a developer, I want to run `uvx goldfishh init` from my project directory and have a wizard guide me through the full setup, so I don't have to read documentation.
 2. As a developer, I want the wizard to detect which dependencies are already installed and only prompt about missing ones, so that setup is as short as possible.
 3. As a developer, I want GitNexus installed via `npm install -g gitnexus` and OMEGA via `pip install omega-memory`, so that each tool is maintained through its own official channel.
 4. As a developer, I want `npx gitnexus analyze` to run automatically during init, so that code intelligence is ready from my first session.
@@ -590,9 +590,9 @@ Each module is a deep module: significant functionality behind a simple, stable 
 
 ### Operational
 
-24. As a developer, I want `goldfish status` to show queue depth, last sync time per tool, and bootstrap completion, so I can verify the system is working at any time.
-25. As a developer, I want `goldfish doctor` to check OMEGA health, Semble index freshness, GitNexus index status, queue depth, and hook registration, with specific fix instructions for any failure.
-26. As a developer, I want `goldfish replay` to rebuild my vault from the JSONL source, so I can recover from vault corruption or install goldfish into a project with existing history.
+24. As a developer, I want `goldfishh status` to show queue depth, last sync time per tool, and bootstrap completion, so I can verify the system is working at any time.
+25. As a developer, I want `goldfishh doctor` to check OMEGA health, Semble index freshness, GitNexus index status, queue depth, and hook registration, with specific fix instructions for any failure.
+26. As a developer, I want `goldfishh replay` to rebuild my vault from the JSONL source, so I can recover from vault corruption or install goldfishh into a project with existing history.
 27. As a developer, I want replay to be resumable, so that replaying a large project's history doesn't restart from the beginning after an interruption.
 
 ---
@@ -601,17 +601,17 @@ Each module is a deep module: significant functionality behind a simple, stable 
 
 **The Ansible principle.** Every implementation decision starts with: can an existing tool do this? If yes, call that tool. Only write code for the routing and coordination between tools.
 
-**GitNexus hooks are additive.** GitNexus registers its own PreToolUse and PostToolUse hooks during `gitnexus analyze`. goldfish registers SessionStart, UserPromptSubmit, PreCompact, Stop, and async PostToolUse for OMEGA-related events. Both hook sets coexist in `~/.claude/settings.json`. No conflict.
+**GitNexus hooks are additive.** GitNexus registers its own PreToolUse and PostToolUse hooks during `gitnexus analyze`. goldfishh registers SessionStart, UserPromptSubmit, PreCompact, Stop, and async PostToolUse for OMEGA-related events. Both hook sets coexist in `~/.claude/settings.json`. No conflict.
 
-**Queue design.** The queue is `~/.goldfish/queue.jsonl`. Atomic JSONL appends, no locking. Drain processes higher-priority events first (session-lifecycle > tool events > file-change events) within a 200ms budget. Interrupted drains leave remaining lines for the next cycle.
+**Queue design.** The queue is `~/.goldfishh/queue.jsonl`. Atomic JSONL appends, no locking. Drain processes higher-priority events first (session-lifecycle > tool events > file-change events) within a 200ms budget. Interrupted drains leave remaining lines for the next cycle.
 
-**Prompt decomposition is the only logic goldfish writes.** Chonkie's `SentenceChunker` decomposes multi-topic prompts into discrete queries. This is routing logic, not search logic. Each chunk is passed to existing tool CLIs.
+**Prompt decomposition is the only logic goldfishh writes.** Chonkie's `SentenceChunker` decomposes multi-topic prompts into discrete queries. This is routing logic, not search logic. Each chunk is passed to existing tool CLIs.
 
 **Vault writes are pathlib only.** The Obsidian bridge is 30 lines of `pathlib.Path.write_text()` with YAML frontmatter rendering. No HTTP client. No plugin. No API key. Obsidian watches the directory and picks up changes automatically.
 
 **Manifest per project.** `.manifest.toml` inside each vault tracks `last_byte_offset`, `last_jsonl_file`, `bootstrap_complete`, and `semble_indexed_at`. The manifest drives the new-vs-existing branch at SessionStart.
 
-**GitNexus license compliance.** GitNexus uses PolyForm Noncommercial. goldfish installs it via `npm install -g gitnexus` — the user installs it from the official npm registry. goldfish does not bundle, redistribute, or include GitNexus source. This is compliant with PolyForm Noncommercial for personal/non-commercial use.
+**GitNexus license compliance.** GitNexus uses PolyForm Noncommercial. goldfishh installs it via `npm install -g gitnexus` — the user installs it from the official npm registry. goldfishh does not bundle, redistribute, or include GitNexus source. This is compliant with PolyForm Noncommercial for personal/non-commercial use.
 
 **Node.js is a required runtime.** GitNexus requires Node.js. The init wizard checks for Node.js before proceeding and directs the user to nodejs.org if absent. This is the only non-Python runtime dependency.
 
@@ -633,7 +633,7 @@ Tests run without live tool installations by stubbing subprocess calls and the O
 
 **init.py:** Given all dependencies installed, init completes without error. Given Node.js absent, init reports the gap with install instructions before touching any files. Given an existing configuration, re-running init reports health without overwriting.
 
-**claude_md.py:** Given an existing CLAUDE.md, the goldfish block is appended without modifying existing content. Given a second init run, the block is updated in place rather than duplicated.
+**claude_md.py:** Given an existing CLAUDE.md, the goldfishh block is appended without modifying existing content. Given a second init run, the block is updated in place rather than duplicated.
 
 ---
 
@@ -655,10 +655,10 @@ Tests run without live tool installations by stubbing subprocess calls and the O
 
 ## Further Notes
 
-**On the MinishLab ecosystem.** Semble, Model2Vec, and Chonkie are all from MinishLab or closely related teams. Semble uses Chonkie internally for code-aware file chunking, and Model2Vec for embeddings. goldfish uses Chonkie for prompt decomposition. This means prompt chunks and indexed code chunks share an embedding space — semantic similarity between them is meaningful and coherent. This coherence is inherited for free.
+**On the MinishLab ecosystem.** Semble, Model2Vec, and Chonkie are all from MinishLab or closely related teams. Semble uses Chonkie internally for code-aware file chunking, and Model2Vec for embeddings. goldfishh uses Chonkie for prompt decomposition. This means prompt chunks and indexed code chunks share an embedding space — semantic similarity between them is meaningful and coherent. This coherence is inherited for free.
 
 **On GitNexus and the graph database.** GitNexus uses LadybugDB (the production evolution of KuzuDB — rebranded after KuzuDB was archived). It is an embedded graph database with vector support, running entirely inside the `.gitnexus/` directory. No server. No configuration. This resolves the graph database question that led us to consider Graphiti/Neo4j — we get a real property graph without any operational overhead.
 
 **On the vault's role.** The vault stores the conversational and decision layer — things humans said, decisions made in sessions, lessons learned from errors. GitNexus stores the structural layer — what the code does, how it's connected, what breaks what. These are genuinely different knowledge types. Both are needed. Neither replaces the other.
 
-**On what goldfish actually contributes.** The five tools (GitNexus, OMEGA, Semble, Chonkie, Obsidian) each solve one or two of the five failures independently. What none of them do is: run a wizard that installs all of them, write the CLAUDE.md that explains all of them together, process the 27 Claude Code lifecycle events that should trigger each of them, maintain the queue that decouples those events from blocking Claude, write the vault notes that connect OMEGA memory to human-readable markdown, and enrich prompts by fanning out to all three search layers simultaneously. That is what goldfish does. It is modest work. It is the right work.
+**On what goldfishh actually contributes.** The five tools (GitNexus, OMEGA, Semble, Chonkie, Obsidian) each solve one or two of the five failures independently. What none of them do is: run a wizard that installs all of them, write the CLAUDE.md that explains all of them together, process the 27 Claude Code lifecycle events that should trigger each of them, maintain the queue that decouples those events from blocking Claude, write the vault notes that connect OMEGA memory to human-readable markdown, and enrich prompts by fanning out to all three search layers simultaneously. That is what goldfishh does. It is modest work. It is the right work.

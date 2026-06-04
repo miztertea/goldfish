@@ -51,7 +51,7 @@ This was the founding insight: **use existing tools that already solve the probl
 
 **Chonkie** was discovered as a consequence of Semble research. It's a fast text chunking library from chonkie-inc. SentenceChunker splits multi-topic paragraphs into discrete semantic queries. Critically: Chonkie is already a transitive dependency of Semble, so adding it costs nothing.
 
-**The MinishLab coherence insight:** Semble, Model2Vec, and Chonkie form a coherent ecosystem. They share embedding spaces, which means prompt chunks and code chunks are semantically comparable. This was not designed for goldfish — it's inherited for free by composing these tools.
+**The MinishLab coherence insight:** Semble, Model2Vec, and Chonkie form a coherent ecosystem. They share embedding spaces, which means prompt chunks and code chunks are semantically comparable. This was not designed for goldfishh — it's inherited for free by composing these tools.
 
 ---
 
@@ -80,7 +80,7 @@ The Obsidian Local REST API plugin was initially planned for vault search during
 
 Yes. The vault is just a folder of markdown files. `pathlib.Path.write_text()` is the entire write API. Obsidian watches the directory and picks up changes automatically. It doesn't need to be running. It doesn't need any plugins.
 
-The vault search problem (searching vault notes during prompt enrichment) was solved differently: **Semble has a `--content docs` flag** that indexes and searches markdown, rst, and prose files. `semble search "query" ~/.goldfish/vaults/my-project --content docs` searches the vault. The Obsidian REST API plugin was eliminated entirely.
+The vault search problem (searching vault notes during prompt enrichment) was solved differently: **Semble has a `--content docs` flag** that indexes and searches markdown, rst, and prose files. `semble search "query" ~/.goldfishh/vaults/my-project --content docs` searches the vault. The Obsidian REST API plugin was eliminated entirely.
 
 **Result:** Obsidian is now a pure optional viewer. The developer opens the vault folder in Obsidian to get a visual graph, installs nothing, provides no API key. Everything works identically whether Obsidian is open, closed, or not installed at all.
 
@@ -200,7 +200,7 @@ That single command:
 - Impact blindness: ✅ Completely solved
 - Prompt deafness: ✅ Partial (process-grouped query), Chonkie still needed for decomposition
 
-**License:** PolyForm Noncommercial. Not MIT. Commercial use requires a license. For personal/non-commercial use, installing via `npm install -g gitnexus` is compliant. goldfish must not bundle, include, or redistribute GitNexus. It calls it as an external CLI dependency installed through the official npm channel.
+**License:** PolyForm Noncommercial. Not MIT. Commercial use requires a license. For personal/non-commercial use, installing via `npm install -g gitnexus` is compliant. goldfishh must not bundle, include, or redistribute GitNexus. It calls it as an external CLI dependency installed through the official npm channel.
 
 ---
 
@@ -225,7 +225,7 @@ def handle_prompt_submit(event):
     code   = subprocess("semble search", chunks, cwd)  # Semble owns code search
     docs   = subprocess("semble search --content docs", chunks, vault)  # Semble owns vault search
     mem    = omega.query(chunks)                        # OMEGA owns memory search
-    sys.stdout.write(format(code, docs, mem))           # goldfish owns formatting
+    sys.stdout.write(format(code, docs, mem))           # goldfishh owns formatting
 
 def install_gitnexus():
     run("npm install -g gitnexus")   # GitNexus installs itself
@@ -270,7 +270,7 @@ deafness         + Semble          uv tool install semble
 ```
 
 **Optional:**
-- Obsidian: open `~/.goldfish/vaults/{project}/` as a vault. No plugins. No config. Free app.
+- Obsidian: open `~/.goldfishh/vaults/{project}/` as a vault. No plugins. No config. Free app.
 
 **Goldfish's own code:**
 - ~400–600 lines Python
@@ -322,11 +322,11 @@ A complete record of every significant decision made during the design session.
 - **tree-sitter-analyzer** — 30 stars, solo contributor; GitNexus fills this slot
 - **Arbor** — install path unclear, not on PyPI; GitNexus fills this slot
 - **scantool** — less capable than GitNexus for blast radius; kept as fallback option
-- **GitNexus via Docker** — Docker is optional; CLI via npm is the right mode for goldfish
+- **GitNexus via Docker** — Docker is optional; CLI via npm is the right mode for goldfishh
 
 **Architectural patterns rejected:**
 
-- **Wrapper around Claude Code** (`goldfish claude [args]`) — unnecessary, hooks are global
+- **Wrapper around Claude Code** (`goldfishh claude [args]`) — unnecessary, hooks are global
 - **Always-on daemon** — no user should need to remember to start a service
 - **HTTP server for inter-process communication** — JSONL queue file is simpler, more resilient
 - **Code/ directory in vault** — GitNexus already maintains this in `.gitnexus/`
@@ -334,7 +334,7 @@ A complete record of every significant decision made during the design session.
 
 ---
 
-## Part 14 — What goldfish Actually Contributes
+## Part 14 — What goldfishh Actually Contributes
 
 The five tools (GitNexus, OMEGA, Semble, Chonkie, Obsidian) each solve one or two of the five failures independently. What none of them do:
 
@@ -348,7 +348,7 @@ The five tools (GitNexus, OMEGA, Semble, Chonkie, Obsidian) each solve one or tw
 8. Generate the wake-up context note that brief Claude at the start of each session
 9. Handle the new-vs-existing project distinction at SessionStart
 
-That is what goldfish does. It is modest work. It is the right work.
+That is what goldfishh does. It is modest work. It is the right work.
 
 ---
 
@@ -383,9 +383,9 @@ These capture the moments where the architecture became clear:
 
 ---
 
-## Instructions for Claude Code Agents Building goldfish
+## Instructions for Claude Code Agents Building goldfishh
 
-If you are a Claude Code agent reading this document to build goldfish, here is what you need to know:
+If you are a Claude Code agent reading this document to build goldfishh, here is what you need to know:
 
 **The most important principle:** Do not write any search, embedding, or graph code. If you find yourself writing a search algorithm, stop. Find the right CLI tool and call it as a subprocess instead.
 
@@ -409,23 +409,23 @@ If you are a Claude Code agent reading this document to build goldfish, here is 
 
 The project was named **Goldfish** at the end of the design session.
 
-The name is a deliberate joke about the problem being solved. Goldfish are famous — incorrectly, as it turns out, but the myth is culturally embedded — for having a memory measured in seconds. An AI agent using Claude Code without Goldfish is, from session to session, essentially a goldfish: it forgets everything the moment the session ends.
+The name is a deliberate joke about the problem being solved. Goldfish are famous — incorrectly, as it turns out, but the myth is culturally embedded — for having a memory measured in seconds. An AI agent using Claude Code without Goldfish is, from session to session, essentially a goldfishh: it forgets everything the moment the session ends.
 
 The irony is the point. The tool that gives agents persistent memory is named after the creature with the shortest memory. It communicates the problem in one word, makes the purpose instantly memorable, and is genuinely funny in a field that takes itself too seriously.
 
-**CLI ergonomics:** `goldfish` is short, easy to type, lowercase-friendly, and works naturally as a command:
+**CLI ergonomics:** `goldfishh` is short, easy to type, lowercase-friendly, and works naturally as a command:
 
 ```bash
-uvx goldfish init
-uvx goldfish doctor
-uvx goldfish status
-uvx goldfish replay
+uvx goldfishh init
+uvx goldfishh doctor
+uvx goldfishh status
+uvx goldfishh replay
 ```
 
 **The name communicates the pitch in one line:**
 
 > *"Goldfish gives your AI agent a memory."*
 
-Anyone who hears that immediately understands both the problem (agents are goldfish) and the solution (Goldfish fixes that). No explanation required.
+Anyone who hears that immediately understands both the problem (agents are goldfishh) and the solution (Goldfish fixes that). No explanation required.
 
 The original working name was **vaultmind**, which was descriptive but generic. Goldfish is neither descriptive nor generic. It's a personality. That's better.

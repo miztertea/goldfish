@@ -1,6 +1,6 @@
 # Design Decisions
 
-The durable record of significant decisions made during goldfish's design phase.
+The durable record of significant decisions made during goldfishh's design phase.
 Full narrative context is archived in [docs/internal/DESIGN-COMPANION.MD](internal/DESIGN-COMPANION.MD).
 Each decision is also stored in OMEGA episodic memory and queryable via `omega query`.
 
@@ -11,7 +11,7 @@ Each decision is also stored in OMEGA episodic memory and queryable via `omega q
 | Embedded graph DB | GitNexus LadybugDB | SurrealDB, KuzuDB (archived) | Embedded, no server, production-grade, ships with GitNexus |
 | Code search | Semble | Custom embedding search | Already built, 1.5ms query, MinishLab team maintains it |
 | Prompt decomposition | Chonkie SentenceChunker | Custom NLP, spaCy, SmolLM2 | Already inside Semble as transitive dep; <1ms; no model needed |
-| Vault search | Semble `--include-text-files` | Obsidian REST API plugin, custom goldfish_search module | Already in Semble; zero marginal cost; plugin eliminated |
+| Vault search | Semble `--include-text-files` | Obsidian REST API plugin, custom goldfishh_search module | Already in Semble; zero marginal cost; plugin eliminated |
 | Obsidian role | Optional viewer only | Required service with REST API | Plugin eliminated; pure `pathlib.write_text()` is sufficient |
 | Project isolation | Per-project vault | Single shared vault | No cross-project context bleeding |
 | Project identity | `cwd` = identity | Config file | Mirrors Claude Code's own JSONL organization scheme |

@@ -78,11 +78,11 @@ Maintained:     MIT, chonkie-inc
 | SmolLM2-135M | 500ms–3s on CPU — too slow for synchronous UserPromptSubmit hook |
 | Model2Vec directly | Already inside Semble and Chonkie — no direct use needed |
 | Cymbal | 1 star, 1 contributor, v0.8 — violates maintainability gate |
-| Sverklo | Overlaps OMEGA + Semble + GitNexus; good tool, wrong fit for goldfish |
+| Sverklo | Overlaps OMEGA + Semble + GitNexus; good tool, wrong fit for goldfishh |
 | tree-sitter-analyzer | 30 stars, solo contributor — GitNexus fills this slot |
 | Arbor | Install path unclear, not on PyPI cleanly — GitNexus fills this slot |
 | scantool | Less capable than GitNexus for blast radius |
-| GitNexus via Docker | Docker is optional; CLI via npm is the right mode for goldfish |
+| GitNexus via Docker | Docker is optional; CLI via npm is the right mode for goldfishh |
 
 ## The MinishLab coherence note
 

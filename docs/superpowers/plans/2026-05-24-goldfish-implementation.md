@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build goldfish, a thin Python orchestrator (~400–600 lines) that wires OMEGA + GitNexus + Semble + Chonkie into a coherent agent memory OS for Claude Code.
+**Goal:** Build goldfishh, a thin Python orchestrator (~400–600 lines) that wires OMEGA + GitNexus + Semble + Chonkie into a coherent agent memory OS for Claude Code.
 
 **Architecture:** Event-driven orchestration layer — Claude Code hook events write to a JSONL queue, a drain process routes events to subprocess tool calls and vault file writes. No custom search, embedding, or graph code: every function is a subprocess call, a file write, or a config read.
 
@@ -13,10 +13,10 @@
 ## File Map
 
 ```
-src/goldfish/
+src/goldfishh/
 ├── __init__.py
 ├── cli.py       ← typer app; thin dispatch layer only
-├── config.py    ← reads/writes ~/.goldfish/config.toml + per-project .manifest.toml
+├── config.py    ← reads/writes ~/.goldfishh/config.toml + per-project .manifest.toml
 ├── hook.py      ← reads stdin JSON, appends to queue.jsonl, exits (<10ms)
 ├── drain.py     ← reads queue, routes events to subprocess/OMEGA/vault
 ├── vault.py     ← pathlib-only file writes; YAML frontmatter; no network
@@ -39,7 +39,7 @@ tests/
 
 Proves the end-to-end call chain: `hook.py` writes one event to `queue.jsonl`, `drain.py` reads it and calls semble as a subprocess. **Nothing else.**
 
-**Milestone:** `pytest` passes. `echo '{"type":"Stop","cwd":"."}' | python -m goldfish.hook` writes one line to `~/.goldfish/queue.jsonl`. `python -m goldfish.drain` clears the queue and calls semble.
+**Milestone:** `pytest` passes. `echo '{"type":"Stop","cwd":"."}' | python -m goldfishh.hook` writes one line to `~/.goldfishh/queue.jsonl`. `python -m goldfishh.drain` clears the queue and calls semble.
 
 ---
 
@@ -47,7 +47,7 @@ Proves the end-to-end call chain: `hook.py` writes one event to `queue.jsonl`, `
 
 **Files:**
 - Create: `pyproject.toml`
-- Create: `src/goldfish/__init__.py`
+- Create: `src/goldfishh/__init__.py`
 - Create: `tests/__init__.py`
 
 - [ ] **Step 1: Create `pyproject.toml`**
@@ -58,7 +58,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "goldfish"
+name = "goldfishh"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = []
@@ -70,14 +70,14 @@ dev = ["pytest"]
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/goldfish"]
+packages = ["src/goldfishh"]
 ```
 
 - [ ] **Step 2: Create package and test directories**
 
 ```bash
-mkdir -p src/goldfish tests
-touch src/goldfish/__init__.py tests/__init__.py
+mkdir -p src/goldfishh tests
+touch src/goldfishh/__init__.py tests/__init__.py
 ```
 
 - [ ] **Step 3: Install in editable dev mode**
@@ -105,7 +105,7 @@ git commit -m "chore: project scaffold with hatchling and pytest"
 ### Task 1.2: `hook.py` — write event to queue
 
 **Files:**
-- Create: `src/goldfish/hook.py`
+- Create: `src/goldfishh/hook.py`
 - Create: `tests/test_hook.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -116,7 +116,7 @@ Create `tests/test_hook.py`:
 import json
 from pathlib import Path
 
-from goldfish.hook import handle
+from goldfishh.hook import handle
 
 
 def test_hook_appends_event_to_queue(tmp_path):
@@ -149,18 +149,18 @@ def test_hook_creates_parent_dirs(tmp_path):
 ```bash
 pytest tests/test_hook.py -v
 ```
-Expected: `ImportError: cannot import name 'handle' from 'goldfish.hook'`
+Expected: `ImportError: cannot import name 'handle' from 'goldfishh.hook'`
 
 - [ ] **Step 3: Implement `hook.py`**
 
-Create `src/goldfish/hook.py`:
+Create `src/goldfishh/hook.py`:
 
 ```python
 import json
 import sys
 from pathlib import Path
 
-QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+QUEUE_PATH = Path.home() / ".goldfishh" / "queue.jsonl"
 
 
 def handle(event: dict, queue: Path = QUEUE_PATH) -> None:
@@ -188,15 +188,15 @@ Expected: 3 passed
 - [ ] **Step 5: Smoke test manually**
 
 ```bash
-echo '{"type":"Stop","cwd":".","session_id":"test-123"}' | python -m goldfish.hook
-cat ~/.goldfish/queue.jsonl
+echo '{"type":"Stop","cwd":".","session_id":"test-123"}' | python -m goldfishh.hook
+cat ~/.goldfishh/queue.jsonl
 ```
 Expected: one JSON line printed
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/hook.py tests/test_hook.py
+git add src/goldfishh/hook.py tests/test_hook.py
 git commit -m "feat: hook.py appends events to queue.jsonl"
 ```
 
@@ -205,7 +205,7 @@ git commit -m "feat: hook.py appends events to queue.jsonl"
 ### Task 1.3: `drain.py` — read queue and call semble
 
 **Files:**
-- Create: `src/goldfish/drain.py`
+- Create: `src/goldfishh/drain.py`
 - Create: `tests/test_drain.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -217,7 +217,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from goldfish.drain import drain
+from goldfishh.drain import drain
 
 
 def test_drain_returns_zero_for_missing_queue(tmp_path):
@@ -235,7 +235,7 @@ def test_drain_processes_one_event(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"type": "Stop", "cwd": "/home/user/project"}
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
     assert count == 1
     mock_run.assert_called_once()
@@ -244,7 +244,7 @@ def test_drain_processes_one_event(tmp_path):
 def test_drain_clears_queue_after_processing(tmp_path):
     queue = tmp_path / "queue.jsonl"
     queue.write_text(json.dumps({"type": "Stop", "cwd": "."}) + "\n")
-    with patch("goldfish.drain.subprocess.run"):
+    with patch("goldfishh.drain.subprocess.run"):
         drain(queue=queue)
     assert queue.read_text() == ""
 
@@ -253,7 +253,7 @@ def test_drain_processes_multiple_events(tmp_path):
     queue = tmp_path / "queue.jsonl"
     events = [{"type": "Stop", "cwd": "/p"}, {"type": "Stop", "cwd": "/p"}]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
     assert count == 2
     assert mock_run.call_count == 2
@@ -263,7 +263,7 @@ def test_drain_calls_semble_with_event_cwd(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"type": "Stop", "cwd": "/my/project"}
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         drain(queue=queue)
     args = mock_run.call_args[0][0]
     assert args[0] == "semble"
@@ -279,14 +279,14 @@ Expected: `ImportError: cannot import name 'drain'`
 
 - [ ] **Step 3: Implement `drain.py`**
 
-Create `src/goldfish/drain.py`:
+Create `src/goldfishh/drain.py`:
 
 ```python
 import json
 import subprocess
 from pathlib import Path
 
-QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+QUEUE_PATH = Path.home() / ".goldfishh" / "queue.jsonl"
 
 
 def drain(queue: Path = QUEUE_PATH) -> int:
@@ -334,20 +334,20 @@ Expected: 9 passed
 
 ```bash
 # Write an event
-echo '{"type":"Stop","cwd":"."}' | python -m goldfish.hook
+echo '{"type":"Stop","cwd":"."}' | python -m goldfishh.hook
 
 # Drain it
-python -m goldfish.drain
+python -m goldfishh.drain
 
 # Queue should be empty
-cat ~/.goldfish/queue.jsonl
+cat ~/.goldfishh/queue.jsonl
 ```
 Expected: drain prints `Drained 1 events`, queue.jsonl is empty
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/drain.py tests/test_drain.py
+git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "feat: drain.py reads queue and dispatches to semble subprocess"
 ```
 
@@ -363,10 +363,10 @@ Establish the per-project state store (manifest) and vault write layer. Everythi
 
 ---
 
-### Task 2.1: `config.py` — goldfish config and project manifest
+### Task 2.1: `config.py` — goldfishh config and project manifest
 
 **Files:**
-- Create: `src/goldfish/config.py`
+- Create: `src/goldfishh/config.py`
 - Create: `tests/test_config.py`
 - Modify: `pyproject.toml` — add `"tomli-w"` to `dependencies`
 
@@ -377,7 +377,7 @@ Create `tests/test_config.py`:
 ```python
 from pathlib import Path
 import pytest
-from goldfish.config import is_new_project, project_name, write_manifest, get_manifest
+from goldfishh.config import is_new_project, project_name, write_manifest, get_manifest
 
 
 def test_is_new_project_returns_true_when_no_manifest(tmp_path):
@@ -398,7 +398,7 @@ def test_write_and_get_manifest_roundtrip(tmp_path):
 
 
 def test_project_name_from_cwd():
-    assert project_name("/home/user/goldfish") == "goldfish"
+    assert project_name("/home/user/goldfishh") == "goldfishh"
     assert project_name("/home/user/my-project") == "my-project"
 ```
 
@@ -427,15 +427,15 @@ uv pip install -e ".[dev]"
 
 - [ ] **Step 4: Implement `config.py`**
 
-Create `src/goldfish/config.py`:
+Create `src/goldfishh/config.py`:
 
 ```python
 from pathlib import Path
 import tomllib
 import tomli_w
 
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
-CONFIG_PATH = Path.home() / ".goldfish" / "config.toml"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
+CONFIG_PATH = Path.home() / ".goldfishh" / "config.toml"
 
 _MANIFEST_DEFAULTS = {
     "last_byte_offset": 0,
@@ -482,7 +482,7 @@ Expected: 13 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/config.py tests/test_config.py pyproject.toml
+git add src/goldfishh/config.py tests/test_config.py pyproject.toml
 git commit -m "feat: config.py with manifest read/write and project identity"
 ```
 
@@ -491,7 +491,7 @@ git commit -m "feat: config.py with manifest read/write and project identity"
 ### Task 2.2: `vault.py` — markdown file operations
 
 **Files:**
-- Create: `src/goldfish/vault.py`
+- Create: `src/goldfishh/vault.py`
 - Create: `tests/test_vault.py`
 - Modify: `pyproject.toml` — add `"PyYAML"` to `dependencies`
 
@@ -503,7 +503,7 @@ Create `tests/test_vault.py`:
 from pathlib import Path
 import yaml
 import pytest
-from goldfish.vault import scaffold, write_note, read_note
+from goldfishh.vault import scaffold, write_note, read_note
 
 FRONTMATTER = {
     "id": "decision-jwt-2026-05-24",
@@ -574,13 +574,13 @@ uv pip install -e ".[dev]"
 
 - [ ] **Step 4: Implement `vault.py`**
 
-Create `src/goldfish/vault.py`:
+Create `src/goldfishh/vault.py`:
 
 ```python
 from pathlib import Path
 import yaml
 
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
 
 _VAULT_DIRS = [
     "Memory/Decisions",
@@ -631,7 +631,7 @@ Expected: 18 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/vault.py tests/test_vault.py pyproject.toml
+git add src/goldfishh/vault.py tests/test_vault.py pyproject.toml
 git commit -m "feat: vault.py with scaffold, write_note, read_note"
 ```
 
@@ -639,14 +639,14 @@ git commit -m "feat: vault.py with scaffold, write_note, read_note"
 
 ## Phase 3 — CLI Entry Point + Hook Registration
 
-Makes `goldfish hook` and `goldfish drain` runnable as Claude Code hook commands. After this phase, hooks can be manually wired into `~/.claude/settings.json` for testing.
+Makes `goldfishh hook` and `goldfishh drain` runnable as Claude Code hook commands. After this phase, hooks can be manually wired into `~/.claude/settings.json` for testing.
 
 ---
 
 ### Task 3.1: `cli.py` — typer app with entry point
 
 **Files:**
-- Create: `src/goldfish/cli.py`
+- Create: `src/goldfishh/cli.py`
 - Modify: `pyproject.toml` — add `typer` to dependencies and `[project.scripts]`
 
 - [ ] **Step 1: Add typer and entry point to `pyproject.toml`**
@@ -655,19 +655,19 @@ Makes `goldfish hook` and `goldfish drain` runnable as Claude Code hook commands
 dependencies = ["tomli-w", "PyYAML", "typer"]
 
 [project.scripts]
-goldfish = "goldfish.cli:app"
+goldfishh = "goldfishh.cli:app"
 ```
 
 ```bash
 uv pip install -e ".[dev]"
 ```
 
-- [ ] **Step 2: Create `src/goldfish/cli.py`**
+- [ ] **Step 2: Create `src/goldfishh/cli.py`**
 
 ```python
 import sys
 import typer
-from goldfish import hook, drain
+from goldfishh import hook, drain
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -686,7 +686,7 @@ def drain_cmd() -> None:
 
 @app.command()
 def init() -> None:
-    """Install and configure all goldfish dependencies."""
+    """Install and configure all goldfishh dependencies."""
     typer.echo("init: not yet implemented")
 
 
@@ -698,7 +698,7 @@ def status() -> None:
 
 @app.command()
 def doctor() -> None:
-    """Check goldfish configuration and fix instructions."""
+    """Check goldfishh configuration and fix instructions."""
     typer.echo("doctor: not yet implemented")
 
 
@@ -716,16 +716,16 @@ app.registered_commands[1].name = "drain"
 - [ ] **Step 3: Verify CLI works**
 
 ```bash
-goldfish --help
-echo '{"type":"Stop","cwd":"."}' | goldfish hook
-goldfish drain
+goldfishh --help
+echo '{"type":"Stop","cwd":"."}' | goldfishh hook
+goldfishh drain
 ```
 Expected: help text shown; hook enqueues event; drain prints `Drained 1 events`
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/goldfish/cli.py pyproject.toml
+git add src/goldfishh/cli.py pyproject.toml
 git commit -m "feat: typer CLI with hook, drain, and stub commands"
 ```
 
@@ -734,7 +734,7 @@ git commit -m "feat: typer CLI with hook, drain, and stub commands"
 ### Task 3.2: `claude_md.py` — hook registration in `~/.claude/settings.json`
 
 **Files:**
-- Create: `src/goldfish/claude_md.py`
+- Create: `src/goldfishh/claude_md.py`
 - Create: `tests/test_claude_md.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -744,9 +744,9 @@ Create `tests/test_claude_md.py`:
 ```python
 import json
 from pathlib import Path
-from goldfish.claude_md import register_hooks, append_claude_md_block
+from goldfishh.claude_md import register_hooks, append_claude_md_block
 
-GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 
 _HOOKS_TO_REGISTER = [
     ("Stop", False),
@@ -772,7 +772,7 @@ def test_register_hooks_is_idempotent(tmp_path):
     register_hooks(settings_path=settings)
     data = json.loads(settings.read_text())
     stop_hooks = data["hooks"]["Stop"]
-    goldfish_entries = [h for h in stop_hooks if "goldfish" in str(h)]
+    goldfish_entries = [h for h in stop_hooks if "goldfishh" in str(h)]
     assert len(goldfish_entries) == 1
 
 
@@ -801,19 +801,19 @@ Expected: `ImportError`
 
 - [ ] **Step 3: Implement `claude_md.py`**
 
-Create `src/goldfish/claude_md.py`:
+Create `src/goldfishh/claude_md.py`:
 
 ```python
 import json
 from pathlib import Path
 
 DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
-GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = ["Stop", "SessionEnd"]
 
-_GOLDFISH_HOOK_COMMAND = "goldfish hook"
+_GOLDFISH_HOOK_COMMAND = "goldfishh hook"
 
 
 def _goldfish_hook_entry(async_: bool = False) -> dict:
@@ -866,7 +866,7 @@ Expected: 22 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/claude_md.py tests/test_claude_md.py
+git add src/goldfishh/claude_md.py tests/test_claude_md.py
 git commit -m "feat: claude_md.py registers hooks in settings.json idempotently"
 ```
 
@@ -874,14 +874,14 @@ git commit -m "feat: claude_md.py registers hooks in settings.json idempotently"
 
 ## Phase 4 — Init Wizard
 
-**Dogfood milestone at the end of this phase: `uvx goldfish init` runs on the goldfish repo itself.**
+**Dogfood milestone at the end of this phase: `uvx goldfishh init` runs on the goldfishh repo itself.**
 
 ---
 
 ### Task 4.1: `init.py` — dependency detection and installation
 
 **Files:**
-- Create: `src/goldfish/init.py`
+- Create: `src/goldfishh/init.py`
 - Create: `tests/test_init.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -891,24 +891,24 @@ Create `tests/test_init.py`:
 ```python
 from unittest.mock import patch, call
 import pytest
-from goldfish.init import check_dependency, run
+from goldfishh.init import check_dependency, run
 
 
 def test_check_dependency_returns_true_when_found():
-    with patch("goldfish.init.subprocess.run") as mock_run:
+    with patch("goldfishh.init.subprocess.run") as mock_run:
         mock_run.return_value.returncode = 0
         assert check_dependency("node") is True
 
 
 def test_check_dependency_returns_false_when_not_found():
-    with patch("goldfish.init.subprocess.run") as mock_run:
+    with patch("goldfishh.init.subprocess.run") as mock_run:
         mock_run.return_value.returncode = 1
         assert check_dependency("gitnexus-nonexistent") is False
 
 
 def test_run_exits_early_if_node_missing(tmp_path):
-    with patch("goldfish.init.check_dependency", return_value=False), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
+    with patch("goldfishh.init.check_dependency", return_value=False), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
          pytest.raises(SystemExit):
         run(cwd=str(tmp_path))
     mock_run.assert_not_called()
@@ -922,11 +922,11 @@ def test_run_calls_install_steps_in_order(tmp_path):
             returncode = 0
         return R()
 
-    with patch("goldfish.init.check_dependency", return_value=True), \
-         patch("goldfish.init.subprocess.run", side_effect=fake_run), \
-         patch("goldfish.init.register_hooks"), \
-         patch("goldfish.init.scaffold"), \
-         patch("goldfish.init.write_manifest"):
+    with patch("goldfishh.init.check_dependency", return_value=True), \
+         patch("goldfishh.init.subprocess.run", side_effect=fake_run), \
+         patch("goldfishh.init.register_hooks"), \
+         patch("goldfishh.init.scaffold"), \
+         patch("goldfishh.init.write_manifest"):
         run(cwd=str(tmp_path))
 
     assert "npm" in calls        # npm install -g gitnexus
@@ -943,16 +943,16 @@ Expected: `ImportError`
 
 - [ ] **Step 3: Implement `init.py`**
 
-Create `src/goldfish/init.py`:
+Create `src/goldfishh/init.py`:
 
 ```python
 import subprocess
 import sys
 from pathlib import Path
 
-from goldfish.claude_md import register_hooks, append_claude_md_block, GOLDFISH_SENTINEL
-from goldfish.config import project_name, write_manifest, get_manifest, is_new_project, VAULTS_ROOT
-from goldfish.vault import scaffold
+from goldfishh.claude_md import register_hooks, append_claude_md_block, GOLDFISH_SENTINEL
+from goldfishh.config import project_name, write_manifest, get_manifest, is_new_project, VAULTS_ROOT
+from goldfishh.vault import scaffold
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
@@ -1014,14 +1014,14 @@ def run(cwd: str = ".") -> None:
 
 - [ ] **Step 4: Wire `init` into `cli.py`**
 
-Replace the stub `init` command in `src/goldfish/cli.py`:
+Replace the stub `init` command in `src/goldfishh/cli.py`:
 
 ```python
 @app.command()
 def init() -> None:
-    """Install and configure all goldfish dependencies."""
+    """Install and configure all goldfishh dependencies."""
     import os
-    from goldfish.init import run as _init
+    from goldfishh.init import run as _init
     _init(cwd=os.getcwd())
 ```
 
@@ -1035,39 +1035,39 @@ Expected: 26 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/init.py tests/test_init.py src/goldfish/cli.py
+git add src/goldfishh/init.py tests/test_init.py src/goldfishh/cli.py
 git commit -m "feat: init wizard installs GitNexus, OMEGA, Semble, scaffolds vault"
 ```
 
 ---
 
-### Task 4.2: Dogfood Milestone — goldfish runs on goldfish
+### Task 4.2: Dogfood Milestone — goldfishh runs on goldfishh
 
-- [ ] **Step 1: Index goldfish's own code with GitNexus**
+- [ ] **Step 1: Index goldfishh's own code with GitNexus**
 
 ```bash
 npx gitnexus analyze
 ```
 Expected: `.gitnexus/` created in repo root; hooks installed; CLAUDE.md updated
 
-- [ ] **Step 2: Run goldfish init on the goldfish repo**
+- [ ] **Step 2: Run goldfishh init on the goldfishh repo**
 
 ```bash
-uvx goldfish init
+uvx goldfishh init
 ```
-Expected: OMEGA installed, Semble installed, vault scaffolded at `~/.goldfish/vaults/goldfish/`, hooks registered in `~/.claude/settings.json`
+Expected: OMEGA installed, Semble installed, vault scaffolded at `~/.goldfishh/vaults/goldfishh/`, hooks registered in `~/.claude/settings.json`
 
 - [ ] **Step 3: Verify hooks are registered**
 
 ```bash
 cat ~/.claude/settings.json | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('hooks',{}), indent=2))"
 ```
-Expected: `SessionStart`, `UserPromptSubmit`, `PreCompact`, `Stop`, `SessionEnd` all present with `goldfish hook` command
+Expected: `SessionStart`, `UserPromptSubmit`, `PreCompact`, `Stop`, `SessionEnd` all present with `goldfishh hook` command
 
 - [ ] **Step 4: Verify vault exists**
 
 ```bash
-ls ~/.goldfish/vaults/goldfish/
+ls ~/.goldfishh/vaults/goldfishh/
 ```
 Expected: `Memory/  Specs/  Tasks/  _context/  .manifest.toml`
 
@@ -1075,10 +1075,10 @@ Expected: `Memory/  Specs/  Tasks/  _context/  .manifest.toml`
 
 ```bash
 git add .gitnexus/ CLAUDE.md
-git commit -m "chore: dogfood — goldfish indexed and running on itself"
+git commit -m "chore: dogfood — goldfishh indexed and running on itself"
 ```
 
-**From this point forward, every Claude Code session building Goldfish has OMEGA tracking sessions, GitNexus mapping the codebase, and Semble indexing goldfish's own src/.**
+**From this point forward, every Claude Code session building Goldfish has OMEGA tracking sessions, GitNexus mapping the codebase, and Semble indexing goldfishh's own src/.**
 
 ---
 
@@ -1091,8 +1091,8 @@ Implement the `SessionStart`, `PreCompact`, and `Stop`/`SessionEnd` event handle
 ### Task 5.1: SessionStart routing (new vs. existing project)
 
 **Files:**
-- Modify: `src/goldfish/drain.py` — extend `_route` for `SessionStart`
-- Modify: `src/goldfish/hook.py` — write stdout for synchronous events
+- Modify: `src/goldfishh/drain.py` — extend `_route` for `SessionStart`
+- Modify: `src/goldfishh/hook.py` — write stdout for synchronous events
 
 **Key behaviors:**
 
@@ -1124,7 +1124,7 @@ def test_session_start_existing_project_skips_scaffold(...):
 ### Task 5.2: PreCompact snapshot
 
 **Files:**
-- Modify: `src/goldfish/drain.py` — add `_handle_pre_compact`
+- Modify: `src/goldfishh/drain.py` — add `_handle_pre_compact`
 
 ```python
 def _handle_pre_compact(event: dict) -> None:
@@ -1156,7 +1156,7 @@ def _handle_pre_compact(event: dict) -> None:
 ### Task 5.3: Stop / SessionEnd cleanup
 
 **Files:**
-- Modify: `src/goldfish/drain.py`
+- Modify: `src/goldfishh/drain.py`
 
 ```python
 def _handle_stop(event: dict) -> None:
@@ -1184,7 +1184,7 @@ The only synchronous handler that injects context into Claude's prompt window.
 ### Task 6.1: `enricher.py` — Chonkie decomposition + fan-out search
 
 **Files:**
-- Create: `src/goldfish/enricher.py`
+- Create: `src/goldfishh/enricher.py`
 - Create: `tests/test_enricher.py`
 - Modify: `pyproject.toml` — add `"chonkie"` to dependencies
 
@@ -1238,7 +1238,7 @@ def test_enrich_returns_empty_for_short_prompt(tmp_path):
     assert enrich("yes", ".", "myproject") == ""
 
 def test_enrich_calls_semble_per_chunk(tmp_path):
-    with patch("goldfish.enricher.subprocess.run") as mock_run:
+    with patch("goldfishh.enricher.subprocess.run") as mock_run:
         mock_run.return_value.stdout = b""
         mock_run.return_value.returncode = 0
         enrich("fix auth middleware and CI tests are broken", "/project", "myproject")
@@ -1253,7 +1253,7 @@ def test_enrich_calls_semble_per_chunk(tmp_path):
 
 ### Task 7.1: File edit reindex + git commit checkpoint
 
-**Modify:** `src/goldfish/drain.py` — extend `_route` for `PostToolUse`
+**Modify:** `src/goldfishh/drain.py` — extend `_route` for `PostToolUse`
 
 ```python
 def _handle_post_tool_use(event: dict) -> None:
@@ -1278,7 +1278,7 @@ def _handle_post_tool_use(event: dict) -> None:
 
 ### Task 7.2: SubagentStop, TaskCreated, TaskCompleted
 
-**Modify:** `src/goldfish/drain.py`
+**Modify:** `src/goldfishh/drain.py`
 
 These three events write a note to `Tasks/` and flush OMEGA — same pattern as other handlers.
 
@@ -1304,15 +1304,15 @@ def _handle_task_completed(event: dict) -> None:
 
 ---
 
-### Task 8.1: `goldfish status`
+### Task 8.1: `goldfishh status`
 
-**Modify:** `src/goldfish/cli.py` — implement status command
+**Modify:** `src/goldfishh/cli.py` — implement status command
 
 ```python
 @app.command()
 def status() -> None:
     """Show queue depth and tool health."""
-    from goldfish.config import get_manifest, project_name
+    from goldfishh.config import get_manifest, project_name
     import os
     queue = QUEUE_PATH
     depth = len(queue.read_text().splitlines()) if queue.exists() else 0
@@ -1326,7 +1326,7 @@ def status() -> None:
 
 ---
 
-### Task 8.2: `goldfish doctor`
+### Task 8.2: `goldfishh doctor`
 
 Checks and prints fix instructions for:
 - Node.js present (required for GitNexus): `check_dependency("node")`
@@ -1334,11 +1334,11 @@ Checks and prints fix instructions for:
 - OMEGA responsive: `subprocess.run(["omega", "status"])`
 - Semble index fresh (<1h): compare `manifest.semble_indexed_at` to now
 - Queue depth reasonable (<100 events)
-- Hooks registered: parse `~/.claude/settings.json`, check for `goldfish hook` entries
+- Hooks registered: parse `~/.claude/settings.json`, check for `goldfishh hook` entries
 
 ---
 
-### Task 8.3: `goldfish replay`
+### Task 8.3: `goldfishh replay`
 
 ```python
 def replay(cwd: str = ".") -> None:
@@ -1385,9 +1385,9 @@ def replay(cwd: str = ".") -> None:
 | PostToolUse file reindex | 7.1 |
 | PostToolUse git commit checkpoint | 7.1 |
 | SubagentStop / TaskCreated / TaskCompleted | 7.2 |
-| goldfish status | 8.1 |
-| goldfish doctor | 8.2 |
-| goldfish replay | 8.3 |
+| goldfishh status | 8.1 |
+| goldfishh doctor | 8.2 |
+| goldfishh replay | 8.3 |
 | GitNexus: install via npm only, never bundle | 4.1 |
 | Hook handlers exit in <10ms | 1.2, 1.3 |
 | Obsidian = pathlib.write_text() only | 2.2 |

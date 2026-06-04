@@ -1,6 +1,6 @@
 # The Five Failures Framework
 
-Every AI agent context failure maps to one of exactly five problems. This framework drives every tool selection and implementation decision in goldfish. A feature that doesn't address at least one failure doesn't belong in the project.
+Every AI agent context failure maps to one of exactly five problems. This framework drives every tool selection and implementation decision in goldfishh. A feature that doesn't address at least one failure doesn't belong in the project.
 
 ## The five failures
 
@@ -21,7 +21,7 @@ OMEGA is a local SQLite + ONNX episodic memory store. It mines Claude Code JSONL
 GitNexus indexes the codebase into LadybugDB (an embedded graph database) via `npx gitnexus analyze`. It provides hybrid BM25+semantic search, 360° symbol context (callers, callees, execution flows), and functional community detection. Query by concept, not by filename.
 
 **Decision blindness → OMEGA + vault**  
-OMEGA captures session decisions automatically. goldfish writes structured vault notes (plain markdown with temporal frontmatter) for architectural decisions, lessons, and errors. Vault notes are searchable by Semble and human-readable without tooling.
+OMEGA captures session decisions automatically. goldfishh writes structured vault notes (plain markdown with temporal frontmatter) for architectural decisions, lessons, and errors. Vault notes are searchable by Semble and human-readable without tooling.
 
 **Impact blindness → GitNexus**  
 GitNexus `impact()` maps every upstream caller of a symbol with depth grouping and confidence scores. `detect_changes()` maps staged git changes to affected execution flows before a commit. An agent cannot change code without knowing the blast radius.
