@@ -214,6 +214,7 @@ def test_append_claude_md_block_migrates_old_sentinel(tmp_path):
     claude_md.write_text("# Project\n\n" + old_sentinel + "\n\nOLD CONTENT\n")
 
     from goldfishh.claude_md import GOLDFISHH_SENTINEL, append_claude_md_block
+
     new_block = GOLDFISHH_SENTINEL + "\n\nNEW CONTENT\n"
     append_claude_md_block(claude_md, new_block)
 

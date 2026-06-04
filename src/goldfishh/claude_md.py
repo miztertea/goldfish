@@ -75,7 +75,7 @@ def append_claude_md_block(claude_md_path: Path, block: str) -> None:
     # Migrate: remove old-format block if present
     if _OLD_GOLDFISH_SENTINEL in existing and GOLDFISHH_SENTINEL not in existing:
         start = existing.index(_OLD_GOLDFISH_SENTINEL)
-        after = existing[start + len(_OLD_GOLDFISH_SENTINEL):]
+        after = existing[start + len(_OLD_GOLDFISH_SENTINEL) :]
         m = re.search(r"\n##\s", after)
         if m:
             end = start + len(_OLD_GOLDFISH_SENTINEL) + m.start()
@@ -88,7 +88,7 @@ def append_claude_md_block(claude_md_path: Path, block: str) -> None:
         return
     # Update: replace existing block in-place, preserving content before and after
     start = existing.index(GOLDFISHH_SENTINEL)
-    after = existing[start + len(GOLDFISHH_SENTINEL):]
+    after = existing[start + len(GOLDFISHH_SENTINEL) :]
     m = re.search(r"\n##\s", after)
     if m:
         end = start + len(GOLDFISHH_SENTINEL) + m.start()
