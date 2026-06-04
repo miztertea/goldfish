@@ -2,17 +2,17 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from goldfish.init import check_dependency, run
+from goldfishh.init import check_dependency, run
 
 
 def test_check_dependency_returns_true_when_found():
-    with patch("goldfish.init.subprocess.run") as mock_run:
+    with patch("goldfishh.init.subprocess.run") as mock_run:
         mock_run.return_value.returncode = 0
         assert check_dependency("node") is True
 
 
 def test_check_dependency_returns_false_when_not_found():
-    with patch("goldfish.init.subprocess.run") as mock_run:
+    with patch("goldfishh.init.subprocess.run") as mock_run:
         mock_run.return_value.returncode = 1
         assert check_dependency("gitnexus-nonexistent") is False
 
@@ -27,9 +27,9 @@ def test_run_exits_early_if_node_missing(tmp_path):
         return cmd != "node"  # node absent, claude and others present
 
     with (
-        patch("goldfish.init.check_dependency", side_effect=dep_missing_node),
-        patch("goldfish.init._goldfish_stable_path", return_value=stable),
-        patch("goldfish.init.subprocess.run") as mock_run,
+        patch("goldfishh.init.check_dependency", side_effect=dep_missing_node),
+        patch("goldfishh.init._goldfish_stable_path", return_value=stable),
+        patch("goldfishh.init.subprocess.run") as mock_run,
         pytest.raises(SystemExit),
     ):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
@@ -55,9 +55,9 @@ def test_run_calls_install_steps_in_order(tmp_path):
     (tmp_path / "CLAUDE.md").write_text("# Existing\n")
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value=None),
-        patch("goldfish.init.subprocess.run", side_effect=fake_run),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value=None),
+        patch("goldfishh.init.subprocess.run", side_effect=fake_run),
     ):
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path)
 
@@ -73,11 +73,11 @@ def test_init_skips_gitnexus_if_already_indexed(tmp_path):
     settings = tmp_path / "settings.json"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -92,11 +92,11 @@ def test_init_skips_omega_if_already_installed(tmp_path):
     settings = tmp_path / "settings.json"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", side_effect=lambda cmd: "/usr/bin/" + cmd),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", side_effect=lambda cmd: "/usr/bin/" + cmd),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -111,11 +111,11 @@ def test_init_skips_semble_if_already_installed(tmp_path):
     settings = tmp_path / "settings.json"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", side_effect=lambda cmd: "/usr/bin/" + cmd),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", side_effect=lambda cmd: "/usr/bin/" + cmd),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -130,11 +130,11 @@ def test_init_runs_gitnexus_when_not_indexed(tmp_path):
     settings = tmp_path / "settings.json"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value=None),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value=None),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -146,7 +146,7 @@ def test_init_runs_gitnexus_when_not_indexed(tmp_path):
 
 def test_init_does_not_rescaffold_existing_vault(tmp_path):
     """On re-run, scaffold must not overwrite the existing vault."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project_dir = tmp_path / "goldfish"
     project_dir.mkdir()
@@ -159,12 +159,12 @@ def test_init_does_not_rescaffold_existing_vault(tmp_path):
     settings = tmp_path / "settings.json"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
-        patch("goldfish.init.VAULTS_ROOT", vaults_root),
-        patch("goldfish.init.scaffold") as mock_scaffold,
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.scaffold") as mock_scaffold,
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
@@ -181,12 +181,12 @@ def test_init_self_installs_goldfish_when_not_at_stable_path(tmp_path):
         return None if cmd == "goldfish" else f"/usr/bin/{cmd}"
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", side_effect=which_no_goldfish),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", side_effect=which_no_goldfish),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -204,12 +204,12 @@ def test_init_skips_self_install_when_stable_bin_exists(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=stable),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=stable),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -225,12 +225,12 @@ def test_init_registers_omega_mcp(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -246,12 +246,12 @@ def test_init_registers_semble_mcp(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -267,12 +267,12 @@ def test_init_registers_gitnexus_mcp(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -286,12 +286,12 @@ def test_init_calls_semble_init(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/semble"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/semble"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -302,7 +302,7 @@ def test_init_calls_semble_init(tmp_path):
 
 def test_init_skips_mcp_registration_if_already_registered(tmp_path):
     """When manifest mcp_registered=True, all MCP registration commands are skipped."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project_dir = tmp_path / "myapp"
     project_dir.mkdir()
@@ -322,12 +322,12 @@ def test_init_skips_mcp_registration_if_already_registered(tmp_path):
     settings.write_text("{}")
     (project_dir / ".gitnexus").mkdir()
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
-        patch("goldfish.init.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
@@ -342,7 +342,7 @@ def test_init_skips_mcp_registration_if_already_registered(tmp_path):
 
 def test_init_calls_mine_project_for_existing_project(tmp_path):
     """On re-run for an existing project, mine_project must be called."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project_dir = tmp_path / "goldfish"
     project_dir.mkdir()
@@ -364,13 +364,13 @@ def test_init_calls_mine_project_for_existing_project(tmp_path):
     (project_dir / ".gitnexus").mkdir()
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
-        patch("goldfish.init.VAULTS_ROOT", vaults_root),
-        patch("goldfish.init.mine_project") as mock_mine,
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.init.mine_project") as mock_mine,
     ):
         mock_run.return_value = MagicMock(returncode=0)
         mock_mine.return_value = 3
@@ -388,12 +388,12 @@ def test_init_installs_claude_code_when_missing(tmp_path):
         return cmd != "claude"  # claude absent, all others present
 
     with (
-        patch("goldfish.init.check_dependency", side_effect=dep_missing_claude),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", side_effect=dep_missing_claude),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -409,12 +409,12 @@ def test_init_skips_claude_code_install_when_present(tmp_path):
     settings.write_text("{}")
 
     with (
-        patch("goldfish.init.check_dependency", return_value=True),
-        patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"),
-        patch("goldfish.init.subprocess.run") as mock_run,
-        patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"),
-        patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.check_dependency", return_value=True),
+        patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"),
+        patch("goldfishh.init.subprocess.run") as mock_run,
+        patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
@@ -425,7 +425,7 @@ def test_init_skips_claude_code_install_when_present(tmp_path):
 
 
 def test_claude_md_block_describes_four_layer_stack():
-    from goldfish.init import _CLAUDE_MD_BLOCK
+    from goldfishh.init import _CLAUDE_MD_BLOCK
 
     assert "Layer 0" in _CLAUDE_MD_BLOCK, "Must reference Layer 0 (MEMORY.md)"
     assert "MEMORY.md" in _CLAUDE_MD_BLOCK, "Must name MEMORY.md explicitly"

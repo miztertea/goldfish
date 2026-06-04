@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from goldfish.claude_md import append_claude_md_block, register_hooks
+from goldfishh.claude_md import append_claude_md_block, register_hooks
 
 GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 
@@ -56,9 +56,9 @@ def test_register_hooks_uses_venv_bin_path(tmp_path):
 
     # shutil.which returns None → fall back to venv sibling
     with (
-        patch("goldfish.claude_md.shutil.which", return_value=None),
-        patch("goldfish.claude_md.sys.executable", fake_executable),
-        patch("goldfish.claude_md.Path.home", return_value=tmp_path),
+        patch("goldfishh.claude_md.shutil.which", return_value=None),
+        patch("goldfishh.claude_md.sys.executable", fake_executable),
+        patch("goldfishh.claude_md.Path.home", return_value=tmp_path),
     ):
         register_hooks(settings_path=settings)
 
@@ -80,8 +80,8 @@ def test_register_hooks_updates_bare_command_to_full_path(tmp_path):
     fake_venv_bin.mkdir()
     (fake_venv_bin / "goldfish").touch()
     with (
-        patch("goldfish.claude_md.shutil.which", return_value=None),
-        patch("goldfish.claude_md.sys.executable", str(fake_venv_bin / "python")),
+        patch("goldfishh.claude_md.shutil.which", return_value=None),
+        patch("goldfishh.claude_md.sys.executable", str(fake_venv_bin / "python")),
     ):
         register_hooks(settings_path=settings)
     data = json.loads(settings.read_text())
@@ -185,23 +185,23 @@ def test_append_claude_md_block_eof_case(tmp_path):
 
 
 def test_detect_goldfish_bin_prefers_local_bin(tmp_path):
-    from goldfish.claude_md import _detect_goldfish_bin
+    from goldfishh.claude_md import _detect_goldfish_bin
 
     local_bin = tmp_path / ".local" / "bin" / "goldfish"
     local_bin.parent.mkdir(parents=True)
     local_bin.touch()
-    with patch("goldfish.claude_md.Path.home", return_value=tmp_path):
+    with patch("goldfishh.claude_md.Path.home", return_value=tmp_path):
         result = _detect_goldfish_bin()
     assert result == str(local_bin)
 
 
 def test_detect_goldfish_bin_falls_back_to_which(tmp_path):
-    from goldfish.claude_md import _detect_goldfish_bin
+    from goldfishh.claude_md import _detect_goldfish_bin
 
     # tmp_path/.local/bin/goldfish does NOT exist
     with (
-        patch("goldfish.claude_md.Path.home", return_value=tmp_path),
-        patch("goldfish.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"),
+        patch("goldfishh.claude_md.Path.home", return_value=tmp_path),
+        patch("goldfishh.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"),
     ):
         result = _detect_goldfish_bin()
     assert result == "/usr/local/bin/goldfish"

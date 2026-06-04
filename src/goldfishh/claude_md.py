@@ -4,7 +4,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from goldfish.config import DEFAULT_SETTINGS
+from goldfishh.config import DEFAULT_SETTINGS
 
 GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
 

@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
-from goldfish.vault import read_note, scaffold, write_note
+from goldfishh.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
+from goldfishh.vault import read_note, scaffold, write_note
 
 QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
 

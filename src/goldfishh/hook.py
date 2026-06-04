@@ -2,11 +2,11 @@ import json
 import sys
 from pathlib import Path
 
-from goldfish.config import project_name
-from goldfish.drain import handle_pre_compact, handle_session_start
+from goldfishh.config import project_name
+from goldfishh.drain import handle_pre_compact, handle_session_start
 
 try:
-    from goldfish.enricher import enrich
+    from goldfishh.enricher import enrich
 except ImportError:
 
     def enrich(prompt: str, cwd: str, project: str) -> str:  # type: ignore[misc]

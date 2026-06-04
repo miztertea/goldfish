@@ -3,8 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from goldfish.claude_md import GOLDFISH_SENTINEL, append_claude_md_block, register_hooks
-from goldfish.config import (
+from goldfishh.claude_md import GOLDFISH_SENTINEL, append_claude_md_block, register_hooks
+from goldfishh.config import (
     DEFAULT_SETTINGS,
     VAULTS_ROOT,
     get_manifest,
@@ -12,8 +12,8 @@ from goldfish.config import (
     project_name,
     write_manifest,
 )
-from goldfish.miner import mine_project
-from goldfish.vault import scaffold
+from goldfishh.miner import mine_project
+from goldfishh.vault import scaffold
 
 _PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
 

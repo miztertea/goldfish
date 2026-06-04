@@ -15,11 +15,11 @@ if sys.platform == "win32":
 
 import typer
 
-from goldfish import drain, hook
-from goldfish.claude_md import DEFAULT_SETTINGS, register_hooks
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
-from goldfish.drain import QUEUE_PATH
-from goldfish.miner import mine_project
+from goldfishh import drain, hook
+from goldfishh.claude_md import DEFAULT_SETTINGS, register_hooks
+from goldfishh.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
+from goldfishh.drain import QUEUE_PATH
+from goldfishh.miner import mine_project
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -41,7 +41,7 @@ def init() -> None:
     """Install and configure all goldfish dependencies."""
     import os
 
-    from goldfish.init import run as _init
+    from goldfishh.init import run as _init
 
     _init(cwd=os.getcwd())
 
@@ -264,7 +264,7 @@ def mine() -> None:
 
     cwd = os.getcwd()
     settings = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8")) if DEFAULT_SETTINGS.exists() else {}
-    from goldfish.miner import _find_hook_cmd
+    from goldfishh.miner import _find_hook_cmd
 
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
     asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")

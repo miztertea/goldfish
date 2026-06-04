@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from goldfish.drain import _handle_task_completed, _handle_task_created, drain, handle_pre_compact, handle_session_start
+from goldfishh.drain import _handle_task_completed, _handle_task_created, drain, handle_pre_compact, handle_session_start
 
 
 def test_drain_returns_zero_for_missing_queue(tmp_path):
@@ -47,7 +47,7 @@ def test_drain_unknown_event_type_does_nothing(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"hook_event_name": "UnknownEvent", "cwd": "/p"}
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
     assert count == 1  # event was processed (no exception)
     mock_run.assert_not_called()  # but nothing happened
@@ -60,7 +60,7 @@ def test_drain_skips_bad_json_and_continues(tmp_path):
         json.dumps({"hook_event_name": "Stop", "cwd": "/p"}),
     ]
     queue.write_text("\n".join(events) + "\n")
-    with patch("goldfish.drain.subprocess.run"):
+    with patch("goldfishh.drain.subprocess.run"):
         count = drain(queue=queue)
     assert count == 1  # only the valid event processed
 
@@ -76,9 +76,9 @@ def test_drain_preserves_failed_lines_on_queue(tmp_path):
 def test_session_start_new_project_creates_wake_up(tmp_path):
     event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
     ):
         result = handle_session_start(event, vaults_root=tmp_path)
     wake_up = tmp_path / "myapp" / "_context" / "wake-up.md"
@@ -89,23 +89,23 @@ def test_session_start_new_project_creates_wake_up(tmp_path):
 def test_session_start_new_project_returns_first_session_message(tmp_path):
     event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
     ):
         result = handle_session_start(event, vaults_root=tmp_path)
     assert "first session" in result.lower() or "new project" in result.lower()
 
 
 def test_pre_compact_writes_checkpoint_note(tmp_path):
-    from goldfish.vault import scaffold
+    from goldfishh.vault import scaffold
 
     scaffold("myapp", vaults_root=tmp_path)
     event = {"hook_event_name": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
     ):
         handle_pre_compact(event, vaults_root=tmp_path)
     checkpoints = list((tmp_path / "myapp" / "Memory" / "Checkpoints").glob("*.md"))
@@ -116,17 +116,17 @@ def test_pre_compact_writes_checkpoint_note(tmp_path):
 def test_session_start_existing_project_calls_omega_query(tmp_path):
     from unittest.mock import MagicMock
 
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     write_manifest(
         "myapp", {"last_byte_offset": 100, "bootstrap_complete": True, "last_jsonl_file": ""}, vaults_root=tmp_path
     )
     event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
     with (
-        patch("goldfish.drain.subprocess.run") as mock_run,
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
-        patch("goldfish.drain.drain"),
+        patch("goldfishh.drain.subprocess.run") as mock_run,
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.drain"),
     ):
         mock_run.return_value = MagicMock(returncode=0, stdout="some context")
         handle_session_start(event, vaults_root=tmp_path)
@@ -142,7 +142,7 @@ def test_task_created_writes_note_to_vault(tmp_path):
         "cwd": "/project/myapp",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.VAULTS_ROOT", tmp_path), patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         _handle_task_created(event, vaults_root=tmp_path)
     note = tmp_path / "myapp" / "Tasks" / "task-abc.md"
     assert note.exists()
@@ -150,7 +150,7 @@ def test_task_created_writes_note_to_vault(tmp_path):
 
 
 def test_task_completed_appends_completed_marker(tmp_path):
-    from goldfish.vault import scaffold, write_note
+    from goldfishh.vault import scaffold, write_note
 
     scaffold("myapp", vaults_root=tmp_path)
     write_note(
@@ -175,15 +175,15 @@ def test_task_completed_appends_completed_marker(tmp_path):
         "cwd": "/project/myapp",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.VAULTS_ROOT", tmp_path), patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         _handle_task_completed(event, vaults_root=tmp_path)
     content = (tmp_path / "myapp" / "Tasks" / "task-abc.md").read_text()
     assert "Completed" in content
 
 
 def test_stop_advances_manifest_offset(tmp_path):
-    from goldfish.config import get_manifest as gm
-    from goldfish.config import write_manifest as wm
+    from goldfishh.config import get_manifest as gm
+    from goldfishh.config import write_manifest as wm
 
     # Seed the manifest
     wm(
@@ -195,7 +195,7 @@ def test_stop_advances_manifest_offset(tmp_path):
     jsonl_file = tmp_path / "session1.jsonl"
     jsonl_file.write_text('{"type":"Stop"}\n{"type":"Stop"}\n')
 
-    from goldfish.drain import _handle_stop
+    from goldfishh.drain import _handle_stop
 
     event = {
         "hook_event_name": "Stop",
@@ -204,9 +204,9 @@ def test_stop_advances_manifest_offset(tmp_path):
         "transcript_path": str(jsonl_file),
     }
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
     ):
         _handle_stop(event, vaults_root=tmp_path)
 
@@ -220,7 +220,7 @@ def test_drain_budget_zero_processes_all(tmp_path):
     queue = tmp_path / "queue.jsonl"
     events = [{"hook_event_name": "Stop", "cwd": "/p", "session_id": f"s{i}"} for i in range(3)]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
-    with patch("goldfish.drain.subprocess.run"):
+    with patch("goldfishh.drain.subprocess.run"):
         count = drain(queue=queue, budget_ms=0)
     assert count == 3
     assert queue.read_text().strip() == ""
@@ -233,7 +233,7 @@ def test_drain_budget_ms_leaves_unprocessed_events(tmp_path):
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
     # Make deadline expire immediately: first call sets deadline, second check returns huge value
-    with patch("goldfish.drain.subprocess.run"), patch("goldfish.drain.time.monotonic", side_effect=[0, 100]):
+    with patch("goldfishh.drain.subprocess.run"), patch("goldfishh.drain.time.monotonic", side_effect=[0, 100]):
         count = drain(queue=queue, budget_ms=1)
 
     assert count == 0
@@ -245,10 +245,10 @@ def test_session_start_auto_drains_queue(tmp_path):
     """handle_session_start must call drain(budget_ms=200) before processing."""
     event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
-        patch("goldfish.drain.drain") as mock_drain,
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.drain") as mock_drain,
     ):
         mock_drain.return_value = 0
         handle_session_start(event, vaults_root=tmp_path)
@@ -257,15 +257,15 @@ def test_session_start_auto_drains_queue(tmp_path):
 
 def test_pre_compact_auto_drains_queue(tmp_path):
     """handle_pre_compact must call drain(budget_ms=200) before snapshotting."""
-    from goldfish.vault import scaffold
+    from goldfishh.vault import scaffold
 
     scaffold("myapp", vaults_root=tmp_path)
     event = {"hook_event_name": "PreCompact", "cwd": "/project/myapp", "session_id": "s1"}
     with (
-        patch("goldfish.drain.subprocess.run"),
-        patch("goldfish.drain.VAULTS_ROOT", tmp_path),
-        patch("goldfish.config.VAULTS_ROOT", tmp_path),
-        patch("goldfish.drain.drain") as mock_drain,
+        patch("goldfishh.drain.subprocess.run"),
+        patch("goldfishh.drain.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.config.VAULTS_ROOT", tmp_path),
+        patch("goldfishh.drain.drain") as mock_drain,
     ):
         mock_drain.return_value = 0
         handle_pre_compact(event, vaults_root=tmp_path)
@@ -274,7 +274,7 @@ def test_pre_compact_auto_drains_queue(tmp_path):
 
 def test_session_start_includes_open_tasks_in_wakeup(tmp_path):
     """Tasks/ with an incomplete note → body contains the task stem."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project = "myapp"
     vaults_root = tmp_path / "vaults"
@@ -289,9 +289,9 @@ def test_session_start_includes_open_tasks_in_wakeup(tmp_path):
 
     event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
     with (
-        patch("goldfish.drain.subprocess.run") as mock_run,
-        patch("goldfish.drain.VAULTS_ROOT", vaults_root),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.drain.subprocess.run") as mock_run,
+        patch("goldfishh.drain.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = None
         result = handle_session_start(event, vaults_root=vaults_root)
@@ -301,7 +301,7 @@ def test_session_start_includes_open_tasks_in_wakeup(tmp_path):
 
 def test_session_start_includes_recent_decisions(tmp_path):
     """Decisions/ with files → body lists their headings."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project = "myapp"
     vaults_root = tmp_path / "vaults"
@@ -316,9 +316,9 @@ def test_session_start_includes_recent_decisions(tmp_path):
 
     event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
     with (
-        patch("goldfish.drain.subprocess.run") as mock_run,
-        patch("goldfish.drain.VAULTS_ROOT", vaults_root),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.drain.subprocess.run") as mock_run,
+        patch("goldfishh.drain.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = None
         result = handle_session_start(event, vaults_root=vaults_root)
@@ -328,7 +328,7 @@ def test_session_start_includes_recent_decisions(tmp_path):
 
 def test_session_start_excludes_completed_tasks(tmp_path):
     """Tasks marked **Completed.** must not appear in the wake-up body."""
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
 
     project = "myapp"
     vaults_root = tmp_path / "vaults"
@@ -344,9 +344,9 @@ def test_session_start_excludes_completed_tasks(tmp_path):
 
     event = {"session_id": "s1", "cwd": str(tmp_path / "myapp")}
     with (
-        patch("goldfish.drain.subprocess.run") as mock_run,
-        patch("goldfish.drain.VAULTS_ROOT", vaults_root),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.drain.subprocess.run") as mock_run,
+        patch("goldfishh.drain.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = None
         result = handle_session_start(event, vaults_root=vaults_root)

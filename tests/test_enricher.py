@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from goldfish.enricher import decompose, enrich
+from goldfishh.enricher import decompose, enrich
 
 
 def test_decompose_returns_empty_for_short_prompt():
@@ -30,7 +30,7 @@ def test_enrich_calls_semble_for_code_and_docs():
     mock_result = MagicMock()
     mock_result.stdout = b"some search result"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result) as mock_run:
         result = enrich(
             "fix the authentication middleware in the API layer",
             "/project",
@@ -46,7 +46,7 @@ def test_enrich_returns_empty_when_no_semble_results():
     mock_result = MagicMock()
     mock_result.stdout = b""
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result):
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result):
         result = enrich("fix the authentication middleware", "/project", "myapp")
     # All outputs empty → no sections → return ""
     assert result == ""
@@ -56,7 +56,7 @@ def test_enrich_formats_context_with_header():
     mock_result = MagicMock()
     mock_result.stdout = b"relevant code"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result):
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result):
         result = enrich("fix the authentication middleware", "/project", "myapp")
     assert result.startswith("## Goldfish Context")
 
@@ -66,7 +66,7 @@ def test_enrich_calls_omega_query_per_chunk():
     mock_result = MagicMock()
     mock_result.stdout = b"relevant result"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result) as mock_run:
         enrich("fix the authentication middleware in the API layer", "/project", "myapp")
     # At least 3 calls per chunk: semble code, semble docs, omega query
     assert mock_run.call_count >= 3
@@ -79,7 +79,7 @@ def test_enrich_vault_search_uses_include_text_files():
     mock_result = MagicMock()
     mock_result.stdout = b"some result"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result) as mock_run:
         enrich("fix the authentication middleware and refactor JWT", "/project", "myapp")
 
     calls = [call[0][0] for call in mock_run.call_args_list]
@@ -102,7 +102,7 @@ def test_enrich_includes_memory_section_in_output():
             m.returncode = 0
         return m
 
-    with patch("goldfish.enricher.subprocess.run", side_effect=fake_run):
+    with patch("goldfishh.enricher.subprocess.run", side_effect=fake_run):
         result = enrich("fix the authentication middleware in the API layer", "/project", "myapp")
 
     assert "Memory" in result
