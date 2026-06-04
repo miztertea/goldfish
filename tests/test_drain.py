@@ -1,7 +1,13 @@
 import json
 from unittest.mock import patch
 
-from goldfishh.drain import _handle_task_completed, _handle_task_created, drain, handle_pre_compact, handle_session_start
+from goldfishh.drain import (
+    _handle_task_completed,
+    _handle_task_created,
+    drain,
+    handle_pre_compact,
+    handle_session_start,
+)
 
 
 def test_drain_returns_zero_for_missing_queue(tmp_path):
