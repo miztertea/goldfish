@@ -23,7 +23,7 @@ goldfish = "goldfish.cli:app"
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/goldfish"]
+packages = ["src/goldfishh"]
 
 [dependency-groups]
 dev = [
