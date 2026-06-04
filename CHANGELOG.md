@@ -33,6 +33,7 @@ Generated automatically by [git-cliff](https://git-cliff.org).
 - Restore git-cliff --bumped-version; add GITHUB_TOKEN to fix empty output
 - Work around git-cliff-action jq parse error in --bumped-version step
 - Extract version from CHANGELOG instead of --bumped-version
+- Create annotated tag so --follow-tags pushes it to remote
 
 ### Documentation
 
