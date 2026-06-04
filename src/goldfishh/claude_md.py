@@ -6,7 +6,8 @@ from pathlib import Path
 
 from goldfishh.config import DEFAULT_SETTINGS
 
-GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+_OLD_GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+GOLDFISHH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = [
@@ -70,15 +71,27 @@ def register_hooks(settings_path: Path = DEFAULT_SETTINGS) -> None:
 
 def append_claude_md_block(claude_md_path: Path, block: str) -> None:
     existing = claude_md_path.read_text(encoding="utf-8") if claude_md_path.exists() else ""
-    if GOLDFISH_SENTINEL not in existing:
+
+    # Migrate: remove old-format block if present
+    if _OLD_GOLDFISH_SENTINEL in existing and GOLDFISHH_SENTINEL not in existing:
+        start = existing.index(_OLD_GOLDFISH_SENTINEL)
+        after = existing[start + len(_OLD_GOLDFISH_SENTINEL):]
+        m = re.search(r"\n##\s", after)
+        if m:
+            end = start + len(_OLD_GOLDFISH_SENTINEL) + m.start()
+            existing = existing[:start] + existing[end:]
+        else:
+            existing = existing[:start]
+
+    if GOLDFISHH_SENTINEL not in existing:
         claude_md_path.write_text(existing.rstrip() + "\n\n" + block + "\n", encoding="utf-8")
         return
     # Update: replace existing block in-place, preserving content before and after
-    start = existing.index(GOLDFISH_SENTINEL)
-    after = existing[start + len(GOLDFISH_SENTINEL) :]
+    start = existing.index(GOLDFISHH_SENTINEL)
+    after = existing[start + len(GOLDFISHH_SENTINEL):]
     m = re.search(r"\n##\s", after)
     if m:
-        end = start + len(GOLDFISH_SENTINEL) + m.start()
+        end = start + len(GOLDFISHH_SENTINEL) + m.start()
         claude_md_path.write_text(existing[:start] + block + "\n" + existing[end:], encoding="utf-8")
     else:
         claude_md_path.write_text(existing[:start] + block + "\n", encoding="utf-8")

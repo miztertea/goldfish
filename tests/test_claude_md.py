@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from goldfishh.claude_md import append_claude_md_block, register_hooks
 
-GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+GOLDFISHH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 
 
 def test_register_hooks_adds_entries(tmp_path):
@@ -29,17 +29,17 @@ def test_register_hooks_is_idempotent(tmp_path):
 def test_append_claude_md_block_adds_block(tmp_path):
     claude_md = tmp_path / "CLAUDE.md"
     claude_md.write_text("# Existing content\n")
-    append_claude_md_block(claude_md, GOLDFISH_SENTINEL + "\nsome content\n")
-    assert GOLDFISH_SENTINEL in claude_md.read_text()
+    append_claude_md_block(claude_md, GOLDFISHH_SENTINEL + "\nsome content\n")
+    assert GOLDFISHH_SENTINEL in claude_md.read_text()
 
 
 def test_append_claude_md_block_is_idempotent(tmp_path):
     claude_md = tmp_path / "CLAUDE.md"
     claude_md.write_text("# Existing content\n")
-    block = GOLDFISH_SENTINEL + "\nsome content\n"
+    block = GOLDFISHH_SENTINEL + "\nsome content\n"
     append_claude_md_block(claude_md, block)
     append_claude_md_block(claude_md, block)
-    assert claude_md.read_text().count(GOLDFISH_SENTINEL) == 1
+    assert claude_md.read_text().count(GOLDFISHH_SENTINEL) == 1
 
 
 def test_register_hooks_uses_venv_bin_path(tmp_path):
@@ -140,14 +140,14 @@ def test_append_claude_md_block_updates_content_in_place(tmp_path):
     claude_md = tmp_path / "CLAUDE.md"
     claude_md.write_text("# Project\n\nSome existing content.\n")
 
-    old_block = GOLDFISH_SENTINEL + "\n\nOLD CONTENT HERE\n"
-    new_block = GOLDFISH_SENTINEL + "\n\nNEW CONTENT HERE\n"
+    old_block = GOLDFISHH_SENTINEL + "\n\nOLD CONTENT HERE\n"
+    new_block = GOLDFISHH_SENTINEL + "\n\nNEW CONTENT HERE\n"
 
     append_claude_md_block(claude_md, old_block)
     append_claude_md_block(claude_md, new_block)
 
     content = claude_md.read_text()
-    assert content.count(GOLDFISH_SENTINEL) == 1
+    assert content.count(GOLDFISHH_SENTINEL) == 1
     assert "NEW CONTENT HERE" in content
     assert "OLD CONTENT HERE" not in content
 
@@ -156,32 +156,32 @@ def test_append_claude_md_block_preserves_content_after_block(tmp_path):
     """Content in sections after the goldfish block must be preserved on update."""
     claude_md = tmp_path / "CLAUDE.md"
     claude_md.write_text(
-        "# Project\n\n" + GOLDFISH_SENTINEL + "\n\nOLD CONTENT\n\n" + "## Other Section\n\nKeep this.\n"
+        "# Project\n\n" + GOLDFISHH_SENTINEL + "\n\nOLD CONTENT\n\n" + "## Other Section\n\nKeep this.\n"
     )
 
-    new_block = GOLDFISH_SENTINEL + "\n\nNEW CONTENT\n"
+    new_block = GOLDFISHH_SENTINEL + "\n\nNEW CONTENT\n"
     append_claude_md_block(claude_md, new_block)
 
     content = claude_md.read_text()
     assert "Keep this." in content
     assert "NEW CONTENT" in content
     assert "OLD CONTENT" not in content
-    assert content.count(GOLDFISH_SENTINEL) == 1
+    assert content.count(GOLDFISHH_SENTINEL) == 1
 
 
 def test_append_claude_md_block_eof_case(tmp_path):
     """Block at EOF (no following sections) must be replaced cleanly."""
     claude_md = tmp_path / "CLAUDE.md"
-    old_block = GOLDFISH_SENTINEL + "\n\nOLD\n"
+    old_block = GOLDFISHH_SENTINEL + "\n\nOLD\n"
     claude_md.write_text("# Header\n\n" + old_block)
 
-    new_block = GOLDFISH_SENTINEL + "\n\nNEW\n"
+    new_block = GOLDFISHH_SENTINEL + "\n\nNEW\n"
     append_claude_md_block(claude_md, new_block)
 
     content = claude_md.read_text()
     assert "NEW" in content
     assert "OLD" not in content
-    assert content.count(GOLDFISH_SENTINEL) == 1
+    assert content.count(GOLDFISHH_SENTINEL) == 1
 
 
 def test_detect_goldfish_bin_prefers_local_bin(tmp_path):
@@ -205,3 +205,21 @@ def test_detect_goldfish_bin_falls_back_to_which(tmp_path):
     ):
         result = _detect_goldfish_bin()
     assert result == "/usr/local/bin/goldfishh"
+
+
+def test_append_claude_md_block_migrates_old_sentinel(tmp_path):
+    """Re-init on a project with old 'managed by goldfish' block must replace it."""
+    claude_md = tmp_path / "CLAUDE.md"
+    old_sentinel = "## Agent Knowledge Tools (managed by goldfish)"
+    claude_md.write_text("# Project\n\n" + old_sentinel + "\n\nOLD CONTENT\n")
+
+    from goldfishh.claude_md import GOLDFISHH_SENTINEL, append_claude_md_block
+    new_block = GOLDFISHH_SENTINEL + "\n\nNEW CONTENT\n"
+    append_claude_md_block(claude_md, new_block)
+
+    content = claude_md.read_text()
+    assert old_sentinel not in content
+    assert GOLDFISHH_SENTINEL in content
+    assert "NEW CONTENT" in content
+    assert "OLD CONTENT" not in content
+    assert content.count(GOLDFISHH_SENTINEL) == 1

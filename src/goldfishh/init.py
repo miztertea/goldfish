@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from goldfishh.claude_md import GOLDFISH_SENTINEL, append_claude_md_block, register_hooks
+from goldfishh.claude_md import GOLDFISHH_SENTINEL, append_claude_md_block, register_hooks
 from goldfishh.config import (
     DEFAULT_SETTINGS,
     VAULTS_ROOT,
@@ -22,7 +22,7 @@ def _goldfish_stable_path() -> Path:
     return Path.home() / ".local" / "bin" / "goldfishh"
 
 
-_CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
+_CLAUDE_MD_BLOCK = f"""{GOLDFISHH_SENTINEL}
 
 goldfish coordinates four layers of agent intelligence. All four are available from session start.
 
