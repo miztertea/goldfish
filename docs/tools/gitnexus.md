@@ -185,7 +185,7 @@ GitNexus installs **4 Claude Code agent skills** in `.claude/skills/gitnexus/`:
 - `PreToolUse` — enriches searches with graph context
 - `PostToolUse` — detects stale index after commits, prompts reindex
 
-These coexist with goldfish's hooks (different purposes, no conflict).
+These coexist with goldfishh's hooks (different purposes, no conflict).
 
 ---
 
@@ -193,8 +193,8 @@ These coexist with goldfish's hooks (different purposes, no conflict).
 
 | Goldfish function | GitNexus interaction |
 |-------------------|---------------------|
-| `goldfish init` | `npm install -g gitnexus`, then `npx gitnexus analyze` (if `.gitnexus/` absent) |
-| `goldfish init` | `npx gitnexus setup` (MCP registration, once) |
+| `goldfishh init` | `npm install -g gitnexus`, then `npx gitnexus analyze` (if `.gitnexus/` absent) |
+| `goldfishh init` | `npx gitnexus setup` (MCP registration, once) |
 | CLAUDE.md | Goldfish appends the knowledge tool block; GitNexus manages its own `<!-- gitnexus:start/end -->` block |
 | Per-task workflow | Agent calls `context()` + `impact()` before any edit |
 | Pre-commit | Agent calls `detect_changes()` to verify scope |

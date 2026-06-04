@@ -46,18 +46,18 @@ goldfish is an orchestration layer (~500 lines of Python) that installs and wire
 
 ---
 
-<!-- layer 2: goldfish — do not edit, maintained by goldfish init -->
+<!-- layer 2: goldfishh — do not edit, maintained by goldfishh init -->
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
 | Layer 0 — MEMORY.md | File-based: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
 | Layer 1 — OMEGA | Episodic memory: decisions, sessions, known issues | Required at session start (step 2) |
 | Layer 1 — GitNexus / Semble | Code graph + semantic search | MCP on demand |
-| Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
+| Layer 2 — Goldfishh | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
 ### Memory Router
@@ -66,11 +66,11 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | explicit `write_note()` when human audience warrants it |
+| Architectural summaries, design notes | Goldfishh vault | explicit `write_note()` when human audience warrants it |
 
 For reads: auto-memory is authoritative for user preferences; `omega_profile()` is supplemental — additional signal, not ground truth.
 
-Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this note. Architectural decisions may warrant both; session facts warrant OMEGA only. Goldfish hooks automatically write vault notes for task events and session checkpoints — architectural summaries require explicit agent writes.
+Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this later (narrative, rationale, context for future contributors); OMEGA only when the consumer is the agent (facts, decisions, lessons). Session facts: OMEGA only. Goldfishh hooks automatically write vault notes for task events and session checkpoints — architectural summaries require explicit agent writes.
 
 Before acting on a project memory that makes code-specific claims (file paths, function names, shipped state), verify against `git log` or a file read.
 

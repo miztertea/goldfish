@@ -3,8 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from goldfish.claude_md import GOLDFISH_SENTINEL, append_claude_md_block, register_hooks
-from goldfish.config import (
+from goldfishh.claude_md import GOLDFISHH_SENTINEL, append_claude_md_block, register_hooks
+from goldfishh.config import (
     DEFAULT_SETTINGS,
     VAULTS_ROOT,
     get_manifest,
@@ -12,26 +12,26 @@ from goldfish.config import (
     project_name,
     write_manifest,
 )
-from goldfish.miner import mine_project
-from goldfish.vault import scaffold
+from goldfishh.miner import mine_project
+from goldfishh.vault import scaffold
 
-_PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
+_PACKAGE_SOURCE = "goldfishh"
 
 
 def _goldfish_stable_path() -> Path:
-    return Path.home() / ".local" / "bin" / "goldfish"
+    return Path.home() / ".local" / "bin" / "goldfishh"
 
 
-_CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
+_CLAUDE_MD_BLOCK = f"""{GOLDFISHH_SENTINEL}
 
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
 | Layer 0 — MEMORY.md | File-based: user prefs, behavioral feedback, reference pointers | Automatic — zero latency |
 | Layer 1 — OMEGA | Episodic memory: decisions, sessions, known issues | Required at session start (step 2) |
 | Layer 1 — GitNexus / Semble | Code graph + semantic search | MCP on demand |
-| Layer 2 — Goldfish | This coordination block — session sequence, layer routing | Always present |
+| Layer 2 — Goldfishh | This coordination block — session sequence, layer routing | Always present |
 | Layer 3 — Project | Project constitution — constraints, architecture rules, five failures | Always present |
 
 ### Memory Router
@@ -40,11 +40,11 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | explicit `write_note()` when human audience warrants it |
+| Architectural summaries, design notes | Goldfishh vault | explicit `write_note()` when human audience warrants it |
 
 For reads: auto-memory is authoritative for user preferences; `omega_profile()` is supplemental — additional signal, not ground truth.
 
-Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this note. Architectural decisions may warrant both; session facts warrant OMEGA only. Goldfish hooks automatically write vault notes for task events and session checkpoints — architectural summaries require explicit agent writes.
+Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this later (narrative, rationale, context for future contributors); OMEGA only when the consumer is the agent (facts, decisions, lessons). Session facts: OMEGA only. Goldfishh hooks automatically write vault notes for task events and session checkpoints — architectural summaries require explicit agent writes.
 
 Before acting on a project memory that makes code-specific claims (file paths, function names, shipped state), verify against `git log` or a file read.
 
@@ -105,15 +105,15 @@ def run(
     # to avoid replacing a running binary on Windows (Access denied, os error 5).
     stable = _goldfish_stable_path()
     if stable.exists():
-        print("✓ goldfish installed (stable path)")
-    elif shutil.which("goldfish"):
-        print("✓ goldfish installed (found on PATH)")
+        print("✓ goldfishh installed (stable path)")
+    elif shutil.which("goldfishh"):
+        print("✓ goldfishh installed (found on PATH)")
     else:
-        r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfishh"])
+        r = subprocess.run(["uv", "tool", "install", _PACKAGE_SOURCE])
         if r.returncode != 0:
-            print("  note: goldfish self-install failed; hook path may be unstable")
+            print("  note: goldfishh self-install failed; hook path may be unstable")
         else:
-            print("✓ goldfish installed at ~/.local/bin/goldfish")
+            print("✓ goldfishh installed at ~/.local/bin/goldfishh")
 
     project = project_name(cwd)
 
@@ -230,5 +230,5 @@ def run(
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
         print("✓ CLAUDE.md updated")
 
-    print("\n✓ goldfish is ready.")
+    print("\n✓ goldfishh is ready.")
     print(f"  Vault: {vaults_root / project}")

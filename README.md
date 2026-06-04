@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/goldfish-logo.png" alt="goldfish — persistent memory for Claude Code" width="280">
+  <img src="assets/goldfish-logo.png" alt="goldfishh — persistent memory for Claude Code" width="280">
 </p>
 
-<h1 align="center">goldfish</h1>
+<h1 align="center">goldfishh</h1>
 
 <p align="center">
   <strong>Persistent memory for Claude Code agents.</strong><br>
@@ -12,34 +12,37 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/python-3.13+-blue.svg" alt="Python 3.13+">
-  <img src="https://img.shields.io/badge/platform-linux-lightgrey.svg" alt="Platform: Linux">
+  <img src="https://img.shields.io/badge/python-3.13-blue.svg" alt="Python 3.13">
+  <img src="https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey.svg" alt="Platform: Linux | macOS">
+  <img src="https://img.shields.io/badge/windows-beta-orange.svg" alt="Windows: beta">
+  <a href="https://pypi.org/project/goldfishh/"><img src="https://img.shields.io/pypi/v/goldfishh.svg" alt="PyPI"></a>
 </p>
 
 ---
 
 ## Quick start
 
-**Prerequisites:** Python 3.13+, Node.js 18+, [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+**Prerequisites:** Python 3.13 (pinned — see note below), Node.js 18+, [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
 ```bash
-# Run directly from GitHub (PyPI listing coming soon)
-uvx --from git+https://github.com/miztertea/goldfish goldfish init
+uvx goldfishh init
 ```
 
 Or install as a persistent tool:
 
 ```bash
-uv tool install git+https://github.com/miztertea/goldfish
-goldfish init
+uv tool install goldfishh
+goldfishh init
 ```
+
+> **Python 3.13 required.** `goldfishh` pins to Python 3.13 because `chonkie` (a required dependency) is incompatible with Python 3.14. `uvx` and `uv tool install` both respect this constraint automatically.
 
 The init wizard detects and installs all dependencies, indexes your codebase, scaffolds your memory vault, and registers Claude Code hooks. Re-running is safe — it reports health and skips what's already installed.
 
 If you have prior Claude Code sessions in this project, seed OMEGA with their history:
 
 ```bash
-goldfish mine
+goldfishh mine
 ```
 
 ---
@@ -67,7 +70,7 @@ goldfish installs four layers of intelligence into Claude Code — each maintain
 | Layer | Installed by | What it provides |
 |-------|-------------|-----------------|
 | **Layer 0 — Memory** | You | User preferences, behavioral feedback, reference pointers (plain markdown) |
-| **Layer 1 — Tool-native** | GitNexus, OMEGA, Semble (via `goldfish init`) | Each tool's own hooks, MCP server, and agent instructions |
+| **Layer 1 — Tool-native** | GitNexus, OMEGA, Semble (via `goldfishh init`) | Each tool's own hooks, MCP server, and agent instructions |
 | **Layer 2 — Coordination** | goldfish | Cross-tool orchestration — tells agents to query all three tools before acting |
 | **Layer 3 — Project-specific** | You (or your agent) | Codebase-specific guardrails, architecture context, contributor workflow |
 
@@ -80,7 +83,7 @@ Claude Code JSONL logs         ← source of truth
        ↓ mined by OMEGA
 SQLite episodic store          ← past decisions, lessons, errors
        ↓ written by goldfish
-~/.goldfish/vaults/{project}/  ← plain markdown vault (human-readable)
+~/.goldfishh/vaults/{project}/  ← plain markdown vault (human-readable)
        ↑ indexed by GitNexus
 Code knowledge graph           ← symbols, callers, execution flows
        ↑ searched by Semble
@@ -98,7 +101,7 @@ Prompt enrichment              ← context injected before every task
 | `TaskCreated` / `TaskCompleted` | Writes task notes to vault |
 | `Stop` / `SessionEnd` | Advances JSONL offset in manifest |
 
-All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so Claude never blocks.
+All async events write to `~/.goldfishh/queue.jsonl` first and return in <10ms so Claude never blocks.
 
 ---
 
@@ -107,7 +110,7 @@ All async events write to `~/.goldfish/queue.jsonl` first and return in <10ms so
 All knowledge is plain markdown — readable with `cat`, searchable with `grep`, versionable with `git`.
 
 ```
-~/.goldfish/vaults/{project}/
+~/.goldfishh/vaults/{project}/
 ├── .manifest.toml           ← sync state (byte offset, timestamps)
 ├── Memory/
 │   ├── Decisions/           ← architectural choices and rationale
@@ -140,21 +143,22 @@ Want a visual graph of the knowledge store? See [docs/obsidian.md](docs/obsidian
 ## CLI reference
 
 ```
-goldfish init              Run the setup wizard
-goldfish mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
-goldfish status            Show queue depth, manifest state, and sync timestamps
-goldfish doctor            Check all dependencies and report with fix instructions
-goldfish register-hooks    Re-register hooks with the correct binary path
-goldfish replay            Rebuild vault from JSONL transcripts (resumable)
-goldfish hook              Handle a hook event from stdin (called by Claude Code)
-goldfish drain             Process queued events from ~/.goldfish/queue.jsonl
+goldfishh init              Run the setup wizard
+goldfishh mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
+goldfishh status            Show queue depth, manifest state, and sync timestamps
+goldfishh doctor            Check all dependencies and report with fix instructions
+goldfishh register-hooks    Re-register hooks with the correct binary path
+goldfishh replay            Rebuild vault from JSONL transcripts (resumable)
+goldfishh hook              Handle a hook event from stdin (called by Claude Code)
+goldfishh drain             Process queued events from ~/.goldfish/queue.jsonl
 ```
 
 ---
 
 ## Platform support
 
-Tested on a clean install of **Ubuntu 26.04 LTS**. Expected to work on other Linux distributions and macOS — not yet verified. Windows is out of scope for v1.
+**Linux + macOS** (primary): tested on Ubuntu 26.04 LTS; macOS expected to work.  
+**Windows** (beta): CI passes on Windows; clean-install verification pending.
 
 ---
 
@@ -171,7 +175,7 @@ Tests stub all subprocess calls and run without live tool installations. ~100 te
 
 ```bash
 uv run pytest -v          # verbose test output
-uv run goldfish --help    # run CLI from source
+uv run goldfishh --help   # run CLI from source
 ```
 
 ---

@@ -1,7 +1,7 @@
 import subprocess
 from typing import Optional
 
-from goldfish.config import VAULTS_ROOT
+from goldfishh.config import VAULTS_ROOT
 
 MIN_PROMPT_WORDS = 4
 

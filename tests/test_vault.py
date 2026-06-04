@@ -1,6 +1,6 @@
 import yaml
 
-from goldfish.vault import read_note, scaffold, write_note
+from goldfishh.vault import read_note, scaffold, write_note
 
 FRONTMATTER = {
     "id": "decision-jwt-2026-05-24",

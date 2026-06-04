@@ -8,13 +8,13 @@
 
 ## Goal
 
-Complete the goldfish v1.0 stack by closing the gap between passive memory (hooks, drain, vault — working) and active memory (MCP servers the agent calls at will — not yet registered). Also stabilize the hook binary path, update the CLAUDE.md active layer block to reference MCP tool names, improve wake-up context quality, and complete the operational tooling (doctor, replay resumability, semble_indexed_at tracking).
+Complete the goldfishh v1.0 stack by closing the gap between passive memory (hooks, drain, vault — working) and active memory (MCP servers the agent calls at will — not yet registered). Also stabilize the hook binary path, update the CLAUDE.md active layer block to reference MCP tool names, improve wake-up context quality, and complete the operational tooling (doctor, replay resumability, semble_indexed_at tracking).
 
 ---
 
 ## Architecture
 
-goldfish is an orchestration layer — an Ansible playbook, not an application. Every function is a subprocess call, a file write, or a config read. No search algorithms, no embeddings, no graph code. The five tools (GitNexus, OMEGA, Semble, Chonkie, vault) each solve one or two of the five context failures; goldfish installs, wires, and routes events between them.
+goldfishh is an orchestration layer — an Ansible playbook, not an application. Every function is a subprocess call, a file write, or a config read. No search algorithms, no embeddings, no graph code. The five tools (GitNexus, OMEGA, Semble, Chonkie, vault) each solve one or two of the five context failures; goldfishh installs, wires, and routes events between them.
 
 v1.0 = passive memory (fully working) + active memory (MCP registration) + stability + quality improvements.
 
@@ -37,15 +37,15 @@ v1.0 = passive memory (fully working) + active memory (MCP registration) + stabi
 First step in `run()`, before any tool installation:
 
 ```python
-PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
+PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfishh"
 
-if not shutil.which("goldfish") or Path(_detect_goldfish_bin()) != Path.home() / ".local/bin/goldfish":
-    result = subprocess.run(["uv", "tool", "install", "--from", PACKAGE_SOURCE, "goldfish"])
+if not shutil.which("goldfishh") or Path(_detect_goldfish_bin()) != Path.home() / ".local/bin/goldfishh":
+    result = subprocess.run(["uv", "tool", "install", "--from", PACKAGE_SOURCE, "goldfishh"])
     if result.returncode != 0:
         print("  note: self-install failed; hooks will use current executable")
 ```
 
-Idempotent: if `~/.local/bin/goldfish` already exists, `uv tool install` is a fast no-op.
+Idempotent: if `~/.local/bin/goldfishh` already exists, `uv tool install` is a fast no-op.
 
 ### 1.2 GitNexus MCP registration
 
@@ -60,7 +60,7 @@ print("✓ GitNexus MCP registered")
 
 ### 1.3 OMEGA MCP registration
 
-Replace `["omega", "setup"]` with `["omega", "setup", "--client", "claude-code"]`. This registers the OMEGA MCP server in `~/.claude.json` AND installs OMEGA's own hooks (PostToolUse surface_memories, UserPromptSubmit auto_capture). These complement goldfish's hooks — OMEGA captures memory, goldfish enriches prompts and writes vault notes.
+Replace `["omega", "setup"]` with `["omega", "setup", "--client", "claude-code"]`. This registers the OMEGA MCP server in `~/.claude.json` AND installs OMEGA's own hooks (PostToolUse surface_memories, UserPromptSubmit auto_capture). These complement goldfishh's hooks — OMEGA captures memory, goldfishh enriches prompts and writes vault notes.
 
 ```python
 r2 = subprocess.run(["omega", "setup", "--client", "claude-code"])
@@ -89,7 +89,7 @@ manifest["mcp_registered"] = True
 write_manifest(project, manifest, vaults_root=vaults_root)
 ```
 
-On subsequent `goldfish init` runs, if `manifest.get("mcp_registered")` is True, skip MCP registration steps with a `✓ MCPs already registered` status line.
+On subsequent `goldfishh init` runs, if `manifest.get("mcp_registered")` is True, skip MCP registration steps with a `✓ MCPs already registered` status line.
 
 ### 1.6 CLAUDE.md block updated to MCP tool names
 
@@ -105,16 +105,16 @@ In `claude_md.py`, update `_detect_goldfish_bin()` to prefer the stable uv tool 
 
 ```python
 def _detect_goldfish_bin() -> str:
-    stable = Path.home() / ".local" / "bin" / "goldfish"
+    stable = Path.home() / ".local" / "bin" / "goldfishh"
     if stable.exists():
         return str(stable)
-    which = shutil.which("goldfish")
+    which = shutil.which("goldfishh")
     if which:
         return which
-    return str(Path(sys.executable).parent / "goldfish")
+    return str(Path(sys.executable).parent / "goldfishh")
 ```
 
-After `goldfish init` self-installs, all subsequent hook registrations resolve to `~/.local/bin/goldfish`.
+After `goldfishh init` self-installs, all subsequent hook registrations resolve to `~/.local/bin/goldfishh`.
 
 ---
 
@@ -125,7 +125,7 @@ Replace the `_CLAUDE_MD_BLOCK` constant in `init.py`:
 ```python
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
 ### Before any non-trivial task — query all three layers:
 
@@ -142,7 +142,7 @@ _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
 #### Semantic Search — Semble (MCP)
 - `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>", content="docs")` — vault notes
+- `semble_search(query, path="~/.goldfishh/vaults/<project>", content="docs")` — vault notes
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({{name}})` → understand the symbol
@@ -224,7 +224,7 @@ if claude_json.exists():
     mcp = data.get("mcpServers", {})
     for name in ("omega", "semble", "gitnexus"):
         status = "✓" if name in mcp else "✗"
-        print(f"{status} {name} MCP{'  — run: goldfish init to register' if status == '✗' else ''}")
+        print(f"{status} {name} MCP{'  — run: goldfishh init to register' if status == '✗' else ''}")
 ```
 
 **Vault health:**
@@ -267,10 +267,10 @@ All tests mock subprocess calls and file I/O. No live tool installations require
 - `test_init_registers_semble_mcp` — verify `claude mcp add semble ...` called when semble present
 - `test_init_registers_gitnexus_mcp` — verify `npx gitnexus setup` called after analyze
 - `test_init_skips_mcp_if_already_registered` — manifest `mcp_registered=True` → no MCP calls
-- `test_init_self_installs_goldfish` — `uv tool install --from ... goldfish` called as first step
+- `test_init_self_installs_goldfish` — `uv tool install --from ... goldfishh` called as first step
 
 **claude_md.py:**
-- `test_detect_goldfish_bin_prefers_local_bin` — `~/.local/bin/goldfish` returned when exists
+- `test_detect_goldfish_bin_prefers_local_bin` — `~/.local/bin/goldfishh` returned when exists
 - `test_detect_goldfish_bin_falls_back_to_which` — falls back when local bin absent
 
 **drain.py:**
@@ -288,10 +288,10 @@ All tests mock subprocess calls and file I/O. No live tool installations require
 
 | File | Changes |
 |------|---------|
-| `src/goldfish/init.py` | Self-install step, MCP registration (3 tools), updated CLAUDE.md block, manifest `mcp_registered` flag |
-| `src/goldfish/claude_md.py` | `_detect_goldfish_bin()` preference order |
-| `src/goldfish/drain.py` | Wake-up open tasks + recent decisions reads, `semble_indexed_at` writes |
-| `src/goldfish/cli.py` | Doctor: Semble check, MCP registration check, vault health; Replay: resumability |
+| `src/goldfishh/init.py` | Self-install step, MCP registration (3 tools), updated CLAUDE.md block, manifest `mcp_registered` flag |
+| `src/goldfishh/claude_md.py` | `_detect_goldfish_bin()` preference order |
+| `src/goldfishh/drain.py` | Wake-up open tasks + recent decisions reads, `semble_indexed_at` writes |
+| `src/goldfishh/cli.py` | Doctor: Semble check, MCP registration check, vault health; Replay: resumability |
 | `tests/test_init.py` | 5 new tests for MCP registration and self-install |
 | `tests/test_claude_md.py` | 2 new tests for `_detect_goldfish_bin` |
 | `tests/test_drain.py` | 3 new tests for wake-up quality and semble_indexed_at |

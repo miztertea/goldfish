@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch
 
 # These imports will fail until miner.py exists — that's the point
-from goldfish.miner import (
+from goldfishh.miner import (
     _extract_assistant_text,
     _extract_user_text,
     _find_hook_cmd,
@@ -86,10 +86,10 @@ def test_mine_project_processes_user_messages(tmp_path):
     )
 
     with (
-        patch("goldfish.miner._pipe_to_hook") as mock_pipe,
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}),
-        patch("goldfish.miner.write_manifest"),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook") as mock_pipe,
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}),
+        patch("goldfishh.miner.write_manifest"),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         n = mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 
@@ -126,10 +126,10 @@ def test_mine_project_processes_assistant_messages(tmp_path):
     )
 
     with (
-        patch("goldfish.miner._pipe_to_hook") as mock_pipe,
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}),
-        patch("goldfish.miner.write_manifest"),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook") as mock_pipe,
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}),
+        patch("goldfishh.miner.write_manifest"),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 
@@ -149,10 +149,10 @@ def test_mine_project_skips_already_mined_sessions(tmp_path):
     settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
 
     with (
-        patch("goldfish.miner._pipe_to_hook") as mock_pipe,
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": ["already-done"]}),
-        patch("goldfish.miner.write_manifest"),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook") as mock_pipe,
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": ["already-done"]}),
+        patch("goldfishh.miner.write_manifest"),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         n = mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 
@@ -174,10 +174,10 @@ def test_mine_project_skips_non_message_entries(tmp_path):
     settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
 
     with (
-        patch("goldfish.miner._pipe_to_hook") as mock_pipe,
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}),
-        patch("goldfish.miner.write_manifest"),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook") as mock_pipe,
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}),
+        patch("goldfishh.miner.write_manifest"),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 
@@ -198,10 +198,10 @@ def test_mine_project_timeout_skips_manifest_write(tmp_path):
     written = []
 
     with (
-        patch("goldfish.miner._pipe_to_hook", side_effect=subprocess.TimeoutExpired("cmd", 10)),
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}),
-        patch("goldfish.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook", side_effect=subprocess.TimeoutExpired("cmd", 10)),
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}),
+        patch("goldfishh.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         n = mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 
@@ -218,10 +218,10 @@ def test_mine_project_updates_manifest_with_session_id(tmp_path):
     written = []
 
     with (
-        patch("goldfish.miner._pipe_to_hook"),
-        patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}),
-        patch("goldfish.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)),
-        patch("goldfish.miner.project_name", return_value="goldfish"),
+        patch("goldfishh.miner._pipe_to_hook"),
+        patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}),
+        patch("goldfishh.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)),
+        patch("goldfishh.miner.project_name", return_value="goldfish"),
     ):
         mine_project("/home/tchawes/goldfish", settings_path=settings_path, _sessions_dir=sessions_dir)
 

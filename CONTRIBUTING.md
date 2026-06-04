@@ -1,4 +1,4 @@
-# Contributing to goldfish
+# Contributing to goldfishh
 
 ## Prerequisites
 
@@ -26,14 +26,14 @@ Every agent coding session uses a git worktree so each session has its own
 ```bash
 # Start of session
 git checkout -b feat/<name>
-git worktree add ../goldfish-<name> feat/<name>
-cd ../goldfish-<name>
+git worktree add ../goldfishh-<name> feat/<name>
+cd ../goldfishh-<name>
 
 # ... all work happens here ...
 
 # After PR merges — clean up
-cd /path/to/goldfish
-git worktree remove ../goldfish-<name>
+cd /path/to/goldfishh
+git worktree remove ../goldfishh-<name>
 ```
 
 See the `superpowers:using-git-worktrees` skill for full details.
@@ -43,7 +43,7 @@ See the `superpowers:using-git-worktrees` skill for full details.
 Commit messages determine the next version bump via git-cliff:
 
 ```
-feat: add Claude Code detection to goldfish init
+feat: add Claude Code detection to goldfishh init
 fix: correct hook routing for PreCompact events
 chore: update dependencies
 docs: add CONTRIBUTING.md
@@ -61,11 +61,11 @@ BREAKING CHANGE: run() now requires the project argument.
 ## Local development
 
 ```bash
-uv sync --group dev      # install all dependencies including dev tools
-uv run pytest            # run test suite (~110 tests, ~0.3s)
-uv run ruff check .      # lint
-uv run ruff format .     # format
-uv run mypy src/goldfish/ # type check
+uv sync --group dev       # install all dependencies including dev tools
+uv run pytest             # run test suite (~110 tests, ~0.3s)
+uv run ruff check .       # lint
+uv run ruff format .      # format
+uv run mypy src/goldfishh/ # type check
 uv run bandit -r src/ -ll # security scan
 uv run pip-audit         # dependency vulnerability scan
 ```
@@ -87,6 +87,6 @@ act push           # simulate a full push event
 ```
 
 **Note:** `act` maps macOS and Windows runners to Linux containers. This is
-sufficient for goldfish — the platform-specific risk (shell path formatting
+sufficient for goldfishh — the platform-specific risk (shell path formatting
 in settings.json) is validated by the real GitHub macOS/Windows runners on
 push to main.

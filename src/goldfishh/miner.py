@@ -3,7 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from goldfish.config import DEFAULT_SETTINGS, get_manifest, project_name, write_manifest
+from goldfishh.config import DEFAULT_SETTINGS, get_manifest, project_name, write_manifest
 
 
 def _find_hook_cmd(settings: dict, event: str, script_name: str) -> str | None:

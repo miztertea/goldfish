@@ -30,7 +30,7 @@ semble search <query> [path] [options]
 semble search "authentication flow" ./src
 
 # Search vault notes (requires --include-text-files for markdown)
-semble search "session start" ~/.goldfish/vaults/goldfish --include-text-files
+semble search "session start" ~/.goldfishh/vaults/goldfishh --include-text-files
 
 # Search remote repo
 semble search "save_pretrained" https://github.com/huggingface/transformers
@@ -56,7 +56,7 @@ semble find-related <file_path> <line> [path] [options]
 | `--include-text-files` | Also index non-code text files |
 
 ```bash
-semble find-related src/goldfish/drain.py 61 .
+semble find-related src/goldfishh/drain.py 61 .
 ```
 
 ### `semble init`
@@ -72,7 +72,7 @@ semble init              # creates .claude/agents/semble-search.md (skips if exi
 semble init --force      # overwrites existing file
 ```
 
-**Goldfish uses this during `goldfish init`** to wire up the sub-agent automatically.
+**Goldfish uses this during `goldfishh init`** to wire up the sub-agent automatically.
 
 ### `semble savings`
 
@@ -109,7 +109,7 @@ claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 
 | Goldfish function | Semble call |
 |-------------------|-------------|
-| `goldfish init` | `semble init` (creates sub-agent file in cwd) |
+| `goldfishh init` | `semble init` (creates sub-agent file in cwd) |
 | `enricher.enrich()` — code search | `semble search <chunk> <cwd>` |
 | `enricher.enrich()` — vault search | `semble search <chunk> <vault_path> --include-text-files` |
 

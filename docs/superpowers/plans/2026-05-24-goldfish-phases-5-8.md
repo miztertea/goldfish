@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Complete goldfish — session lifecycle handlers, prompt enrichment, async event routing, and operational commands — so every Claude Code hook event is meaningfully handled and `goldfish status/doctor/replay` work.
+**Goal:** Complete goldfishh — session lifecycle handlers, prompt enrichment, async event routing, and operational commands — so every Claude Code hook event is meaningfully handled and `goldfishh status/doctor/replay` work.
 
 **Architecture:** Phases 1-4 built the foundation (queue, drain, vault, config, CLI, init). Phases 5-8 wire real handlers into drain.py for every event type, split sync vs async processing in hook.py, add a new enricher.py for prompt decomposition, and implement the three operational commands. Every function remains a subprocess call, file write, or config read — no algorithms.
 
@@ -13,14 +13,14 @@
 - `hook.py`: appends ALL events to queue.jsonl, no stdout output
 - `drain.py`: routes ALL events to `semble search . <cwd>` — stub only
 - `cli.py`: status/doctor/replay are stubs
-- Hooks fire but `goldfish: not found` because binary not on PATH
+- Hooks fire but `goldfishh: not found` because binary not on PATH
 
 ---
 
 ## File Map
 
 ```
-src/goldfish/
+src/goldfishh/
 ├── claude_md.py  ← add path detection for hook command (Task P0)
 ├── drain.py      ← event-type routing + all async handlers (Tasks 5.1, 5.2, 5.4, 7.1, 7.2)
 ├── hook.py       ← split sync/async dispatch, stdout for sync events (Tasks 5.3, 6.2)
@@ -38,16 +38,16 @@ tests/
 
 ## Pre-Phase: Fix Hook PATH
 
-**Problem:** `goldfish: not found` when hooks fire. Claude Code hooks run with a minimal PATH that doesn't include the editable install's `.venv/bin/`.
+**Problem:** `goldfishh: not found` when hooks fire. Claude Code hooks run with a minimal PATH that doesn't include the editable install's `.venv/bin/`.
 
-**Fix:** At hook registration time, detect the goldfish binary path from `sys.executable`'s parent directory (the active venv) and bake the full path into `settings.json`. Falls back to bare `goldfish` if detection fails.
+**Fix:** At hook registration time, detect the goldfishh binary path from `sys.executable`'s parent directory (the active venv) and bake the full path into `settings.json`. Falls back to bare `goldfishh` if detection fails.
 
 ---
 
 ### Task P0: Fix hook command path detection
 
 **Files:**
-- Modify: `src/goldfish/claude_md.py`
+- Modify: `src/goldfishh/claude_md.py`
 - Test: `tests/test_claude_md.py`
 
 - [ ] **Step 1: Write failing test**
@@ -63,17 +63,17 @@ from unittest.mock import patch
 def test_register_hooks_uses_detected_goldfish_path(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(json.dumps({}))
-    fake_bin = tmp_path / "goldfish"
+    fake_bin = tmp_path / "goldfishh"
     fake_bin.touch()
-    # Simulate: goldfish not on system PATH, but exists in venv bin
-    with patch("goldfish.claude_md.shutil.which", return_value=None), \
-         patch("goldfish.claude_md.sys.executable", str(tmp_path / "python")):
+    # Simulate: goldfishh not on system PATH, but exists in venv bin
+    with patch("goldfishh.claude_md.shutil.which", return_value=None), \
+         patch("goldfishh.claude_md.sys.executable", str(tmp_path / "python")):
         register_hooks(settings_path=settings)
     data = json.loads(settings.read_text())
     # The hook command should contain the full path or a fallback
     stop_hooks = data["hooks"]["Stop"][0]["hooks"]
     cmd = stop_hooks[0]["command"]
-    assert "goldfish hook" in cmd or "hook" in cmd
+    assert "goldfishh hook" in cmd or "hook" in cmd
 ```
 
 - [ ] **Step 2: Run test — verify it passes already (or shows expected gap)**
@@ -84,7 +84,7 @@ def test_register_hooks_uses_detected_goldfish_path(tmp_path):
 
 - [ ] **Step 3: Add path detection to `claude_md.py`**
 
-Add `import shutil` and `import sys` at top of `src/goldfish/claude_md.py`. Replace the `_GOLDFISH_HOOK_COMMAND` constant with a function:
+Add `import shutil` and `import sys` at top of `src/goldfishh/claude_md.py`. Replace the `_GOLDFISH_HOOK_COMMAND` constant with a function:
 
 ```python
 import json
@@ -93,7 +93,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
-GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfish)"
+GOLDFISH_SENTINEL = "## Agent Knowledge Tools (managed by goldfishh)"
 
 _SYNC_HOOKS = ["SessionStart", "UserPromptSubmit", "PreCompact"]
 _ASYNC_HOOKS = ["Stop", "SessionEnd"]
@@ -101,14 +101,14 @@ _ASYNC_HOOKS = ["Stop", "SessionEnd"]
 
 def _detect_goldfish_bin() -> str:
     # System PATH first (production installs via uv tool install)
-    found = shutil.which("goldfish")
+    found = shutil.which("goldfishh")
     if found:
         return found
     # Venv bin dir (editable dev installs)
-    candidate = Path(sys.executable).parent / "goldfish"
+    candidate = Path(sys.executable).parent / "goldfishh"
     if candidate.exists():
         return str(candidate)
-    return "goldfish"
+    return "goldfishh"
 
 
 def _goldfish_hook_entry(async_: bool = False) -> dict:
@@ -121,7 +121,7 @@ def _goldfish_hook_entry(async_: bool = False) -> dict:
 
 def _already_registered(hook_list: list) -> bool:
     return any(
-        isinstance(h, dict) and "goldfish" in h.get("command", "") and "hook" in h.get("command", "")
+        isinstance(h, dict) and "goldfishh" in h.get("command", "") and "hook" in h.get("command", "")
         for h in hook_list
     )
 
@@ -159,25 +159,25 @@ def append_claude_md_block(claude_md_path: Path, block: str) -> None:
 ```
 Expected: 28 passed
 
-- [ ] **Step 5: Re-run goldfish init to update settings.json with detected path**
+- [ ] **Step 5: Re-run goldfishh init to update settings.json with detected path**
 
 ```bash
-goldfish init
+goldfishh init
 ```
-Expected: hook commands in `~/.claude/settings.json` now contain the full path to the goldfish binary.
+Expected: hook commands in `~/.claude/settings.json` now contain the full path to the goldfishh binary.
 
 - [ ] **Step 6: Verify hooks now use full path**
 
 ```bash
 python3 -c "import json; d=json.load(open('/root/.claude/settings.json' if __import__('os').path.exists('/root/.claude/settings.json') else '/home/tchawes/.claude/settings.json')); print(d['hooks']['Stop'][0]['hooks'][0]['command'])"
 ```
-Expected: `/home/tchawes/goldfish/.venv/bin/goldfish hook` (or the detected path)
+Expected: `/home/tchawes/goldfishh/.venv/bin/goldfishh hook` (or the detected path)
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/goldfish/claude_md.py tests/test_claude_md.py
-git commit -m "fix: detect goldfish binary path for hook registration"
+git add src/goldfishh/claude_md.py tests/test_claude_md.py
+git commit -m "fix: detect goldfishh binary path for hook registration"
 ```
 
 ---
@@ -208,7 +208,7 @@ Implement real handlers for SessionStart, PreCompact, Stop, and SessionEnd. Afte
 ### Task 5.1: Refactor drain.py to event-type routing
 
 **Files:**
-- Modify: `src/goldfish/drain.py`
+- Modify: `src/goldfishh/drain.py`
 - Modify: `tests/test_drain.py`
 
 - [ ] **Step 1: Update `test_drain_calls_semble_with_event_cwd` (it tests the old stub)**
@@ -225,7 +225,7 @@ def test_drain_routes_post_tool_use_write_to_semble(tmp_path):
         "cwd": "/my/project",
     }
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         drain(queue=queue)
     args = mock_run.call_args[0][0]
     assert args[0] == "semble"
@@ -239,7 +239,7 @@ def test_drain_processes_one_event(tmp_path):
     queue = tmp_path / "queue.jsonl"
     event = {"type": "Stop", "cwd": "/home/user/project", "session_id": "s1"}
     queue.write_text(json.dumps(event) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
     assert count == 1
     # Stop calls omega flush
@@ -254,7 +254,7 @@ def test_drain_processes_multiple_events(tmp_path):
         {"type": "Stop", "cwd": "/p", "session_id": "s2"},
     ]
     queue.write_text("\n".join(json.dumps(e) for e in events) + "\n")
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         count = drain(queue=queue)
     assert count == 2
     assert mock_run.call_count == 2
@@ -269,17 +269,17 @@ Expected: test_drain_routes_post_tool_use_write_to_semble FAILS (NotImplemented)
 
 - [ ] **Step 3: Refactor `drain.py` — replace stub `_route` with event-type dispatch**
 
-Replace `src/goldfish/drain.py` entirely:
+Replace `src/goldfishh/drain.py` entirely:
 
 ```python
 import json
 import subprocess
 from pathlib import Path
 
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
-from goldfish.vault import write_note
+from goldfishh.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
+from goldfishh.vault import write_note
 
-QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+QUEUE_PATH = Path.home() / ".goldfishh" / "queue.jsonl"
 
 
 def drain(queue: Path = QUEUE_PATH) -> int:
@@ -376,7 +376,7 @@ def _handle_task_completed(event: dict) -> None:
     task_path = f"Tasks/{task_id}.md"
     note_file = VAULTS_ROOT / project / task_path
     if note_file.exists():
-        from goldfish.vault import read_note
+        from goldfishh.vault import read_note
         fm, body = read_note(project, task_path)
         write_note(project, task_path, fm, body.rstrip() + "\n\n**Completed.**")
     else:
@@ -424,7 +424,7 @@ Expected: all pass
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/drain.py tests/test_drain.py
+git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "refactor: drain.py event-type routing with async handlers"
 ```
 
@@ -435,7 +435,7 @@ git commit -m "refactor: drain.py event-type routing with async handlers"
 This is the **synchronous** SessionStart handler called directly from hook.py (not via drain queue). It returns a string written to stdout, which Claude Code injects as context.
 
 **Files:**
-- Modify: `src/goldfish/drain.py` — add `handle_session_start(event) -> str`
+- Modify: `src/goldfishh/drain.py` — add `handle_session_start(event) -> str`
 - Modify: `tests/test_drain.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -443,14 +443,14 @@ This is the **synchronous** SessionStart handler called directly from hook.py (n
 Add to `tests/test_drain.py`:
 
 ```python
-from goldfish.drain import handle_session_start
+from goldfishh.drain import handle_session_start
 
 
 def test_session_start_new_project_creates_wake_up(tmp_path):
     event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
-    with patch("goldfish.drain.subprocess.run"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.subprocess.run"), \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         result = handle_session_start(event, vaults_root=tmp_path)
     wake_up = tmp_path / "myapp" / "_context" / "wake-up.md"
     assert wake_up.exists()
@@ -460,21 +460,21 @@ def test_session_start_new_project_creates_wake_up(tmp_path):
 
 def test_session_start_new_project_returns_first_session_message(tmp_path):
     event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s1"}
-    with patch("goldfish.drain.subprocess.run"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.subprocess.run"), \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         result = handle_session_start(event, vaults_root=tmp_path)
     assert "first session" in result.lower() or "new project" in result.lower()
 
 
 def test_session_start_existing_project_runs_omega_mine(tmp_path):
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
     write_manifest("myapp", {"last_byte_offset": 100, "bootstrap_complete": True,
                              "semble_indexed_at": "", "last_jsonl_file": ""}, vaults_root=tmp_path)
     event = {"type": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
-    with patch("goldfish.drain.subprocess.run") as mock_run, \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.subprocess.run") as mock_run, \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         handle_session_start(event, vaults_root=tmp_path)
     cmds = [call[0][0] for call in mock_run.call_args_list]
     assert any(c[0] == "omega" for c in cmds)
@@ -511,7 +511,7 @@ def handle_session_start(event: dict, vaults_root: Path = VAULTS_ROOT) -> str:
 
 
 def _session_start_new(cwd: str, project: str, session_id: str, vaults_root: Path) -> str:
-    from goldfish.vault import scaffold
+    from goldfishh.vault import scaffold
     scaffold(project, vaults_root=vaults_root)
 
     src = Path(cwd) / "src"
@@ -651,7 +651,7 @@ Expected: all pass
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/drain.py tests/test_drain.py
+git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "feat: SessionStart and PreCompact sync handlers with wake-up note"
 ```
 
@@ -660,7 +660,7 @@ git commit -m "feat: SessionStart and PreCompact sync handlers with wake-up note
 ### Task 5.3: hook.py — sync/async dispatch and stdout writing
 
 **Files:**
-- Modify: `src/goldfish/hook.py`
+- Modify: `src/goldfishh/hook.py`
 - Modify: `tests/test_hook.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -684,8 +684,8 @@ def test_hook_async_event_appends_to_queue(tmp_path):
 def test_hook_sync_session_start_writes_stdout(tmp_path, capsys):
     queue = tmp_path / "queue.jsonl"
     event = {"type": "SessionStart", "session_id": "s1", "cwd": "/project/myapp"}
-    with patch("goldfish.hook.handle_session_start", return_value="wake-up content") as mock_handler:
-        from goldfish.hook import main_with_event
+    with patch("goldfishh.hook.handle_session_start", return_value="wake-up content") as mock_handler:
+        from goldfishh.hook import main_with_event
         main_with_event(event, queue=queue)
     captured = capsys.readouterr()
     assert "wake-up content" in captured.out
@@ -695,8 +695,8 @@ def test_hook_sync_session_start_writes_stdout(tmp_path, capsys):
 
 def test_hook_sync_user_prompt_submit_writes_stdout(tmp_path, capsys):
     event = {"type": "UserPromptSubmit", "prompt": "fix the auth bug in middleware", "cwd": "/p", "session_id": "s1"}
-    with patch("goldfish.hook.enrich", return_value="## Context\nrelevant code here"):
-        from goldfish.hook import main_with_event
+    with patch("goldfishh.hook.enrich", return_value="## Context\nrelevant code here"):
+        from goldfishh.hook import main_with_event
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     captured = capsys.readouterr()
     assert "Context" in captured.out
@@ -704,8 +704,8 @@ def test_hook_sync_user_prompt_submit_writes_stdout(tmp_path, capsys):
 
 def test_hook_sync_pre_compact_no_stdout(tmp_path, capsys):
     event = {"type": "PreCompact", "session_id": "s1", "cwd": "/p"}
-    with patch("goldfish.hook.handle_pre_compact") as mock_handler:
-        from goldfish.hook import main_with_event
+    with patch("goldfishh.hook.handle_pre_compact") as mock_handler:
+        from goldfishh.hook import main_with_event
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     mock_handler.assert_called_once_with(event)
     captured = capsys.readouterr()
@@ -721,18 +721,18 @@ Expected: new tests fail (no `main_with_event` function yet)
 
 - [ ] **Step 3: Rewrite `hook.py`**
 
-Replace `src/goldfish/hook.py` entirely:
+Replace `src/goldfishh/hook.py` entirely:
 
 ```python
 import json
 import sys
 from pathlib import Path
 
-from goldfish.config import project_name
-from goldfish.drain import handle_pre_compact, handle_session_start
-from goldfish.enricher import enrich
+from goldfishh.config import project_name
+from goldfishh.drain import handle_pre_compact, handle_session_start
+from goldfishh.enricher import enrich
 
-QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+QUEUE_PATH = Path.home() / ".goldfishh" / "queue.jsonl"
 
 _ASYNC_EVENTS = {"Stop", "SessionEnd", "PostToolUse", "SubagentStop", "TaskCreated", "TaskCompleted"}
 _SYNC_EVENTS = {"SessionStart", "UserPromptSubmit", "PreCompact"}
@@ -794,7 +794,7 @@ Expected: all pass
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/hook.py tests/test_hook.py
+git add src/goldfishh/hook.py tests/test_hook.py
 git commit -m "feat: hook.py sync/async dispatch with stdout for SessionStart and PreCompact"
 ```
 
@@ -805,7 +805,7 @@ git commit -m "feat: hook.py sync/async dispatch with stdout for SessionStart an
 The Stop handler currently only calls omega flush. It also needs to advance `last_byte_offset` in the manifest so the next SessionStart knows how much JSONL history is new.
 
 **Files:**
-- Modify: `src/goldfish/drain.py` — extend `_handle_stop`
+- Modify: `src/goldfishh/drain.py` — extend `_handle_stop`
 - Modify: `tests/test_drain.py`
 
 - [ ] **Step 1: Write failing test**
@@ -814,7 +814,7 @@ Add to `tests/test_drain.py`:
 
 ```python
 def test_stop_advances_manifest_offset(tmp_path):
-    from goldfish.config import write_manifest, get_manifest
+    from goldfishh.config import write_manifest, get_manifest
     write_manifest("myapp", {"last_byte_offset": 0, "bootstrap_complete": True,
                              "semble_indexed_at": "", "last_jsonl_file": "abc.jsonl"}, vaults_root=tmp_path)
     # Create a fake JSONL file with some content
@@ -825,9 +825,9 @@ def test_stop_advances_manifest_offset(tmp_path):
 
     event = {"type": "Stop", "cwd": "/project/myapp", "session_id": "s1",
              "jsonl_file": str(fake_jsonl)}
-    with patch("goldfish.drain.subprocess.run"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.subprocess.run"), \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         _handle_stop(event, vaults_root=tmp_path)
 
     manifest = get_manifest("myapp", vaults_root=tmp_path)
@@ -894,7 +894,7 @@ Expected: all pass
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/drain.py tests/test_drain.py
+git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "feat: Stop handler advances manifest offset for incremental OMEGA mining"
 ```
 
@@ -909,7 +909,7 @@ The only synchronous handler that injects context before Claude acts. Multi-topi
 ### Task 6.1: `enricher.py` — Chonkie decomposition + Semble fan-out
 
 **Files:**
-- Create: `src/goldfish/enricher.py`
+- Create: `src/goldfishh/enricher.py`
 - Create: `tests/test_enricher.py`
 - Modify: `pyproject.toml` — add `"chonkie"`
 
@@ -921,7 +921,7 @@ Create `tests/test_enricher.py`:
 import subprocess
 from unittest.mock import patch, MagicMock
 
-from goldfish.enricher import decompose, enrich
+from goldfishh.enricher import decompose, enrich
 
 
 def test_decompose_returns_empty_for_short_prompt():
@@ -953,7 +953,7 @@ def test_enrich_calls_semble_for_code_and_docs(tmp_path):
     mock_result = MagicMock()
     mock_result.stdout = b"some search result"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result) as mock_run:
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result) as mock_run:
         result = enrich(
             "fix the authentication middleware in the API layer",
             "/project",
@@ -968,7 +968,7 @@ def test_enrich_formats_output_as_context_block():
     mock_result = MagicMock()
     mock_result.stdout = b"relevant code snippet here"
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result):
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result):
         result = enrich("fix the authentication bug", "/project", "myapp")
     # Should return non-empty formatted block
     assert len(result) > 0
@@ -978,7 +978,7 @@ def test_enrich_returns_empty_on_no_results():
     mock_result = MagicMock()
     mock_result.stdout = b""
     mock_result.returncode = 0
-    with patch("goldfish.enricher.subprocess.run", return_value=mock_result):
+    with patch("goldfishh.enricher.subprocess.run", return_value=mock_result):
         result = enrich("fix the authentication bug", "/project", "myapp")
     # Empty semble output → empty enrichment
     assert result == "" or isinstance(result, str)
@@ -989,7 +989,7 @@ def test_enrich_returns_empty_on_no_results():
 ```bash
 .venv/bin/pytest tests/test_enricher.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'goldfish.enricher'`
+Expected: `ModuleNotFoundError: No module named 'goldfishh.enricher'`
 
 - [ ] **Step 3: Add `chonkie` to `pyproject.toml`**
 
@@ -1003,13 +1003,13 @@ Then reinstall:
 uv pip install -e ".[dev]"
 ```
 
-- [ ] **Step 4: Create `src/goldfish/enricher.py`**
+- [ ] **Step 4: Create `src/goldfishh/enricher.py`**
 
 ```python
 import subprocess
 from pathlib import Path
 
-from goldfish.config import VAULTS_ROOT
+from goldfishh.config import VAULTS_ROOT
 
 MIN_PROMPT_WORDS = 4
 
@@ -1083,7 +1083,7 @@ Expected: all pass
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/goldfish/enricher.py tests/test_enricher.py pyproject.toml
+git add src/goldfishh/enricher.py tests/test_enricher.py pyproject.toml
 git commit -m "feat: enricher.py — Chonkie decomposition and Semble fan-out for UserPromptSubmit"
 ```
 
@@ -1103,8 +1103,8 @@ Add to `tests/test_hook.py`:
 ```python
 def test_hook_short_prompt_produces_no_stdout(tmp_path, capsys):
     event = {"type": "UserPromptSubmit", "prompt": "yes", "cwd": "/p", "session_id": "s1"}
-    with patch("goldfish.hook.enrich", return_value="") as mock_enrich:
-        from goldfish.hook import main_with_event
+    with patch("goldfishh.hook.enrich", return_value="") as mock_enrich:
+        from goldfishh.hook import main_with_event
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     captured = capsys.readouterr()
     assert captured.out == ""
@@ -1117,8 +1117,8 @@ def test_hook_long_prompt_calls_enrich_and_writes_stdout(tmp_path, capsys):
         "cwd": "/project/myapp",
         "session_id": "s1",
     }
-    with patch("goldfish.hook.enrich", return_value="## Goldfish Context\n\nsome results"):
-        from goldfish.hook import main_with_event
+    with patch("goldfishh.hook.enrich", return_value="## Goldfish Context\n\nsome results"):
+        from goldfishh.hook import main_with_event
         main_with_event(event, queue=tmp_path / "queue.jsonl")
     captured = capsys.readouterr()
     assert "Goldfish Context" in captured.out
@@ -1167,7 +1167,7 @@ The handlers exist in drain.py. This task adds tests for every routing branch.
 Add to `tests/test_drain.py`:
 
 ```python
-from goldfish.drain import _handle_post_tool_use
+from goldfishh.drain import _handle_post_tool_use
 
 
 def test_post_tool_use_edit_calls_semble_reindex(tmp_path):
@@ -1178,7 +1178,7 @@ def test_post_tool_use_edit_calls_semble_reindex(tmp_path):
         "cwd": "/project",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         _handle_post_tool_use(event)
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "semble"
@@ -1194,7 +1194,7 @@ def test_post_tool_use_bash_git_commit_calls_omega_note(tmp_path):
         "cwd": "/project",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         _handle_post_tool_use(event)
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "omega"
@@ -1209,7 +1209,7 @@ def test_post_tool_use_bash_non_commit_does_nothing():
         "cwd": "/project",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         _handle_post_tool_use(event)
     mock_run.assert_not_called()
 
@@ -1222,7 +1222,7 @@ def test_post_tool_use_unknown_tool_does_nothing():
         "cwd": "/project",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.subprocess.run") as mock_run:
+    with patch("goldfishh.drain.subprocess.run") as mock_run:
         _handle_post_tool_use(event)
     mock_run.assert_not_called()
 ```
@@ -1262,7 +1262,7 @@ TaskCreated and TaskCompleted handlers are already in drain.py from Task 5.1. Th
 Add to `tests/test_drain.py`:
 
 ```python
-from goldfish.drain import _handle_task_created, _handle_task_completed
+from goldfishh.drain import _handle_task_created, _handle_task_completed
 
 
 def test_task_created_writes_note_to_vault(tmp_path):
@@ -1273,8 +1273,8 @@ def test_task_created_writes_note_to_vault(tmp_path):
         "cwd": "/project/myapp",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         _handle_task_created(event, vaults_root=tmp_path)
     note = tmp_path / "myapp" / "Tasks" / "task-abc.md"
     assert note.exists()
@@ -1282,7 +1282,7 @@ def test_task_created_writes_note_to_vault(tmp_path):
 
 
 def test_task_completed_appends_completed_marker(tmp_path):
-    from goldfish.vault import scaffold, write_note
+    from goldfishh.vault import scaffold, write_note
     scaffold("myapp", vaults_root=tmp_path)
     write_note("myapp", "Tasks/task-abc.md",
                {"id": "task-abc", "type": "task", "valid_from": "2026-05-24",
@@ -1296,8 +1296,8 @@ def test_task_completed_appends_completed_marker(tmp_path):
         "cwd": "/project/myapp",
         "session_id": "s1",
     }
-    with patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path):
+    with patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path):
         _handle_task_completed(event, vaults_root=tmp_path)
     content = (tmp_path / "myapp" / "Tasks" / "task-abc.md").read_text()
     assert "Completed" in content
@@ -1350,7 +1350,7 @@ Expected: all pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/goldfish/drain.py tests/test_drain.py
+git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "feat: task lifecycle handlers with vault note writes and tests"
 ```
 
@@ -1362,10 +1362,10 @@ Implement the three currently-stubbed CLI commands. These are pure read operatio
 
 ---
 
-### Task 8.1: `goldfish status`
+### Task 8.1: `goldfishh status`
 
 **Files:**
-- Modify: `src/goldfish/cli.py`
+- Modify: `src/goldfishh/cli.py`
 - Create: `tests/test_cli.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -1378,7 +1378,7 @@ from pathlib import Path
 from unittest.mock import patch
 from typer.testing import CliRunner
 
-from goldfish.cli import app
+from goldfishh.cli import app
 
 runner = CliRunner()
 
@@ -1386,9 +1386,9 @@ runner = CliRunner()
 def test_status_shows_queue_depth(tmp_path):
     queue = tmp_path / "queue.jsonl"
     queue.write_text('{"type":"Stop"}\n{"type":"Stop"}\n')
-    with patch("goldfish.cli.QUEUE_PATH", queue), \
-         patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
-         patch("goldfish.cli.get_manifest", return_value={"last_byte_offset": 100,
+    with patch("goldfishh.cli.QUEUE_PATH", queue), \
+         patch("goldfishh.cli.os.getcwd", return_value="/project/myapp"), \
+         patch("goldfishh.cli.get_manifest", return_value={"last_byte_offset": 100,
                                                            "bootstrap_complete": True,
                                                            "semble_indexed_at": "2026-05-24T12:00:00"}):
         result = runner.invoke(app, ["status"])
@@ -1397,9 +1397,9 @@ def test_status_shows_queue_depth(tmp_path):
 
 
 def test_status_shows_bootstrap_complete(tmp_path):
-    with patch("goldfish.cli.QUEUE_PATH", tmp_path / "empty.jsonl"), \
-         patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
-         patch("goldfish.cli.get_manifest", return_value={"last_byte_offset": 0,
+    with patch("goldfishh.cli.QUEUE_PATH", tmp_path / "empty.jsonl"), \
+         patch("goldfishh.cli.os.getcwd", return_value="/project/myapp"), \
+         patch("goldfishh.cli.get_manifest", return_value={"last_byte_offset": 0,
                                                            "bootstrap_complete": True,
                                                            "semble_indexed_at": ""}):
         result = runner.invoke(app, ["status"])
@@ -1418,8 +1418,8 @@ Expected: FAIL — status command just echoes stub text
 Add imports to `cli.py`:
 ```python
 import os
-from goldfish.config import get_manifest, project_name
-from goldfish.drain import QUEUE_PATH
+from goldfishh.config import get_manifest, project_name
+from goldfishh.drain import QUEUE_PATH
 ```
 
 Replace the status stub:
@@ -1450,18 +1450,18 @@ Expected: all pass
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/cli.py tests/test_cli.py
-git commit -m "feat: goldfish status command"
+git add src/goldfishh/cli.py tests/test_cli.py
+git commit -m "feat: goldfishh status command"
 ```
 
 ---
 
-### Task 8.2: `goldfish doctor`
+### Task 8.2: `goldfishh doctor`
 
 Checks all system components and prints fix instructions for any failures.
 
 **Files:**
-- Modify: `src/goldfish/cli.py`
+- Modify: `src/goldfishh/cli.py`
 - Modify: `tests/test_cli.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -1473,11 +1473,11 @@ def test_doctor_passes_when_all_healthy(tmp_path):
     gitnexus_dir = tmp_path / ".gitnexus"
     gitnexus_dir.mkdir()
     settings = tmp_path / "settings.json"
-    settings.write_text(json.dumps({"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]}}))
-    with patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"), \
-         patch("goldfish.cli.subprocess.run") as mock_run, \
-         patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
-         patch("goldfish.cli.DEFAULT_SETTINGS", settings):
+    settings.write_text(json.dumps({"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfishh hook", "async": True}]}]}}))
+    with patch("goldfishh.cli.shutil.which", return_value="/usr/bin/node"), \
+         patch("goldfishh.cli.subprocess.run") as mock_run, \
+         patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfishh.cli.DEFAULT_SETTINGS", settings):
         mock_run.return_value.returncode = 0
         result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 0
@@ -1485,8 +1485,8 @@ def test_doctor_passes_when_all_healthy(tmp_path):
 
 
 def test_doctor_flags_missing_node():
-    with patch("goldfish.cli.shutil.which", return_value=None), \
-         patch("goldfish.cli.os.getcwd", return_value="/project"):
+    with patch("goldfishh.cli.shutil.which", return_value=None), \
+         patch("goldfishh.cli.os.getcwd", return_value="/project"):
         result = runner.invoke(app, ["doctor"])
     assert "node" in result.output.lower() or "nodejs" in result.output.lower()
 ```
@@ -1507,11 +1507,11 @@ Replace the doctor stub:
 ```python
 @app.command()
 def doctor() -> None:
-    """Check goldfish configuration. Prints fix instructions for failures."""
+    """Check goldfishh configuration. Prints fix instructions for failures."""
     import shutil
     import subprocess
     import json
-    from goldfish.claude_md import DEFAULT_SETTINGS
+    from goldfishh.claude_md import DEFAULT_SETTINGS
 
     ok = True
     cwd = os.getcwd()
@@ -1545,7 +1545,7 @@ def doctor() -> None:
             data = json.loads(DEFAULT_SETTINGS.read_text())
             hooks = data.get("hooks", {})
             has_goldfish = any(
-                "goldfish" in str(h)
+                "goldfishh" in str(h)
                 for event_hooks in hooks.values()
                 for group in event_hooks
                 for h in group.get("hooks", [])
@@ -1553,13 +1553,13 @@ def doctor() -> None:
             if has_goldfish:
                 typer.echo("✓ Hooks registered in settings.json")
             else:
-                typer.echo("✗ Hooks not registered — run: goldfish init")
+                typer.echo("✗ Hooks not registered — run: goldfishh init")
                 ok = False
         except (json.JSONDecodeError, KeyError):
-            typer.echo("✗ settings.json malformed — run: goldfish init")
+            typer.echo("✗ settings.json malformed — run: goldfishh init")
             ok = False
     else:
-        typer.echo("✗ ~/.claude/settings.json not found — run: goldfish init")
+        typer.echo("✗ ~/.claude/settings.json not found — run: goldfishh init")
         ok = False
 
     # Queue depth check
@@ -1567,7 +1567,7 @@ def doctor() -> None:
     if queue.exists():
         depth = len(queue.read_text().splitlines())
         if depth > 100:
-            typer.echo(f"⚠ Queue depth {depth} — run: goldfish drain")
+            typer.echo(f"⚠ Queue depth {depth} — run: goldfishh drain")
         else:
             typer.echo(f"✓ Queue depth {depth}")
     else:
@@ -1590,18 +1590,18 @@ Expected: all pass
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/cli.py tests/test_cli.py
-git commit -m "feat: goldfish doctor command with per-component checks"
+git add src/goldfishh/cli.py tests/test_cli.py
+git commit -m "feat: goldfishh doctor command with per-component checks"
 ```
 
 ---
 
-### Task 8.3: `goldfish replay`
+### Task 8.3: `goldfishh replay`
 
 Rebuilds vault from JSONL transcripts. Resumable from `last_byte_offset`.
 
 **Files:**
-- Modify: `src/goldfish/cli.py`
+- Modify: `src/goldfishh/cli.py`
 - Modify: `tests/test_cli.py`
 
 - [ ] **Step 1: Write failing tests**
@@ -1620,10 +1620,10 @@ def test_replay_processes_jsonl_events(tmp_path):
     jsonl_file = jsonl_dir / "session1.jsonl"
     jsonl_file.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
-    with patch("goldfish.cli.os.getcwd", return_value="/project/myapp"), \
-         patch("goldfish.cli.Path.home", return_value=tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"), \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path / ".goldfish" / "vaults"):
+    with patch("goldfishh.cli.os.getcwd", return_value="/project/myapp"), \
+         patch("goldfishh.cli.Path.home", return_value=tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path / ".goldfishh" / "vaults"), \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path / ".goldfishh" / "vaults"):
         result = runner.invoke(app, ["replay"])
 
     assert result.exit_code == 0
@@ -1645,8 +1645,8 @@ Replace the replay stub:
 @app.command()
 def replay() -> None:
     """Rebuild vault from Claude Code JSONL transcripts. Resumable."""
-    from goldfish.config import get_manifest, project_name, write_manifest
-    from goldfish.drain import _route
+    from goldfishh.config import get_manifest, project_name, write_manifest
+    from goldfishh.drain import _route
     import json as _json
 
     cwd = os.getcwd()
@@ -1693,18 +1693,18 @@ def replay() -> None:
 ```
 Expected: all pass
 
-- [ ] **Step 5: Run goldfish doctor to verify everything wired up**
+- [ ] **Step 5: Run goldfishh doctor to verify everything wired up**
 
 ```bash
-goldfish doctor
+goldfishh doctor
 ```
 Expected: hooks registered, Node.js found, .gitnexus found — may warn about OMEGA if not installed
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/cli.py tests/test_cli.py
-git commit -m "feat: goldfish replay command — rebuilds vault from JSONL transcripts"
+git add src/goldfishh/cli.py tests/test_cli.py
+git commit -m "feat: goldfishh replay command — rebuilds vault from JSONL transcripts"
 ```
 
 ---
@@ -1729,9 +1729,9 @@ git commit -m "feat: goldfish replay command — rebuilds vault from JSONL trans
 | SubagentStop: omega flush | 5.1 |
 | TaskCreated: vault note in Tasks/ | 5.1, 7.2 |
 | TaskCompleted: append "Completed" to note | 5.1, 7.2 |
-| goldfish status: queue depth + manifest | 8.1 |
-| goldfish doctor: per-component health checks | 8.2 |
-| goldfish replay: rebuild from JSONL | 8.3 |
+| goldfishh status: queue depth + manifest | 8.1 |
+| goldfishh doctor: per-component health checks | 8.2 |
+| goldfishh replay: rebuild from JSONL | 8.3 |
 | Hook binary path on PATH | P0 |
 | All handlers remain subprocess calls / file writes | All |
 | No search/embedding/graph code written | All |

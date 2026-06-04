@@ -17,8 +17,8 @@ Following three diagnostic runs on 2026-05-25, all REDs were resolved. This sess
 
 | File | Change |
 |------|--------|
-| `goldfish/CLAUDE.md` | Memory Router: routing fog tiebreaker, boundary blur consumer rule, arrival gap note, vault automation clarity |
-| `src/goldfish/init.py` | Sync `_CLAUDE_MD_BLOCK` to match updated CLAUDE.md |
+| `goldfishh/CLAUDE.md` | Memory Router: routing fog tiebreaker, boundary blur consumer rule, arrival gap note, vault automation clarity |
+| `src/goldfishh/init.py` | Sync `_CLAUDE_MD_BLOCK` to match updated CLAUDE.md |
 | `docs/architecture.md` | Fix PreCompact flow: remove stale `omega flush` call |
 | `docs/memory-diagnostic.md` | Tighten diagnostic questions, update Current State Assessment |
 
@@ -32,7 +32,7 @@ Review all instruction and doc files for references that may have become stale a
 
 ## Section 1 — Instruction Fixes
 
-### A. Routing fog tiebreaker (`goldfish/CLAUDE.md`)
+### A. Routing fog tiebreaker (`goldfishh/CLAUDE.md`)
 
 Add one line to the Memory Router, below the table:
 
@@ -40,19 +40,19 @@ Add one line to the Memory Router, below the table:
 
 ### B. Instruction fiction (`docs/architecture.md`)
 
-In the PreCompact runtime flow, remove the `omega flush(session_snapshot)` line. The `vault.write("Memory/Checkpoints/{session_id}.md", summary)` line is correct and stays. `omega flush` was removed in goldfish v1.0 polish.
+In the PreCompact runtime flow, remove the `omega flush(session_snapshot)` line. The `vault.write("Memory/Checkpoints/{session_id}.md", summary)` line is correct and stays. `omega flush` was removed in goldfishh v1.0 polish.
 
-### C. Boundary blur (`goldfish/CLAUDE.md`)
+### C. Boundary blur (`goldfishh/CLAUDE.md`)
 
 Two changes to the Memory Router vault row:
 
-1. Replace "via goldfish hooks" with "explicit agent write when human audience warrants it" — distinguishes automated vault writes (task events, session checkpoints, which happen via hooks) from explicit architectural notes (which require agent action).
+1. Replace "via goldfishh hooks" with "explicit agent write when human audience warrants it" — distinguishes automated vault writes (task events, session checkpoints, which happen via hooks) from explicit architectural notes (which require agent action).
 
 2. Add consumer-driven rule as a callout below the table:
 
 > "Vault = consumer is human (Obsidian-readable narrative, long-form). OMEGA = consumer is agent (machine-queryable, episodic). Write to vault when a human should find and read this note. Both systems for architectural decisions with lasting human relevance."
 
-### D. Arrival gap note (`goldfish/CLAUDE.md`)
+### D. Arrival gap note (`goldfishh/CLAUDE.md`)
 
 Add one line in the session start sequence:
 
@@ -76,7 +76,7 @@ Add one line in the session start sequence:
 | Failure | Score | Key Evidence |
 |---------|-------|-------------|
 | Routing fog | 🟡 YELLOW | Read-side tiebreaker added; omega_profile supplemental framing in place |
-| Dark corner | 🟢 GREEN | Tools assumed installed; `goldfish doctor` CLI is the diagnostic path — justified absence |
+| Dark corner | 🟢 GREEN | Tools assumed installed; `goldfishh doctor` CLI is the diagnostic path — justified absence |
 | Arrival gap | 🟢 GREEN | On-demand = just-in-time; intentional architectural design, documented |
 | Stale signal | 🟢 GREEN | "Verify code claims before acting" instruction is the validation cadence |
 | Boundary blur | 🟡 YELLOW | Consumer-driven rule added; explicit vs automatic vault write distinction in place |
@@ -94,7 +94,7 @@ The current instruction ("If any GitNexus tool warns the index is stale, run `np
 
 ### Fix: Instruction clarity
 
-Add a note to the GitNexus section of the goldfish coordination block (layer 2, editable):
+Add a note to the GitNexus section of the goldfishh coordination block (layer 2, editable):
 
 > "The stale warning fires after every commit — this is expected during active development. Re-analyze before code intelligence tasks (impact analysis, exploration), not after every commit. One `npx gitnexus analyze` at the start of a work session is sufficient."
 
@@ -112,7 +112,7 @@ Add guidance to the coordination block:
 
 ### Files to modify
 
-Add both notes to `goldfish/CLAUDE.md` coordination block (layer 2) and sync `src/goldfish/init.py` `_CLAUDE_MD_BLOCK`.
+Add both notes to `goldfishh/CLAUDE.md` coordination block (layer 2) and sync `src/goldfishh/init.py` `_CLAUDE_MD_BLOCK`.
 
 ### OMEGA decision to store (add to Section 3)
 
@@ -126,25 +126,25 @@ Store six decisions with type `"decision"` (decision #6 is defined in Section 4)
 
 1. **Arrival gap closed**: GitNexus/Semble load on-demand by design — just-in-time delivery of targeted context, not a gap. Arrival gap diagnostic scores GREEN for this architecture.
 
-2. **Dark corner closed**: Tool health state has no persistent memory home by design. Tools assumed installed; `goldfish doctor` CLI handles diagnosis. Re-derivation <1s. Dark corner diagnostic scores GREEN for this architecture.
+2. **Dark corner closed**: Tool health state has no persistent memory home by design. Tools assumed installed; `goldfishh doctor` CLI handles diagnosis. Re-derivation <1s. Dark corner diagnostic scores GREEN for this architecture.
 
 3. **Boundary blur rule**: Vault vs OMEGA routing is consumer-driven. Vault = human consumer (Obsidian-readable narrative). OMEGA = agent consumer (machine-queryable, episodic). Architectural decisions may warrant both; session facts warrant OMEGA only.
 
 4. **Routing fog tiebreaker**: For user preference reads, auto-memory (`memory/*.md`) is authoritative. `omega_profile()` is supplemental — additional signal, not ground truth. Auto-memory wins on conflicts.
 
-5. **Instruction fiction guard**: PreCompact no longer calls `omega flush` — removed in goldfish v1.0 polish. PreCompact writes vault checkpoint via `vault.write()` only. Any doc showing `omega flush` in PreCompact flow is stale.
+5. **Instruction fiction guard**: PreCompact no longer calls `omega flush` — removed in goldfishh v1.0 polish. PreCompact writes vault checkpoint via `vault.write()` only. Any doc showing `omega flush` in PreCompact flow is stale.
 
-Also add `goldfish/CLAUDE.md` to scope table:
+Also add `goldfishh/CLAUDE.md` to scope table:
 
 | File | Change |
 |------|--------|
-| `goldfish/CLAUDE.md` | Add GitNexus staleness note + worktree guidance to coordination block |
-| `src/goldfish/init.py` | Sync `_CLAUDE_MD_BLOCK` |
+| `goldfishh/CLAUDE.md` | Add GitNexus staleness note + worktree guidance to coordination block |
+| `src/goldfishh/init.py` | Sync `_CLAUDE_MD_BLOCK` |
 
 ## Success Criteria
 
-- `/goldfish-diagnostic` Run 4 scores 0 RED / 3 YELLOW / 3 GREEN
+- `/goldfishh-diagnostic` Run 4 scores 0 RED / 3 YELLOW / 3 GREEN
 - No `omega flush` references remain in docs or instruction blocks
-- `_CLAUDE_MD_BLOCK` in `init.py` matches `goldfish/CLAUDE.md` exactly
+- `_CLAUDE_MD_BLOCK` in `init.py` matches `goldfishh/CLAUDE.md` exactly
 - Six OMEGA decisions stored and queryable
 - Stale reference sweep complete, findings documented or fixed

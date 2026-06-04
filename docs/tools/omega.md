@@ -109,7 +109,7 @@ omega knowledge search <query> [--limit N]
 
 ### Commands That Do NOT Exist
 
-> These were in goldfish's dead code and have been removed:
+> These were in goldfishh's dead code and have been removed:
 
 - ~~`omega flush`~~ — not a command
 - ~~`omega mine`~~ — not a command  
@@ -199,7 +199,7 @@ auto_capture(content, event_type, ...)     # primary ingestion with dedup
 
 | Goldfish function | OMEGA interaction |
 |-------------------|------------------|
-| `goldfish init` | `omega setup --download-model`, then `omega setup --client claude-code` |
+| `goldfishh init` | `omega setup --download-model`, then `omega setup --client claude-code` |
 | `handle_session_start` | `omega query "current project state tasks decisions"` |
 | CLAUDE.md enrichment block | `omega_query()` via MCP (per-session) |
 | Post-task | `omega_store()` via MCP for key decisions |

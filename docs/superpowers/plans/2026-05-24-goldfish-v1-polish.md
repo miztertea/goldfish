@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Remove all dead CLI calls from drain.py, fix the semble vault search flag, add `semble init` sub-agent wiring, update tests to reflect real event field names, and clean up stale documentation so goldfish is fully functional and honest end-to-end.
+**Goal:** Remove all dead CLI calls from drain.py, fix the semble vault search flag, add `semble init` sub-agent wiring, update tests to reflect real event field names, and clean up stale documentation so goldfishh is fully functional and honest end-to-end.
 
 **Architecture:** Goldfish is a thin orchestration layer (~400–600 line target). Every change here removes fiction: dead subprocess calls to CLIs that don't have those subcommands, tests that assert on those fictional calls, and docs that describe the old design. After this plan, every line of Python either does something real or is gone.
 
@@ -10,10 +10,10 @@
 
 **Key verified facts (from live CLI + fetched docs, 2026-05-24):**
 - `semble search` flag for vault/markdown: `--include-text-files` ✓ (NOT `--content docs` — docs site is outdated, flag doesn't exist)
-- `semble init` creates `.claude/agents/semble-search.md` sub-agent spec — add to `goldfish init`
+- `semble init` creates `.claude/agents/semble-search.md` sub-agent spec — add to `goldfishh init`
 - OMEGA dead commands (never existed): `omega flush`, `omega mine`, `omega note`
 - OMEGA real CLI: `omega query <text>`, `omega store <content> -t <type>`, `omega setup --download-model`, `omega status`
-- GitNexus: 16 MCP tools, hooks coexist with goldfish hooks (no conflict)
+- GitNexus: 16 MCP tools, hooks coexist with goldfishh hooks (no conflict)
 - Full tool reference docs: `docs/tools/semble.md`, `docs/tools/omega.md`, `docs/tools/gitnexus.md`
 
 ---
@@ -22,15 +22,15 @@
 
 | File | What changes |
 |------|-------------|
-| `src/goldfish/enricher.py` | Fix `--content docs` → `--include-text-files` |
-| `src/goldfish/drain.py` | Remove 8 dead subprocess calls, 2 no-op handlers, type fallback |
-| `src/goldfish/hook.py` | Remove `event.get("type", "")` fallback after tests updated |
-| `src/goldfish/init.py` | Fix `_CLAUDE_MD_BLOCK` duplicate sentinel heading |
+| `src/goldfishh/enricher.py` | Fix `--content docs` → `--include-text-files` |
+| `src/goldfishh/drain.py` | Remove 8 dead subprocess calls, 2 no-op handlers, type fallback |
+| `src/goldfishh/hook.py` | Remove `event.get("type", "")` fallback after tests updated |
+| `src/goldfishh/init.py` | Fix `_CLAUDE_MD_BLOCK` duplicate sentinel heading |
 | `CLAUDE.md` | Fix tool table, remove "codebase doesn't exist", clean triple duplicate block |
 | `docs/tools/semble.md` | New — Semble CLI reference (Task 0) |
 | `docs/tools/omega.md` | New — OMEGA CLI + MCP reference (Task 0) |
 | `docs/tools/gitnexus.md` | New — GitNexus CLI + MCP reference (Task 0) |
-| `src/goldfish/init.py` | Add `semble init` sub-agent call; fix `_CLAUDE_MD_BLOCK` duplicate |
+| `src/goldfishh/init.py` | Add `semble init` sub-agent call; fix `_CLAUDE_MD_BLOCK` duplicate |
 | `pyproject.toml` | Add `chonkie` to dependencies |
 | `tests/test_hook.py` | Update 6 events from `type` to `hook_event_name` |
 | `tests/test_drain.py` | Update event format, remove 7 dead-code tests, rewrite 3 assertions |
@@ -44,7 +44,7 @@
 - Create: `docs/tools/omega.md` ✅ (already done)
 - Create: `docs/tools/gitnexus.md` ✅ (already done)
 
-These docs were written from live CLI verification (`semble --help`, `semble search --help`, fetched official docs). They are the authoritative source for goldfish contributors — trust them over third-party websites which are outdated.
+These docs were written from live CLI verification (`semble --help`, `semble search --help`, fetched official docs). They are the authoritative source for goldfishh contributors — trust them over third-party websites which are outdated.
 
 **Critical corrections discovered during doc research:**
 
@@ -53,7 +53,7 @@ These docs were written from live CLI verification (`semble --help`, `semble sea
 | `semble search ... --content docs` | Flag does NOT exist. Use `--include-text-files` |
 | `omega flush`, `omega mine`, `omega note` | These CLIs do not exist — confirmed dead code |
 | `semble` only searches code | `semble init` creates a Claude Code sub-agent config file |
-| goldfish needs to trigger OMEGA memory capture | OMEGA's own 7 hooks handle all capture automatically |
+| goldfishh needs to trigger OMEGA memory capture | OMEGA's own 7 hooks handle all capture automatically |
 
 - [ ] **Step 1: Verify docs exist**
 
@@ -66,7 +66,7 @@ Expected: `gitnexus.md  omega.md  semble.md`
 - [ ] **Step 2: Commit the tool docs**
 
 ```bash
-cd /home/tchawes/goldfish && git add docs/tools/
+cd /home/tchawes/goldfishh && git add docs/tools/
 git commit -m "$(cat <<'EOF'
 docs: add verified tool reference docs for semble, omega, gitnexus
 
@@ -85,7 +85,7 @@ EOF
 ## Task 1: Fix enricher.py semble vault search flag
 
 **Files:**
-- Modify: `src/goldfish/enricher.py:45`
+- Modify: `src/goldfishh/enricher.py:45`
 - Test: `tests/test_enricher.py` (check if it exists, create if not)
 
 The `semble search` CLI does not accept `--content docs`. The correct flag for searching text/markdown files is `--include-text-files`. Without this, vault note searches silently return nothing.
@@ -93,14 +93,14 @@ The `semble search` CLI does not accept `--content docs`. The correct flag for s
 - [ ] **Step 1: Verify the correct semble flag**
 
 ```bash
-semble search "test query" ~/.goldfish/vaults/goldfish --include-text-files 2>&1 | head -5
+semble search "test query" ~/.goldfishh/vaults/goldfishh --include-text-files 2>&1 | head -5
 ```
 
 Expected: results or "no results found" (not an error about unknown flags)
 
 - [ ] **Step 2: Fix the flag in enricher.py**
 
-In `src/goldfish/enricher.py`, change line 45-47 from:
+In `src/goldfishh/enricher.py`, change line 45-47 from:
 ```python
         docs_result = _run(
             ["semble", "search", chunk, vault_path, "--content", "docs"],
@@ -136,12 +136,12 @@ ls tests/test_enricher.py 2>/dev/null || echo "does not exist"
 If it does not exist, create `tests/test_enricher.py`:
 ```python
 from unittest.mock import patch, MagicMock
-from goldfish.enricher import enrich, decompose
+from goldfishh.enricher import enrich, decompose
 
 
 def test_enrich_vault_search_uses_include_text_files(tmp_path):
     """semble vault search must use --include-text-files, not --content docs."""
-    with patch("goldfish.enricher._run") as mock_run:
+    with patch("goldfishh.enricher._run") as mock_run:
         mock_run.return_value = MagicMock(
             returncode=0, stdout=b"some result"
         )
@@ -172,7 +172,7 @@ def test_enrich_short_prompt_returns_empty():
 
 
 def test_enrich_returns_empty_when_no_results(tmp_path):
-    with patch("goldfish.enricher._run") as mock_run:
+    with patch("goldfishh.enricher._run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout=b"")
         result = enrich("fix auth middleware for JWT rotation", "/project", "myapp")
     assert result == ""
@@ -181,7 +181,7 @@ def test_enrich_returns_empty_when_no_results(tmp_path):
 - [ ] **Step 5: Run the new tests**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/test_enricher.py -v
+cd /home/tchawes/goldfishh && python -m pytest tests/test_enricher.py -v
 ```
 
 Expected: all tests pass
@@ -189,13 +189,13 @@ Expected: all tests pass
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /home/tchawes/goldfish && git add src/goldfish/enricher.py pyproject.toml tests/test_enricher.py
+cd /home/tchawes/goldfishh && git add src/goldfishh/enricher.py pyproject.toml tests/test_enricher.py
 git commit -m "$(cat <<'EOF'
 fix: semble vault search flag and add chonkie dependency
 
 --content docs does not exist; --include-text-files is the correct flag
 for searching markdown files. Add chonkie to pyproject.toml so it is
-available in goldfish's own tool environment.
+available in goldfishh's own tool environment.
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 EOF
@@ -208,22 +208,22 @@ EOF
 
 **Files:**
 - Modify: `CLAUDE.md`
-- Modify: `src/goldfish/init.py`
+- Modify: `src/goldfishh/init.py`
 
 CLAUDE.md has three problems:
 1. Tool table shows `pip install omega-memory` and `--content docs` (both wrong)
 2. Line 14 says "The codebase does not exist yet." (it exists)
 3. Lines 156–208: triple-duplicate `## Agent Knowledge Tools` block from a bug in `_CLAUDE_MD_BLOCK`
 
-The root cause of the duplicate block: `_CLAUDE_MD_BLOCK` in `init.py` starts with `{GOLDFISH_SENTINEL}` and then immediately repeats `## Agent Knowledge Tools (managed by goldfish)` as a second heading, causing every `append_claude_md_block` call to double the heading. Two successive `goldfish init` runs created three copies.
+The root cause of the duplicate block: `_CLAUDE_MD_BLOCK` in `init.py` starts with `{GOLDFISH_SENTINEL}` and then immediately repeats `## Agent Knowledge Tools (managed by goldfishh)` as a second heading, causing every `append_claude_md_block` call to double the heading. Two successive `goldfishh init` runs created three copies.
 
 - [ ] **Step 1: Fix `_CLAUDE_MD_BLOCK` in init.py**
 
-In `src/goldfish/init.py`, the `_CLAUDE_MD_BLOCK` variable starts at line 24. Change it from:
+In `src/goldfishh/init.py`, the `_CLAUDE_MD_BLOCK` variable starts at line 24. Change it from:
 ```python
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
 ### Before any non-trivial task — query all three layers:
 ```
@@ -245,7 +245,7 @@ In `CLAUDE.md` lines 39–44, update the Tool Stack table:
 | GitNexus | `npm install -g gitnexus` → `npx gitnexus analyze` | Code graph, blast radius, hooks, skills — do not replicate |
 | OMEGA | `uv tool install "omega-memory[server]"` → `omega setup --download-model && omega setup --client claude-code` | Episodic memory, MCP, SQLite+ONNX, no daemon |
 | Semble | `uv tool install semble` | Semantic code search + vault search via `--include-text-files` |
-| Chonkie | goldfish dependency | SentenceChunker decomposes multi-topic prompts before fan-out |
+| Chonkie | goldfishh dependency | SentenceChunker decomposes multi-topic prompts before fan-out |
 ```
 
 - [ ] **Step 3: Remove "The codebase does not exist yet." from CLAUDE.md**
@@ -261,9 +261,9 @@ to (remove the line entirely):
 
 - [ ] **Step 4: Fix the triple-duplicate block in CLAUDE.md**
 
-Lines 156–208 of `CLAUDE.md` contain three copies of `## Agent Knowledge Tools (managed by goldfish)`. Replace everything from line 156 to end-of-file with a single clean copy:
+Lines 156–208 of `CLAUDE.md` contain three copies of `## Agent Knowledge Tools (managed by goldfishh)`. Replace everything from line 156 to end-of-file with a single clean copy:
 ```markdown
-## Agent Knowledge Tools (managed by goldfish)
+## Agent Knowledge Tools (managed by goldfishh)
 
 ### Before any non-trivial task — query all three layers:
 
@@ -280,7 +280,7 @@ Lines 156–208 of `CLAUDE.md` contain three copies of `## Agent Knowledge Tools
 
 #### Semantic Search — Semble (MCP)
 - `semble_search(query, path="./src")` — code search by meaning
-- `semble_search(query, path="~/.goldfish/vaults/<project>")` — vault notes (markdown indexed automatically)
+- `semble_search(query, path="~/.goldfishh/vaults/<project>")` — vault notes (markdown indexed automatically)
 
 ### Mandatory workflow before refactoring:
 1. `gitnexus context({name})` → understand the symbol
@@ -289,10 +289,10 @@ Lines 156–208 of `CLAUDE.md` contain three copies of `## Agent Knowledge Tools
 4. Then act.
 ```
 
-- [ ] **Step 5: Verify CLAUDE.md has exactly one goldfish block**
+- [ ] **Step 5: Verify CLAUDE.md has exactly one goldfishh block**
 
 ```bash
-grep -c "## Agent Knowledge Tools (managed by goldfish)" /home/tchawes/goldfish/CLAUDE.md
+grep -c "## Agent Knowledge Tools (managed by goldfishh)" /home/tchawes/goldfishh/CLAUDE.md
 ```
 
 Expected: `1`
@@ -300,16 +300,16 @@ Expected: `1`
 - [ ] **Step 6: Run the claude_md tests**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/test_claude_md.py -v
+cd /home/tchawes/goldfishh && python -m pytest tests/test_claude_md.py -v
 ```
 
 Expected: all pass
 
-- [ ] **Step 6b: Add `semble init` to goldfish init**
+- [ ] **Step 6b: Add `semble init` to goldfishh init**
 
 `semble init` writes `.claude/agents/semble-search.md` in the project cwd, creating a Claude Code sub-agent for Semble search. Add this call to `init.py`'s `run()` function, after the semble install check:
 
-In `src/goldfish/init.py`, find the Semble install block and add `semble init` after it:
+In `src/goldfishh/init.py`, find the Semble install block and add `semble init` after it:
 ```python
     # Semble — skip if already installed
     if shutil.which("semble"):
@@ -333,12 +333,12 @@ def test_init_calls_semble_init(tmp_path):
     """semble init must be called to set up the Claude Code sub-agent."""
     settings = tmp_path / "settings.json"
     settings.write_text("{}")
-    with patch("goldfish.init.check_dependency", return_value=True), \
-         patch("goldfish.init.shutil.which", return_value="/usr/bin/semble"), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
-         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path / "vaults"), \
-         patch("goldfish.init.VAULTS_ROOT", tmp_path / "vaults"):
+    with patch("goldfishh.init.check_dependency", return_value=True), \
+         patch("goldfishh.init.shutil.which", return_value="/usr/bin/semble"), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
+         patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path / "vaults"), \
+         patch("goldfishh.init.VAULTS_ROOT", tmp_path / "vaults"):
         mock_run.return_value = MagicMock(returncode=0)
         run(cwd=str(tmp_path), settings_path=settings, vaults_root=tmp_path / "vaults")
     cmds = [call[0][0] for call in mock_run.call_args_list]
@@ -352,12 +352,12 @@ def test_init_calls_semble_init(tmp_path):
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /home/tchawes/goldfish && git add CLAUDE.md src/goldfish/init.py tests/test_init.py
+cd /home/tchawes/goldfishh && git add CLAUDE.md src/goldfishh/init.py tests/test_init.py
 git commit -m "$(cat <<'EOF'
-fix: remove duplicate CLAUDE.md goldfish block, add semble init
+fix: remove duplicate CLAUDE.md goldfishh block, add semble init
 
 _CLAUDE_MD_BLOCK started with GOLDFISH_SENTINEL then immediately repeated
-the heading, causing each goldfish init run to add another copy. Fix the
+the heading, causing each goldfishh init run to add another copy. Fix the
 block, clean up the three existing copies, update the tool table to
 reflect uv installs, and add semble init call to wire up the Claude Code
 search sub-agent in each project.
@@ -592,7 +592,7 @@ The `_handle_post_tool_use` tests use `{"type": "PostToolUse"}` but call the han
 - [ ] **Step 3: Run the full test suite — expect all passing (fallback still present)**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest -x -q
+cd /home/tchawes/goldfishh && python -m pytest -x -q
 ```
 
 Expected: all tests pass (the type fallback in hook.py and drain.py still catches both formats)
@@ -600,7 +600,7 @@ Expected: all tests pass (the type fallback in hook.py and drain.py still catche
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /home/tchawes/goldfish && git add tests/test_hook.py tests/test_drain.py
+cd /home/tchawes/goldfishh && git add tests/test_hook.py tests/test_drain.py
 git commit -m "$(cat <<'EOF'
 test: update events to use hook_event_name field
 
@@ -617,7 +617,7 @@ EOF
 ## Task 4: Remove dead code from drain.py
 
 **Files:**
-- Modify: `src/goldfish/drain.py`
+- Modify: `src/goldfishh/drain.py`
 
 The following subprocess calls reference CLIs that do not have these subcommands:
 - `omega flush` (×3) — does not exist
@@ -638,7 +638,7 @@ After removing all dead calls:
 
 - [ ] **Step 1: Replace drain.py with the cleaned version**
 
-Replace the entire content of `src/goldfish/drain.py` with:
+Replace the entire content of `src/goldfishh/drain.py` with:
 
 ```python
 import json
@@ -648,10 +648,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
-from goldfish.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
-from goldfish.vault import read_note, scaffold, write_note
+from goldfishh.config import VAULTS_ROOT, get_manifest, project_name, write_manifest
+from goldfishh.vault import read_note, scaffold, write_note
 
-QUEUE_PATH = Path.home() / ".goldfish" / "queue.jsonl"
+QUEUE_PATH = Path.home() / ".goldfishh" / "queue.jsonl"
 
 
 def _run(cmd: list, **kwargs) -> Optional[subprocess.CompletedProcess]:
@@ -896,7 +896,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Run the test suite — expect failures on dead-code tests**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/test_drain.py -v 2>&1 | tail -30
+cd /home/tchawes/goldfishh && python -m pytest tests/test_drain.py -v 2>&1 | tail -30
 ```
 
 Expected: failures on `test_drain_processes_one_event`, `test_drain_processes_multiple_events`, `test_drain_routes_post_tool_use_write_to_semble`, `test_session_start_existing_project_calls_omega_mine`, `test_post_tool_use_*`, `test_semble_indexed_at_written_after_index`. These are all testing removed behaviour. All other tests should pass.
@@ -923,7 +923,7 @@ Remove these complete test functions from `tests/test_drain.py`:
 
 Also remove these import lines if they become unused:
 ```python
-from goldfish.drain import _handle_post_tool_use
+from goldfishh.drain import _handle_post_tool_use
 ```
 (check: `_handle_task_created` and `_handle_task_completed` imports still needed)
 
@@ -960,7 +960,7 @@ def test_drain_processes_multiple_events(tmp_path):
 
 - [ ] **Step 4: Fix test_drain_clears_queue_after_processing**
 
-Remove the `patch("goldfish.drain.subprocess.run")` context — Stop makes no subprocess calls:
+Remove the `patch("goldfishh.drain.subprocess.run")` context — Stop makes no subprocess calls:
 
 ```python
 def test_drain_clears_queue_after_processing(tmp_path):
@@ -977,16 +977,16 @@ Replace the deleted `omega mine` test with the real behaviour — `omega query` 
 ```python
 def test_session_start_existing_project_calls_omega_query(tmp_path):
     from unittest.mock import MagicMock
-    from goldfish.config import write_manifest
+    from goldfishh.config import write_manifest
     write_manifest("myapp", {
         "last_byte_offset": 100, "bootstrap_complete": True,
         "last_jsonl_file": ""
     }, vaults_root=tmp_path)
     event = {"hook_event_name": "SessionStart", "cwd": "/project/myapp", "session_id": "s2"}
-    with patch("goldfish.drain.subprocess.run") as mock_run, \
-         patch("goldfish.drain.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.config.VAULTS_ROOT", tmp_path), \
-         patch("goldfish.drain.drain"):
+    with patch("goldfishh.drain.subprocess.run") as mock_run, \
+         patch("goldfishh.drain.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.config.VAULTS_ROOT", tmp_path), \
+         patch("goldfishh.drain.drain"):
         mock_run.return_value = MagicMock(returncode=0, stdout="some context")
         handle_session_start(event, vaults_root=tmp_path)
     cmds = [call[0][0] for call in mock_run.call_args_list]
@@ -996,7 +996,7 @@ def test_session_start_existing_project_calls_omega_query(tmp_path):
 - [ ] **Step 6: Run the full test suite — all must pass**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest -x -q
+cd /home/tchawes/goldfishh && python -m pytest -x -q
 ```
 
 Expected: all tests pass, no failures
@@ -1004,7 +1004,7 @@ Expected: all tests pass, no failures
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /home/tchawes/goldfish && git add src/goldfish/drain.py tests/test_drain.py
+cd /home/tchawes/goldfishh && git add src/goldfishh/drain.py tests/test_drain.py
 git commit -m "$(cat <<'EOF'
 refactor: remove dead CLI calls from drain.py and update tests
 
@@ -1024,14 +1024,14 @@ EOF
 ## Task 6: Remove the type field fallback from routing
 
 **Files:**
-- Modify: `src/goldfish/hook.py:29`
-- Modify: `src/goldfish/drain.py:50` (in `_route`)
+- Modify: `src/goldfishh/hook.py:29`
+- Modify: `src/goldfishh/drain.py:50` (in `_route`)
 
 Now that all tests use `hook_event_name`, the `event.get("type", "")` fallback in both routing functions is dead code. Remove it so the code is unambiguous.
 
 - [ ] **Step 1: Remove fallback from hook.py**
 
-In `src/goldfish/hook.py` line 29, change:
+In `src/goldfishh/hook.py` line 29, change:
 ```python
     event_type = event.get("hook_event_name", event.get("type", ""))
 ```
@@ -1053,7 +1053,7 @@ If the old fallback is still there, change it to `event.get("hook_event_name", "
 - [ ] **Step 3: Run the full test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest -x -q
+cd /home/tchawes/goldfishh && python -m pytest -x -q
 ```
 
 Expected: all tests pass
@@ -1061,7 +1061,7 @@ Expected: all tests pass
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /home/tchawes/goldfish && git add src/goldfish/hook.py src/goldfish/drain.py
+cd /home/tchawes/goldfishh && git add src/goldfishh/hook.py src/goldfishh/drain.py
 git commit -m "$(cat <<'EOF'
 fix: remove type field fallback from event routing
 
@@ -1083,15 +1083,15 @@ EOF
 - [ ] **Step 1: Run the complete test suite**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest -v 2>&1 | tail -20
+cd /home/tchawes/goldfishh && python -m pytest -v 2>&1 | tail -20
 ```
 
 Expected: all tests pass, zero failures
 
-- [ ] **Step 2: Run goldfish doctor**
+- [ ] **Step 2: Run goldfishh doctor**
 
 ```bash
-goldfish doctor
+goldfishh doctor
 ```
 
 Expected: `All checks passed.` (or only expected gaps like gitnexus index)
@@ -1099,7 +1099,7 @@ Expected: `All checks passed.` (or only expected gaps like gitnexus index)
 - [ ] **Step 3: Count lines per module**
 
 ```bash
-wc -l src/goldfish/*.py | sort -n
+wc -l src/goldfishh/*.py | sort -n
 ```
 
 Expected approximate results:
@@ -1121,7 +1121,7 @@ The 400–600 line target from the PRD was aspirational and written before `cli.
 - [ ] **Step 4: Verify semble vault search works end-to-end**
 
 ```bash
-semble search "session start" ~/.goldfish/vaults/goldfish --include-text-files 2>&1 | head -10
+semble search "session start" ~/.goldfishh/vaults/goldfishh --include-text-files 2>&1 | head -10
 ```
 
 Expected: results from wake-up.md or checkpoint notes (not an error)
@@ -1129,7 +1129,7 @@ Expected: results from wake-up.md or checkpoint notes (not an error)
 - [ ] **Step 5: Verify omega query works**
 
 ```bash
-omega query "goldfish session start" 2>&1 | head -5
+omega query "goldfishh session start" 2>&1 | head -5
 ```
 
 Expected: results or "no results" (not a command-not-found error)
@@ -1149,7 +1149,7 @@ omega store "Completed v1.0 polish: removed 9 dead CLI calls from drain.py (omeg
 | PRD requirement | Covered? |
 |-----------------|----------|
 | `semble search <query> <path>` is correct CLI form | ✓ Task 1 |
-| OMEGA manages its own mining via its own hooks | ✓ Task 4 (removed goldfish's dead omega mine calls) |
+| OMEGA manages its own mining via its own hooks | ✓ Task 4 (removed goldfishh's dead omega mine calls) |
 | Hook handlers return in <10ms | ✓ unchanged (hook.py untouched except fallback removal) |
 | init.py is idempotent | ✓ Task 2 (duplicate block fix prevents CLAUDE.md from growing on re-runs) |
 | `hook_event_name` is the correct field name | ✓ Tasks 3, 5, 6 |

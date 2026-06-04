@@ -1,6 +1,6 @@
 # Architecture
 
-goldfish is an orchestration layer (~500 lines of Python). Every function is a subprocess call, a file write, or a config read. It does not build search, embeddings, or graphs.
+goldfishh is an orchestration layer (~500 lines of Python). Every function is a subprocess call, a file write, or a config read. It does not build search, embeddings, or graphs.
 
 ## Component map
 
@@ -11,10 +11,10 @@ goldfish is an orchestration layer (~500 lines of Python). Every function is a s
 └────────────────────────┬─────────────────────────────────┘
                          │ stdin JSON on every event
               ┌──────────▼──────────┐
-              │   goldfish hook    │  fast: append to queue, exit
+              │   goldfishh hook   │  fast: append to queue, exit
               └──────────┬──────────┘
                          │
-              ~/.goldfish/queue.jsonl   append-only, atomic
+              ~/.goldfishh/queue.jsonl   append-only, atomic
                          │
               ┌──────────▼──────────┐
               │    queue drain      │  200ms budget, priority lanes
@@ -42,19 +42,19 @@ goldfish is an orchestration layer (~500 lines of Python). Every function is a s
 | `drain.py` | Time-budgeted queue processor: routes events to subprocess/OMEGA API/file writes |
 | `enricher.py` | Chonkie decompose → Semble + OMEGA fan-out per prompt chunk |
 | `vault.py` | pathlib-only file writes: write_note(), read_note(), scaffold() |
-| `claude_md.py` | Upserts goldfish block in CLAUDE.md; registers hooks in settings.json |
-| `config.py` | Reads/writes ~/.goldfish/config.toml and per-project .manifest.toml |
+| `claude_md.py` | Upserts goldfishh block in CLAUDE.md; registers hooks in settings.json |
+| `config.py` | Reads/writes ~/.goldfishh/config.toml and per-project .manifest.toml |
 | `miner.py` | Replays historical JSONL sessions through OMEGA's own hooks |
 
 ## Four-layer agent instruction model
 
-goldfish installs agent instructions at four layers. Understanding the layers prevents duplication and drift:
+goldfishh installs agent instructions at four layers. Understanding the layers prevents duplication and drift:
 
 | Layer | Maintained by | Where | Content |
 |-------|--------------|-------|---------|
 | Layer 0 — File-based memory | Auto-memory system | `memory/*.md` loaded at session start | User preferences, behavioral feedback, reference pointers — zero latency |
 | Layer 1 — Tool-native | GitNexus, OMEGA, Semble | `<!-- gitnexus:start/end -->` in project files; `~/.claude/CLAUDE.md` for OMEGA; `.claude/agents/semble-search.md` | Each tool's specific MCP tool signatures and usage examples |
-| Layer 2 — Coordination | goldfish (`init.py` → `claude_md.py`) | `## Agent Knowledge Tools (managed by goldfish)` sentinel | Cross-tool orchestration: query all layers before acting |
+| Layer 2 — Coordination | goldfishh (`init.py` → `claude_md.py`) | `## Agent Knowledge Tools (managed by goldfishh)` sentinel | Cross-tool orchestration: query all layers before acting |
 | Layer 3 — Project-specific | Human or agent | Above maintained blocks in `CLAUDE.md` and `AGENTS.md` | Codebase-specific guardrails, module map, contributor workflow |
 
 Rule: Layer 3 and 2 authored content says WHY and WHAT. Layer 1 blocks say HOW. Layer 0 loads automatically at zero latency.
@@ -63,16 +63,16 @@ Rule: Layer 3 and 2 authored content says WHY and WHAT. Layer 1 blocks say HOW. 
 
 Project identity = `cwd`. This mirrors how Claude Code organizes its own JSONL transcripts at `~/.claude/projects/{encoded-cwd}/`.
 
-Vault location: `~/.goldfish/vaults/{Path(cwd).name}/`  
+Vault location: `~/.goldfishh/vaults/{Path(cwd).name}/`  
 GitNexus index: `{cwd}/.gitnexus/`  
-Queue: `~/.goldfish/queue.jsonl`
+Queue: `~/.goldfishh/queue.jsonl`
 
 No scanning, no discovery — everything is deterministic from `cwd`.
 
 ## Vault structure
 
 ```
-~/.goldfish/vaults/{project}/
+~/.goldfishh/vaults/{project}/
 ├── .manifest.toml          ← sync state: JSONL offset, bootstrap status, semble_indexed_at
 ├── Memory/
 │   ├── Decisions/          ← why choices were made
@@ -108,17 +108,17 @@ Registered globally at `~/.claude/settings.json` — fires for every Claude Code
 
 ```
 Synchronous (Claude waits for stdout):
-  SessionStart       → goldfish hook  (bootstrap or catchup + wake-up)
-  UserPromptSubmit   → goldfish hook  (enrichment → stdout)
-  PreCompact         → goldfish hook  (session snapshot)
+  SessionStart       → goldfishh hook (bootstrap or catchup + wake-up)
+  UserPromptSubmit   → goldfishh hook (enrichment → stdout)
+  PreCompact         → goldfishh hook (session snapshot)
 
 Async (Claude does not wait):
-  PostToolUse        → goldfish hook  (registered so GitNexus hooks coexist)
-  SubagentStop       → goldfish hook
-  TaskCreated        → goldfish hook
-  TaskCompleted      → goldfish hook
-  Stop               → goldfish hook
-  SessionEnd         → goldfish hook
+  PostToolUse        → goldfishh hook (registered so GitNexus hooks coexist)
+  SubagentStop       → goldfishh hook
+  TaskCreated        → goldfishh hook
+  TaskCompleted      → goldfishh hook
+  Stop               → goldfishh hook
+  SessionEnd         → goldfishh hook
 
 GitNexus registers its own hooks during gitnexus analyze:
   PreToolUse         → gitnexus hook
@@ -134,7 +134,7 @@ Both hook sets coexist in `settings.json` without conflict.
 ```
 Claude Code launches
         ↓
-goldfish hook: .manifest.toml absent → NEW PROJECT
+goldfishh hook: .manifest.toml absent → NEW PROJECT
         ↓
 scaffold(vault)
 write_note("_context/wake-up.md", "First session. Vault ready.")

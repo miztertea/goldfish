@@ -1,4 +1,4 @@
-# CI/CD Pipeline Design — goldfish
+# CI/CD Pipeline Design — goldfishh
 
 **Date:** 2026-05-25
 **Status:** Approved for implementation
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Full GitHub Actions CI/CD pipeline for the goldfish project. Covers quality gates, cross-platform testing, automated versioning via git-cliff + hatch-vcs, PyPI publishing via Trusted Publisher (OIDC), Claude PR review, and the in-repo branch/worktree practices agents must follow.
+Full GitHub Actions CI/CD pipeline for the goldfishh project. Covers quality gates, cross-platform testing, automated versioning via git-cliff + hatch-vcs, PyPI publishing via Trusted Publisher (OIDC), Claude PR review, and the in-repo branch/worktree practices agents must follow.
 
 Designed for the GitHub free tier while private; once the repo goes public, macOS runner restrictions lift automatically.
 
@@ -98,14 +98,14 @@ Every agent coding session uses a git worktree. Worktrees live outside the repo 
 ```bash
 # Start of session
 git checkout -b feat/<name>
-git worktree add ../goldfish-<name> feat/<name>
-cd ../goldfish-<name>
+git worktree add ../goldfishh-<name> feat/<name>
+cd ../goldfishh-<name>
 
 # ... all work happens here ...
 
 # End of session — after PR merge
-cd /home/tchawes/goldfish
-git worktree remove ../goldfish-<name>
+cd /home/tchawes/goldfishh
+git worktree remove ../goldfishh-<name>
 ```
 
 See `superpowers:using-git-worktrees` skill for full details.
@@ -129,7 +129,7 @@ This is already in use — git history confirms compliance.
 Configure via GitHub Rulesets API after Phase 1 CI is green. Rulesets are the forward-looking approach (protection rules API is not deprecated but receives no new features).
 
 ```bash
-gh api repos/miztertea/goldfish/rulesets \
+gh api repos/miztertea/goldfishh/rulesets \
   -X POST \
   -H "Accept: application/vnd.github+json" \
   --input - <<'EOF'
@@ -173,7 +173,7 @@ Each entry looks like:
 ## [0.2.0] - 2026-06-01
 
 ### Features
-- add Claude Code detection to goldfish init (#12)
+- add Claude Code detection to goldfishh init (#12)
 
 ### Bug Fixes
 - fix hook routing for PreCompact events (#11)
@@ -205,7 +205,7 @@ Checklist prompts contributors to identify the commit type (which determines the
 quality (ubuntu-latest)                     ← runs on every push + PR
   ruff check .
   ruff format --check .
-  mypy src/goldfish/ (lenient — see below)
+  mypy src/goldfishh/ (lenient — see below)
   bandit -r src/ -ll                        ← medium+ severity only (skips B603/B607)
   uv run pip-audit                          ← run inside uv venv
 
@@ -224,13 +224,13 @@ matrix (needs: test)
   steps (all use shell: bash for cross-platform glob/path compatibility):
     uv sync --group dev
     uv run pytest                           ← full suite
-    actions/setup-node@v4                   ← npm required for goldfish init
+    actions/setup-node@v4                   ← npm required for goldfishh init
     uv build
-    uv tool install dist/goldfish-*.whl     ← shell: bash ensures glob works on Windows
-    goldfish --help
-    goldfish init                           ← requires ANTHROPIC_API_KEY secret injected
-    goldfish status
-    goldfish doctor
+    uv tool install dist/goldfishh-*.whl     ← shell: bash ensures glob works on Windows
+    goldfishh --help
+    goldfishh init                           ← requires ANTHROPIC_API_KEY secret injected
+    goldfishh status
+    goldfishh doctor
 
 release (ubuntu-latest, needs: matrix)
   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -245,8 +245,8 @@ release (ubuntu-latest, needs: matrix)
 - `matrix` has an explicit `if:` guard — macOS/Windows runners only fire on push to `main`, never on PRs
 - `claude-review` has `continue-on-error: true` — it cannot accidentally become a required gate
 - All matrix steps use `shell: bash` so glob patterns and path separators work identically on Windows
-- Matrix job injects `ANTHROPIC_API_KEY` from repo secrets so `goldfish init` can configure OMEGA
-- `uv run pip-audit` runs inside the uv-managed venv so goldfish's actual dependencies are audited
+- Matrix job injects `ANTHROPIC_API_KEY` from repo secrets so `goldfishh init` can configure OMEGA
+- `uv run pip-audit` runs inside the uv-managed venv so goldfishh's actual dependencies are audited
 - `bandit -r src/ -ll` skips low-severity findings (B603/B607 subprocess patterns are expected in this codebase)
 
 ### `publish.yml` — PyPI Trusted Publisher
@@ -268,7 +268,7 @@ Trusted Publisher setup (one-time — two parts, both required):
 
 **Part A — PyPI account settings:**
 - Publisher: GitHub Actions
-- Repository: miztertea/goldfish
+- Repository: miztertea/goldfishh
 - Workflow: publish.yml
 - Environment: pypi
 
@@ -300,7 +300,7 @@ ignore_missing_imports = true
 check_untyped_defs = false
 ```
 
-Target `src/goldfish/` not `src/` — this avoids scanning non-package files at the src root. Tighten incrementally as type annotations are added.
+Target `src/goldfishh/` not `src/` — this avoids scanning non-package files at the src root. Tighten incrementally as type annotations are added.
 
 ### bandit configuration
 
@@ -309,7 +309,7 @@ Target `src/goldfish/` not `src/` — this avoids scanning non-package files at 
 skips = ["B603", "B607"]   # subprocess.run with list args — expected, not a security issue
 ```
 
-Or use the CLI flag: `bandit -r src/ -ll` (medium+ severity only). The subprocess patterns in goldfish are intentional — all commands are hardcoded, not user-supplied.
+Or use the CLI flag: `bandit -r src/ -ll` (medium+ severity only). The subprocess patterns in goldfishh are intentional — all commands are hardcoded, not user-supplied.
 
 ### New dev dependencies
 
@@ -332,11 +332,11 @@ hatch-vcs
 
 ---
 
-## Feature Prerequisite: Claude Code Detection in `goldfish init`
+## Feature Prerequisite: Claude Code Detection in `goldfishh init`
 
 ### What
 
-Add Claude Code detection and auto-install to `init.py`, making goldfish fully self-bootstrapping for new users and enabling end-to-end CI smoke tests.
+Add Claude Code detection and auto-install to `init.py`, making goldfishh fully self-bootstrapping for new users and enabling end-to-end CI smoke tests.
 
 ### Detection logic
 
@@ -356,7 +356,7 @@ Insert before the GitNexus check (Claude Code is the prerequisite for everything
 
 ### Why this enables CI smoke tests
 
-On a fresh macOS or Windows runner, `goldfish init` will:
+On a fresh macOS or Windows runner, `goldfishh init` will:
 1. Detect Claude Code missing → install via npm (npm pre-installed via `actions/setup-node@v4`)
 2. Install GitNexus → analyze repo
 3. Install OMEGA → configure (requires `ANTHROPIC_API_KEY` injected from repo secrets)
@@ -370,7 +370,7 @@ This is the real integration test — it validates the full new-user onboarding 
 ## Phasing
 
 ### Phase 0 — Prerequisite (implement first, separate PR)
-- Add Claude Code detection to `goldfish init`
+- Add Claude Code detection to `goldfishh init`
 - Switch to hatch-vcs (`dynamic = ["version"]`, `[tool.hatch.version] source = "vcs"`)
 - Create initial tag `v0.1.0` to establish baseline for git-cliff
 - Add `cliff.toml` to repo root (conventional commit config + CHANGELOG template)
@@ -387,7 +387,7 @@ This is the real integration test — it validates the full new-user onboarding 
 - `orhun/git-cliff-action@v4` + release script in `ci.yml`
 - Create `pypi` GitHub environment (Settings → Environments)
 - PyPI Trusted Publisher setup (in PyPI account — one-time, Part A)
-- `ANTHROPIC_API_KEY` secret added to repo (for goldfish init in matrix job + Claude PR review)
+- `ANTHROPIC_API_KEY` secret added to repo (for goldfishh init in matrix job + Claude PR review)
 
 ### Phase 3 — In-repo docs + roadmap
 - `CONTRIBUTING.md` (branch naming, worktree workflow, commit conventions)
@@ -410,12 +410,12 @@ act -j matrix         # run the matrix job (Linux container, macOS/Windows mappe
 Phase 4 deliverable: add `act` to CONTRIBUTING.md with the local workflow commands above.
 
 **Why Linux-only local testing is sufficient:**
-goldfish is orchestration — a thin Python layer that installs and configures already-cross-platform-tested tools (Claude Code, GitNexus, OMEGA, Semble). The actual cross-platform risk surface is narrow:
+goldfishh is orchestration — a thin Python layer that installs and configures already-cross-platform-tested tools (Claude Code, GitNexus, OMEGA, Semble). The actual cross-platform risk surface is narrow:
 - Python logic: same binary everywhere (`pathlib.Path`, `subprocess` with list args, all deps cross-platform)
 - External tools: they handle their own platform concerns
 - The one genuine risk: `settings.json` hook entries must resolve to the correct binary path format on each OS (Windows needs `.exe` path with Windows separators)
 
-This risk surfaces immediately when `goldfish init` runs on a real runner, which is exactly what the macOS/Windows CI gate on `main` tests. Linux-local covers all the logic; GitHub runners catch the narrow shell/path integration issues before any release.
+This risk surfaces immediately when `goldfishh init` runs on a real runner, which is exactly what the macOS/Windows CI gate on `main` tests. Linux-local covers all the logic; GitHub runners catch the narrow shell/path integration issues before any release.
 
 **Researched and ruled out — local Windows/macOS container testing:**
 The idea of testing uvbox-built binaries in local containers (dockur/windows, docker-osx) was evaluated and found impractical:
@@ -426,10 +426,10 @@ The idea of testing uvbox-built binaries in local containers (dockur/windows, do
 **Conclusion:** GitHub Actions remains the only reliable cross-platform validation. `act` covers the fast Linux-local dev loop.
 
 ### Phase 5 — uvbox distribution (future)
-uvbox (github.com/AmadeusITGroup/uvbox) builds self-bootstrapping executables using Go cross-compilation — Linux, macOS, and Windows binaries from a single Ubuntu machine. Users would be able to install goldfish without Python or uv pre-installed:
+uvbox (github.com/AmadeusITGroup/uvbox) builds self-bootstrapping executables using Go cross-compilation — Linux, macOS, and Windows binaries from a single Ubuntu machine. Users would be able to install goldfishh without Python or uv pre-installed:
 
 ```bash
-curl -L https://github.com/miztertea/goldfish/releases/download/v0.2.0/goldfish-linux-amd64 -o goldfish && chmod +x goldfish && ./goldfish init
+curl -L https://github.com/miztertea/goldfishh/releases/download/v0.2.0/goldfishh-linux-amd64 -o goldfishh && chmod +x goldfishh && ./goldfishh init
 ```
 
 This is a distribution improvement, not a testing story. Defer to a future spec after the core pipeline is stable.
@@ -446,7 +446,7 @@ This is a distribution improvement, not a testing story. Defer to a future spec 
 | Release planning | GitHub Milestones (one per upcoming version) |
 | Public intent and direction | `ROADMAP.md` in repo root |
 | Community discussion (once public) | GitHub Discussions |
-| Session decisions and agent context | OMEGA + goldfish vault |
+| Session decisions and agent context | OMEGA + goldfishh vault |
 
 ### Issue labels
 
@@ -472,9 +472,9 @@ This is the public-facing "where is this going" document. Agents should read it 
 
 ## Open Prerequisites (manual steps before implementation)
 
-1. **PyPI package name:** verify `goldfish` is available on PyPI before Phase 2. If taken, choose an alternative (e.g., `goldfish-agent`) and update `pyproject.toml`.
-2. **PyPI Trusted Publisher (Part A):** configure in PyPI account settings after Phase 1 CI is green (Publisher: GitHub Actions, repo: miztertea/goldfish, workflow: publish.yml, env: pypi).
+1. **PyPI package name:** verify `goldfishh` is available on PyPI before Phase 2. If taken, choose an alternative (e.g., `goldfishh-agent`) and update `pyproject.toml`.
+2. **PyPI Trusted Publisher (Part A):** configure in PyPI account settings after Phase 1 CI is green (Publisher: GitHub Actions, repo: miztertea/goldfishh, workflow: publish.yml, env: pypi).
 3. **GitHub environment `pypi` (Part B):** create in GitHub repo Settings → Environments. Required for OIDC token issuance — without this the publish job cannot start.
 4. **Branch protection bypass:** create a PAT with `repo` scope, store as `GH_TOKEN` secret, add as bypass actor in the ruleset via GitHub UI after running the `gh api` command.
-5. **`ANTHROPIC_API_KEY` secret:** add to GitHub repo secrets — used by both the Claude PR review job and `goldfish init` in the matrix smoke test (OMEGA setup requires it).
+5. **`ANTHROPIC_API_KEY` secret:** add to GitHub repo secrets — used by both the Claude PR review job and `goldfishh init` in the matrix smoke test (OMEGA setup requires it).
 6. **Verify `anthropics/claude-code-action` version tag** at implementation time — use the latest published release tag, not `@main`.

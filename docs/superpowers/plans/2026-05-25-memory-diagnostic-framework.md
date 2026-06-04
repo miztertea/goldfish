@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the Six Memory Failure Modes framework — a named diagnostic for the agent memory layer — along with 6 instruction fixes, a new `goldfish-diagnostic` skill, and a retrospective skill update that tracks diagnostic trends across sessions.
+**Goal:** Ship the Six Memory Failure Modes framework — a named diagnostic for the agent memory layer — along with 6 instruction fixes, a new `goldfishh-diagnostic` skill, and a retrospective skill update that tracks diagnostic trends across sessions.
 
-**Architecture:** Pure text and skill-file changes — no Python logic modified. Two new files created (`docs/memory-diagnostic.md`, `goldfish-diagnostic` skill), two skills modified, three instruction files patched (`goldfish/CLAUDE.md`, `init.py`, `~/.claude/CLAUDE.md`), one stale memory file updated. All changes to the goldfish repo are committed; skill and global config changes are file-only.
+**Architecture:** Pure text and skill-file changes — no Python logic modified. Two new files created (`docs/memory-diagnostic.md`, `goldfishh-diagnostic` skill), two skills modified, three instruction files patched (`goldfishh/CLAUDE.md`, `init.py`, `~/.claude/CLAUDE.md`), one stale memory file updated. All changes to the goldfishh repo are committed; skill and global config changes are file-only.
 
 **Tech Stack:** Markdown, Python f-string (for `_CLAUDE_MD_BLOCK`), OMEGA CLI (`omega store`)
 
@@ -17,12 +17,12 @@
 | Action | File | Responsibility |
 |--------|------|---------------|
 | Create | `docs/memory-diagnostic.md` | Six Failure Modes framework doc — the analytical vocabulary |
-| Modify | `goldfish/CLAUDE.md` (goldfish block only) | Layer table split, Memory Router, omega_protocol step fix |
-| Modify | `src/goldfish/init.py` (`_CLAUDE_MD_BLOCK`) | Mirror all goldfish/CLAUDE.md changes for new installs |
+| Modify | `goldfishh/CLAUDE.md` (goldfishh block only) | Layer table split, Memory Router, omega_protocol step fix |
+| Modify | `src/goldfishh/init.py` (`_CLAUDE_MD_BLOCK`) | Mirror all goldfishh/CLAUDE.md changes for new installs |
 | Modify | `~/.claude/CLAUDE.md` (OMEGA block) | Remove conflicting routing line, fix omega_protocol framing |
-| Modify | `~/.claude/projects/-home-tchawes-goldfish/memory/project_goldfish.md` | Fix stale "design phase" claim |
-| Create | `~/.claude/skills/goldfish-diagnostic/SKILL.md` | New diagnostic skill |
-| Modify | `~/.claude/skills/goldfish-session-retrospective/SKILL.md` | Add Section 4.5 Memory Layer Health |
+| Modify | `~/.claude/projects/-home-tchawes-goldfishh/memory/project_goldfish.md` | Fix stale "design phase" claim |
+| Create | `~/.claude/skills/goldfishh-diagnostic/SKILL.md` | New diagnostic skill |
+| Modify | `~/.claude/skills/goldfishh-session-retrospective/SKILL.md` | Add Section 4.5 Memory Layer Health |
 
 ---
 
@@ -33,14 +33,14 @@
 
 - [ ] **Step 1: Write the framework document**
 
-Create `/home/tchawes/goldfish/docs/memory-diagnostic.md` with this exact content:
+Create `/home/tchawes/goldfishh/docs/memory-diagnostic.md` with this exact content:
 
 ```markdown
 # Six Memory Failure Modes
 
-A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-failures.md` — same design language, applied to memory architecture instead of agent context failures.
+A diagnostic framework for goldfishh's agent memory layer. Sibling to `docs/five-failures.md` — same design language, applied to memory architecture instead of agent context failures.
 
-**Use:** Run `/goldfish-diagnostic` to score each dimension against the current instruction set. Track scores across sessions to measure improvement direction.
+**Use:** Run `/goldfishh-diagnostic` to score each dimension against the current instruction set. Track scores across sessions to measure improvement direction.
 
 ---
 
@@ -67,7 +67,7 @@ A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-
 
 ## Current State Assessment
 
-*Updated by `/goldfish-diagnostic` each time it runs.*
+*Updated by `/goldfishh-diagnostic` each time it runs.*
 
 **Last diagnostic:** 2026-05-25
 
@@ -75,7 +75,7 @@ A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-
 |---------|-------|-------------|
 | Routing fog | 🔴 RED | No routing decision table; user prefs claimed by both auto-memory and OMEGA quick reference |
 | Dark corner | 🟡 YELLOW | Tool health state + KPI timeseries have no home |
-| Arrival gap | 🟡 YELLOW | `omega_protocol()` framing misleading; CLAUDE.md guaranteed by goldfish init so absence not a real failure |
+| Arrival gap | 🟡 YELLOW | `omega_protocol()` framing misleading; CLAUDE.md guaranteed by goldfishh init so absence not a real failure |
 | Stale signal | 🟡 YELLOW | `project_goldfish.md` stale; no structured validation cadence |
 | Boundary blur | 🔴 RED | Layer 0/OMEGA user-pref overlap; vault vs OMEGA scope undefined |
 | Instruction fiction | 🔴 RED | `omega_protocol` framing aspirational vs thin free-tier reality; OMEGA labeled "on demand" but required |
@@ -88,13 +88,13 @@ A diagnostic framework for goldfish's agent memory layer. Sibling to `docs/five-
 
 - `docs/five-failures.md` — agent context failure modes (the original framework)
 - `docs/architecture.md` — runtime flows and layer wiring
-- `.claude/skills/goldfish-diagnostic/SKILL.md` — how to run the diagnostic
+- `.claude/skills/goldfishh-diagnostic/SKILL.md` — how to run the diagnostic
 ```
 
 - [ ] **Step 2: Verify the document has all required sections**
 
 ```bash
-grep -n "Six Failure Modes\|Scoring Rubric\|Current State Assessment\|Further Reading" /home/tchawes/goldfish/docs/memory-diagnostic.md
+grep -n "Six Failure Modes\|Scoring Rubric\|Current State Assessment\|Further Reading" /home/tchawes/goldfishh/docs/memory-diagnostic.md
 ```
 
 Expected: 4 matches, one per section heading.
@@ -102,8 +102,8 @@ Expected: 4 matches, one per section heading.
 - [ ] **Step 3: Commit**
 
 ```bash
-git -C /home/tchawes/goldfish add docs/memory-diagnostic.md
-git -C /home/tchawes/goldfish commit -m "docs: add Six Memory Failure Modes framework document
+git -C /home/tchawes/goldfishh add docs/memory-diagnostic.md
+git -C /home/tchawes/goldfishh commit -m "docs: add Six Memory Failure Modes framework document
 
 Sibling to five-failures.md — named diagnostic for the agent memory layer.
 Includes 6 failure modes, scoring rubric, and baseline assessment (3 RED / 3 YELLOW).
@@ -113,26 +113,26 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 ---
 
-## Task 2: Fix `goldfish/CLAUDE.md` — layer table + Memory Router + step 3
+## Task 2: Fix `goldfishh/CLAUDE.md` — layer table + Memory Router + step 3
 
 **Files:**
-- Modify: `/home/tchawes/goldfish/CLAUDE.md` (the "Agent Knowledge Tools" section only)
+- Modify: `/home/tchawes/goldfishh/CLAUDE.md` (the "Agent Knowledge Tools" section only)
 
-- [ ] **Step 1: Read the current goldfish block to orient**
+- [ ] **Step 1: Read the current goldfishh block to orient**
 
 ```bash
-grep -n "Layer 0\|Layer 1\|Layer 2\|Layer 3\|omega_protocol\|Memory systems" /home/tchawes/goldfish/CLAUDE.md
+grep -n "Layer 0\|Layer 1\|Layer 2\|Layer 3\|omega_protocol\|Memory systems" /home/tchawes/goldfishh/CLAUDE.md
 ```
 
 Expected: lines showing the current 4-row table and session start sequence.
 
 - [ ] **Step 2: Replace the layer table and add Memory Router**
 
-Find and replace the entire block from `goldfish coordinates four layers` through `Layer 0 is static (loads automatically)` with the new content below.
+Find and replace the entire block from `goldfishh coordinates four layers` through `Layer 0 is static (loads automatically)` with the new content below.
 
 **Old text** (exact match):
 ```
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -146,7 +146,7 @@ Layer 0 is static (loads automatically); Layer 1 tools are dynamic (called on de
 
 **New text**:
 ```
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -162,7 +162,7 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfishh hooks |
 
 Vault = human-readable architectural summaries; OMEGA = machine-queryable decision records. The same decision can produce both — one for reading, one for querying.
 
@@ -186,13 +186,13 @@ Find and replace the omega_protocol line in the session start sequence.
 - [ ] **Step 4: Verify the changes**
 
 ```bash
-grep -n "Memory Router\|Required at session start\|supplements CLAUDE.md\|Write file directly" /home/tchawes/goldfish/CLAUDE.md
+grep -n "Memory Router\|Required at session start\|supplements CLAUDE.md\|Write file directly" /home/tchawes/goldfishh/CLAUDE.md
 ```
 
 Expected: 4 matches — one per new element added.
 
 ```bash
-grep -n "MCP on demand; OMEGA via\|Layer 0 is static\|operating rules for this session" /home/tchawes/goldfish/CLAUDE.md
+grep -n "MCP on demand; OMEGA via\|Layer 0 is static\|operating rules for this session" /home/tchawes/goldfishh/CLAUDE.md
 ```
 
 Expected: 0 matches — the old text is gone.
@@ -200,8 +200,8 @@ Expected: 0 matches — the old text is gone.
 - [ ] **Step 5: Commit**
 
 ```bash
-git -C /home/tchawes/goldfish add CLAUDE.md
-git -C /home/tchawes/goldfish commit -m "fix: update goldfish CLAUDE.md — layer table split, Memory Router, omega_protocol framing
+git -C /home/tchawes/goldfishh add CLAUDE.md
+git -C /home/tchawes/goldfishh commit -m "fix: update goldfishh CLAUDE.md — layer table split, Memory Router, omega_protocol framing
 
 - Split Layer 1 into OMEGA (required) and GitNexus/Semble (on demand) rows
 - Add Memory Router table: one authoritative system per content type
@@ -213,15 +213,15 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 ---
 
-## Task 3: Mirror changes in `src/goldfish/init.py`
+## Task 3: Mirror changes in `src/goldfishh/init.py`
 
 **Files:**
-- Modify: `src/goldfish/init.py` (lines 25–56, the `_CLAUDE_MD_BLOCK` f-string)
+- Modify: `src/goldfishh/init.py` (lines 25–56, the `_CLAUDE_MD_BLOCK` f-string)
 
 - [ ] **Step 1: Read the current `_CLAUDE_MD_BLOCK`**
 
 ```bash
-sed -n '25,57p' /home/tchawes/goldfish/src/goldfish/init.py
+sed -n '25,57p' /home/tchawes/goldfishh/src/goldfishh/init.py
 ```
 
 Confirm the block matches the old CLAUDE.md content (4-row table, old step 3).
@@ -233,7 +233,7 @@ Replace the entire `_CLAUDE_MD_BLOCK` definition (lines 25–56) with:
 ```python
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
 
-goldfish coordinates four layers of agent intelligence. All four are available from session start.
+goldfishh coordinates four layers of agent intelligence. All four are available from session start.
 
 | Layer | What it is | When it loads |
 |-------|-----------|--------------|
@@ -249,7 +249,7 @@ goldfish coordinates four layers of agent intelligence. All four are available f
 |---|---|---|
 | User preferences, behavioral feedback, reference pointers | Auto-memory (Write tool → `memory/*.md`) | Write file directly |
 | Session decisions, lessons, known issues | OMEGA | `omega_store()` |
-| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfish hooks |
+| Architectural summaries, design notes | Goldfish vault | `write_note()` via goldfishh hooks |
 
 Vault = human-readable architectural summaries; OMEGA = machine-queryable decision records. The same decision can produce both — one for reading, one for querying.
 
@@ -276,16 +276,16 @@ GitNexus usage instructions are in the auto-maintained block below. OMEGA and Se
 """
 ```
 
-- [ ] **Step 3: Verify the block matches goldfish/CLAUDE.md**
+- [ ] **Step 3: Verify the block matches goldfishh/CLAUDE.md**
 
 ```bash
-grep -n "Memory Router\|Required at session start\|supplements CLAUDE.md" /home/tchawes/goldfish/src/goldfish/init.py
+grep -n "Memory Router\|Required at session start\|supplements CLAUDE.md" /home/tchawes/goldfishh/src/goldfishh/init.py
 ```
 
 Expected: 3 matches — same elements added in Task 2.
 
 ```bash
-grep -n "MCP on demand; OMEGA via\|Layer 0 is static\|operating rules for this session" /home/tchawes/goldfish/src/goldfish/init.py
+grep -n "MCP on demand; OMEGA via\|Layer 0 is static\|operating rules for this session" /home/tchawes/goldfishh/src/goldfishh/init.py
 ```
 
 Expected: 0 matches — old text gone.
@@ -293,7 +293,7 @@ Expected: 0 matches — old text gone.
 - [ ] **Step 4: Run the test suite to confirm no regressions**
 
 ```bash
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 Expected: all tests pass. The `_CLAUDE_MD_BLOCK` change is a string content change only — no logic changes.
@@ -301,10 +301,10 @@ Expected: all tests pass. The `_CLAUDE_MD_BLOCK` change is a string content chan
 - [ ] **Step 5: Commit**
 
 ```bash
-git -C /home/tchawes/goldfish add src/goldfish/init.py
-git -C /home/tchawes/goldfish commit -m "fix: sync _CLAUDE_MD_BLOCK in init.py with updated CLAUDE.md
+git -C /home/tchawes/goldfishh add src/goldfishh/init.py
+git -C /home/tchawes/goldfishh commit -m "fix: sync _CLAUDE_MD_BLOCK in init.py with updated CLAUDE.md
 
-Mirrors Task 2 changes so new goldfish installs get the correct layer table,
+Mirrors Task 2 changes so new goldfishh installs get the correct layer table,
 Memory Router, and omega_protocol framing.
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
@@ -317,7 +317,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 **Files:**
 - Modify: `/home/tchawes/.claude/CLAUDE.md` (lines 6 and 14, inside the OMEGA-managed block)
 
-> **Note:** This block is labeled `managed by omega setup, do not edit`. Running `omega setup` in the future may overwrite these edits. The routing fix is also covered durably by the Memory Router table in goldfish/CLAUDE.md (Task 2), so this task removes the conflict in the global config.
+> **Note:** This block is labeled `managed by omega setup, do not edit`. Running `omega setup` in the future may overwrite these edits. The routing fix is also covered durably by the Memory Router table in goldfishh/CLAUDE.md (Task 2), so this task removes the conflict in the global config.
 
 - [ ] **Step 1: Read the current OMEGA block**
 
@@ -367,58 +367,58 @@ Expected: 1 match — new omega_protocol framing present.
 ## Task 5: Fix `project_goldfish.md` — stale content
 
 **Files:**
-- Modify: `/home/tchawes/.claude/projects/-home-tchawes-goldfish/memory/project_goldfish.md`
+- Modify: `/home/tchawes/.claude/projects/-home-tchawes-goldfishh/memory/project_goldfish.md`
 
 - [ ] **Step 1: Read the current file**
 
-The file currently says: "Goldfish is a Python CLI tool (uvx goldfish init) in the design phase — PRD.md and DESIGN-COMPANION.MD exist but no code has been written yet."
+The file currently says: "Goldfish is a Python CLI tool (uvx goldfishh init) in the design phase — PRD.md and DESIGN-COMPANION.MD exist but no code has been written yet."
 
-This is stale. goldfish has shipped v0.9.6+ with full implementation.
+This is stale. goldfishh has shipped v0.9.6+ with full implementation.
 
 - [ ] **Step 2: Update the stale claim**
 
 **Old text** (exact match):
 ```
-Goldfish is a Python CLI tool (uvx goldfish init) in the design phase — PRD.md and DESIGN-COMPANION.MD exist but no code has been written yet. It is an orchestration layer ("Ansible playbook") that wires together GitNexus, OMEGA, Semble, and Chonkie to give Claude Code agents persistent memory across sessions.
+Goldfish is a Python CLI tool (uvx goldfishh init) in the design phase — PRD.md and DESIGN-COMPANION.MD exist but no code has been written yet. It is an orchestration layer ("Ansible playbook") that wires together GitNexus, OMEGA, Semble, and Chonkie to give Claude Code agents persistent memory across sessions.
 ```
 
 **New text**:
 ```
-Goldfish is a shipped Python CLI tool (uvx goldfish init, v0.9.6+). It is an orchestration layer ("Ansible playbook") that wires together GitNexus, OMEGA, Semble, and Chonkie to give Claude Code agents persistent memory across sessions. ~500 lines across 9 modules (cli, init, hook, drain, enricher, vault, claude_md, config, miner).
+Goldfish is a shipped Python CLI tool (uvx goldfishh init, v0.9.6+). It is an orchestration layer ("Ansible playbook") that wires together GitNexus, OMEGA, Semble, and Chonkie to give Claude Code agents persistent memory across sessions. ~500 lines across 9 modules (cli, init, hook, drain, enricher, vault, claude_md, config, miner).
 ```
 
 - [ ] **Step 3: Verify**
 
 ```bash
-grep -n "design phase\|no code has been written" /home/tchawes/.claude/projects/-home-tchawes-goldfish/memory/project_goldfish.md
+grep -n "design phase\|no code has been written" /home/tchawes/.claude/projects/-home-tchawes-goldfishh/memory/project_goldfish.md
 ```
 
 Expected: 0 matches — stale claim gone.
 
 ```bash
-grep -n "v0.9.6" /home/tchawes/.claude/projects/-home-tchawes-goldfish/memory/project_goldfish.md
+grep -n "v0.9.6" /home/tchawes/.claude/projects/-home-tchawes-goldfishh/memory/project_goldfish.md
 ```
 
 Expected: 1 match — updated state present.
 
 ---
 
-## Task 6: Create `goldfish-diagnostic` skill
+## Task 6: Create `goldfishh-diagnostic` skill
 
 **Files:**
-- Create: `/home/tchawes/.claude/skills/goldfish-diagnostic/SKILL.md`
+- Create: `/home/tchawes/.claude/skills/goldfishh-diagnostic/SKILL.md`
 
 - [ ] **Step 1: Create the skill directory and file**
 
 ```bash
-mkdir -p /home/tchawes/.claude/skills/goldfish-diagnostic
+mkdir -p /home/tchawes/.claude/skills/goldfishh-diagnostic
 ```
 
-Then write `/home/tchawes/.claude/skills/goldfish-diagnostic/SKILL.md` with this exact content:
+Then write `/home/tchawes/.claude/skills/goldfishh-diagnostic/SKILL.md` with this exact content:
 
 ```markdown
 ---
-name: goldfish-diagnostic
+name: goldfishh-diagnostic
 description: Use when you want to assess the memory layer architecture for gaps, routing ambiguities, or instruction fictions. Outputs a scored 6-dimension assessment using the Six Memory Failure Modes framework and stores it to OMEGA for retrospective trend tracking.
 ---
 
@@ -441,9 +441,9 @@ State: "Running memory diagnostic using the Six Memory Failure Modes framework."
 ### Step 2 — Load Evidence
 
 Read in parallel:
-- `/home/tchawes/goldfish/CLAUDE.md` — project instructions (layer table, Memory Router, session start)
+- `/home/tchawes/goldfishh/CLAUDE.md` — project instructions (layer table, Memory Router, session start)
 - `/home/tchawes/.claude/CLAUDE.md` — global instructions (OMEGA quick reference, omega_protocol framing)
-- `/home/tchawes/.claude/projects/-home-tchawes-goldfish/memory/MEMORY.md` — memory index
+- `/home/tchawes/.claude/projects/-home-tchawes-goldfishh/memory/MEMORY.md` — memory index
 
 If `omega_welcome()` was already called this session, use that output. If not, call it now.
 
@@ -520,7 +520,7 @@ These become the candidate task list for the session's implementation work.
 - [ ] **Step 2: Verify the skill has all required sections**
 
 ```bash
-grep -n "name:\|description:\|When to Invoke\|Step 1\|Step 2\|Step 3\|Step 4\|Step 5\|Step 6\|Step 7" /home/tchawes/.claude/skills/goldfish-diagnostic/SKILL.md
+grep -n "name:\|description:\|When to Invoke\|Step 1\|Step 2\|Step 3\|Step 4\|Step 5\|Step 6\|Step 7" /home/tchawes/.claude/skills/goldfishh-diagnostic/SKILL.md
 ```
 
 Expected: all 9 sections present.
@@ -530,22 +530,22 @@ Expected: all 9 sections present.
 The skill loads automatically on next session start from `~/.claude/skills/`. No registration required. Confirm the directory exists:
 
 ```bash
-ls /home/tchawes/.claude/skills/goldfish-diagnostic/
+ls /home/tchawes/.claude/skills/goldfishh-diagnostic/
 ```
 
 Expected: `SKILL.md`
 
 ---
 
-## Task 7: Update `goldfish-session-retrospective` skill — add Memory Layer Health section
+## Task 7: Update `goldfishh-session-retrospective` skill — add Memory Layer Health section
 
 **Files:**
-- Modify: `/home/tchawes/.claude/skills/goldfish-session-retrospective/SKILL.md`
+- Modify: `/home/tchawes/.claude/skills/goldfishh-session-retrospective/SKILL.md`
 
 - [ ] **Step 1: Read the current skill to find the insertion point**
 
 ```bash
-grep -n "What Worked\|KPI Scorecard\|OMEGA Storage" /home/tchawes/.claude/skills/goldfish-session-retrospective/SKILL.md
+grep -n "What Worked\|KPI Scorecard\|OMEGA Storage" /home/tchawes/.claude/skills/goldfishh-session-retrospective/SKILL.md
 ```
 
 Expected: line numbers for sections 4 (KPI Scorecard), 5 (What Worked / What Didn't), and 7 (OMEGA Storage). The new section 4.5 inserts between 4 and 5.
@@ -584,7 +584,7 @@ If a prior-session diagnostic exists in OMEGA, show delta per dimension:
 **Headline:** `Memory layer: X RED / Y YELLOW / Z GREEN [↑↓→ vs last diagnostic on YYYY-MM-DD]`
 
 **If no diagnostic was run this session:**
-> "No diagnostic run this session — invoke `/goldfish-diagnostic` to establish baseline."
+> "No diagnostic run this session — invoke `/goldfishh-diagnostic` to establish baseline."
 
 ---
 
@@ -616,7 +616,7 @@ Sections: 1 Header, 2 What We Built, 3 Layer Attribution, 4 KPI Scorecard, **4.5
 - [ ] **Step 4: Verify**
 
 ```bash
-grep -n "Memory Layer Health\|omega_query.*diagnostic\|goldfish-diagnostic" /home/tchawes/.claude/skills/goldfish-session-retrospective/SKILL.md
+grep -n "Memory Layer Health\|omega_query.*diagnostic\|goldfishh-diagnostic" /home/tchawes/.claude/skills/goldfishh-session-retrospective/SKILL.md
 ```
 
 Expected: 3 matches — section heading, the query call, and the skill reference.
@@ -629,23 +629,23 @@ Run these after all tasks complete to confirm the implementation is correct end-
 
 ```bash
 # 1. Git log — confirm 3 commits on main
-git -C /home/tchawes/goldfish log --oneline -5
+git -C /home/tchawes/goldfishh log --oneline -5
 
 # 2. Framework doc exists with all sections
-grep -c "##" /home/tchawes/goldfish/docs/memory-diagnostic.md
+grep -c "##" /home/tchawes/goldfishh/docs/memory-diagnostic.md
 
 # 3. Memory Router present in both CLAUDE.md and init.py
-grep -c "Memory Router" /home/tchawes/goldfish/CLAUDE.md /home/tchawes/goldfish/src/goldfish/init.py
+grep -c "Memory Router" /home/tchawes/goldfishh/CLAUDE.md /home/tchawes/goldfishh/src/goldfishh/init.py
 
 # 4. OMEGA on-demand label gone from both files
-grep -rn "MCP on demand; OMEGA via" /home/tchawes/goldfish/
+grep -rn "MCP on demand; OMEGA via" /home/tchawes/goldfishh/
 
 # 5. Both skills exist
-ls /home/tchawes/.claude/skills/goldfish-diagnostic/SKILL.md
-ls /home/tchawes/.claude/skills/goldfish-session-retrospective/SKILL.md
+ls /home/tchawes/.claude/skills/goldfishh-diagnostic/SKILL.md
+ls /home/tchawes/.claude/skills/goldfishh-session-retrospective/SKILL.md
 
 # 6. Tests still pass
-cd /home/tchawes/goldfish && python -m pytest tests/ -q
+cd /home/tchawes/goldfishh && python -m pytest tests/ -q
 ```
 
 All 6 checks must pass before calling this implementation complete.

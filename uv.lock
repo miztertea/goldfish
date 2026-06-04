@@ -212,7 +212,7 @@ wheels = [
 ]
 
 [[package]]
-name = "goldfish"
+name = "goldfishh"
 source = { editable = "." }
 dependencies = [
     { name = "chonkie" },

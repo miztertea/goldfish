@@ -1,12 +1,12 @@
-# goldfish mine Implementation Plan
+# goldfishh mine Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add `goldfish mine` — a CLI command that replays historical Claude Code JSONL session logs through OMEGA's own hook scripts to seed episodic memory, called automatically during `goldfish init` for existing projects.
+**Goal:** Add `goldfishh mine` — a CLI command that replays historical Claude Code JSONL session logs through OMEGA's own hook scripts to seed episodic memory, called automatically during `goldfishh init` for existing projects.
 
 **Architecture:** `miner.py` discovers OMEGA hook commands from `~/.claude/settings.json`, iterates unprocessed JSONL session files, and pipes each user and assistant message to `fast_hook.py auto_capture` / `fast_hook.py assistant_capture` respectively. Goldfish contributes zero classification logic — OMEGA's hooks handle storage, dedup, and flood protection. Processed session IDs are persisted in `.manifest.toml` under `mined_sessions`.
 
-**Tech Stack:** Python stdlib (`json`, `shlex`, `subprocess`, `pathlib`), existing `goldfish.config` helpers, typer CLI.
+**Tech Stack:** Python stdlib (`json`, `shlex`, `subprocess`, `pathlib`), existing `goldfishh.config` helpers, typer CLI.
 
 ---
 
@@ -14,11 +14,11 @@
 
 | File | Change |
 |------|--------|
-| `src/goldfish/config.py` | Add `mined_sessions: []` to `_MANIFEST_DEFAULTS` |
-| `src/goldfish/miner.py` | New — five small functions + `mine_project()` |
-| `src/goldfish/cli.py` | Add `goldfish mine` command (~20 lines) |
-| `src/goldfish/init.py` | Call `mine_project(cwd)` for existing projects |
-| `README.md` | Fix stale counts, add `goldfish mine`, add onboarding section |
+| `src/goldfishh/config.py` | Add `mined_sessions: []` to `_MANIFEST_DEFAULTS` |
+| `src/goldfishh/miner.py` | New — five small functions + `mine_project()` |
+| `src/goldfishh/cli.py` | Add `goldfishh mine` command (~20 lines) |
+| `src/goldfishh/init.py` | Call `mine_project(cwd)` for existing projects |
+| `README.md` | Fix stale counts, add `goldfishh mine`, add onboarding section |
 | `tests/test_config.py` | Two new tests for `mined_sessions` manifest field |
 | `tests/test_miner.py` | New — eight tests for `miner.py` |
 | `tests/test_init.py` | One new test: mine_project called for existing project |
@@ -27,7 +27,7 @@
 
 ## Background: How OMEGA hooks work
 
-OMEGA registers its own hooks in `~/.claude/settings.json` (separate from goldfish's hooks) via `omega setup --client claude-code`. These entries look like:
+OMEGA registers its own hooks in `~/.claude/settings.json` (separate from goldfishh's hooks) via `omega setup --client claude-code`. These entries look like:
 
 ```json
 {
@@ -50,7 +50,7 @@ OMEGA registers its own hooks in `~/.claude/settings.json` (separate from goldfi
 ## Task 1: config.py — add mined_sessions to manifest defaults
 
 **Files:**
-- Modify: `src/goldfish/config.py:9-14`
+- Modify: `src/goldfishh/config.py:9-14`
 - Test: `tests/test_config.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -83,7 +83,7 @@ Expected: FAIL — `KeyError: 'mined_sessions'`
 
 - [ ] **Step 3: Add mined_sessions to _MANIFEST_DEFAULTS**
 
-In `src/goldfish/config.py`, change `_MANIFEST_DEFAULTS` from:
+In `src/goldfishh/config.py`, change `_MANIFEST_DEFAULTS` from:
 
 ```python
 _MANIFEST_DEFAULTS = {
@@ -117,7 +117,7 @@ Expected: all PASS (existing tests plus 2 new ones)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/config.py tests/test_config.py
+git add src/goldfishh/config.py tests/test_config.py
 git commit -m "feat: add mined_sessions to manifest defaults"
 ```
 
@@ -126,7 +126,7 @@ git commit -m "feat: add mined_sessions to manifest defaults"
 ## Task 2: miner.py — core mining logic
 
 **Files:**
-- Create: `src/goldfish/miner.py`
+- Create: `src/goldfishh/miner.py`
 - Create: `tests/test_miner.py`
 
 - [ ] **Step 1: Write the failing tests**
@@ -141,7 +141,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 # These imports will fail until miner.py exists — that's the point
-from goldfish.miner import (
+from goldfishh.miner import (
     _extract_assistant_text,
     _extract_user_text,
     _find_hook_cmd,
@@ -202,7 +202,7 @@ def test_mine_project_returns_zero_when_sessions_dir_missing(tmp_path):
     # tmp_path has no .claude/projects/... subdirectory
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(json.dumps({}))
-    n = mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    n = mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                      _sessions_dir=tmp_path / "nonexistent")
     assert n == 0
 
@@ -219,11 +219,11 @@ def test_mine_project_processes_user_messages(tmp_path):
         "/python fast_hook.py assistant_capture",
     )))
 
-    with patch("goldfish.miner._pipe_to_hook") as mock_pipe, \
-         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}), \
-         patch("goldfish.miner.write_manifest"), \
-         patch("goldfish.miner.project_name", return_value="goldfish"):
-        n = mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    with patch("goldfishh.miner._pipe_to_hook") as mock_pipe, \
+         patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}), \
+         patch("goldfishh.miner.write_manifest"), \
+         patch("goldfishh.miner.project_name", return_value="goldfishh"):
+        n = mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                          _sessions_dir=sessions_dir)
 
     assert n == 1
@@ -231,7 +231,7 @@ def test_mine_project_processes_user_messages(tmp_path):
     payload = mock_pipe.call_args_list[0][0][1]
     assert payload["prompt"] == "fix the auth middleware"
     assert payload["session_id"] == "abc123"
-    assert payload["cwd"] == "/home/tchawes/goldfish"
+    assert payload["cwd"] == "/home/tchawes/goldfishh"
 
 
 def test_mine_project_processes_assistant_messages(tmp_path):
@@ -249,11 +249,11 @@ def test_mine_project_processes_assistant_messages(tmp_path):
         "/python fast_hook.py assistant_capture",
     )))
 
-    with patch("goldfish.miner._pipe_to_hook") as mock_pipe, \
-         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}), \
-         patch("goldfish.miner.write_manifest"), \
-         patch("goldfish.miner.project_name", return_value="goldfish"):
-        mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    with patch("goldfishh.miner._pipe_to_hook") as mock_pipe, \
+         patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}), \
+         patch("goldfishh.miner.write_manifest"), \
+         patch("goldfishh.miner.project_name", return_value="goldfishh"):
+        mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                      _sessions_dir=sessions_dir)
 
     assert mock_pipe.call_count >= 1
@@ -271,11 +271,11 @@ def test_mine_project_skips_already_mined_sessions(tmp_path):
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
 
-    with patch("goldfish.miner._pipe_to_hook") as mock_pipe, \
-         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": ["already-done"]}), \
-         patch("goldfish.miner.write_manifest"), \
-         patch("goldfish.miner.project_name", return_value="goldfish"):
-        n = mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    with patch("goldfishh.miner._pipe_to_hook") as mock_pipe, \
+         patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": ["already-done"]}), \
+         patch("goldfishh.miner.write_manifest"), \
+         patch("goldfishh.miner.project_name", return_value="goldfishh"):
+        n = mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                          _sessions_dir=sessions_dir)
 
     assert n == 0
@@ -295,11 +295,11 @@ def test_mine_project_skips_non_message_entries(tmp_path):
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
 
-    with patch("goldfish.miner._pipe_to_hook") as mock_pipe, \
-         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}), \
-         patch("goldfish.miner.write_manifest"), \
-         patch("goldfish.miner.project_name", return_value="goldfish"):
-        mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    with patch("goldfishh.miner._pipe_to_hook") as mock_pipe, \
+         patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}), \
+         patch("goldfishh.miner.write_manifest"), \
+         patch("goldfishh.miner.project_name", return_value="goldfishh"):
+        mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                      _sessions_dir=sessions_dir)
 
     assert mock_pipe.call_count == 1  # only the user message
@@ -315,11 +315,11 @@ def test_mine_project_updates_manifest_with_session_id(tmp_path):
     settings_path.write_text(json.dumps(_make_settings("auto_capture", "assistant_capture")))
     written = []
 
-    with patch("goldfish.miner._pipe_to_hook"), \
-         patch("goldfish.miner.get_manifest", return_value={"mined_sessions": []}), \
-         patch("goldfish.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)), \
-         patch("goldfish.miner.project_name", return_value="goldfish"):
-        mine_project("/home/tchawes/goldfish", settings_path=settings_path,
+    with patch("goldfishh.miner._pipe_to_hook"), \
+         patch("goldfishh.miner.get_manifest", return_value={"mined_sessions": []}), \
+         patch("goldfishh.miner.write_manifest", side_effect=lambda proj, data, **kw: written.append(data)), \
+         patch("goldfishh.miner.project_name", return_value="goldfishh"):
+        mine_project("/home/tchawes/goldfishh", settings_path=settings_path,
                      _sessions_dir=sessions_dir)
 
     assert written
@@ -332,9 +332,9 @@ def test_mine_project_updates_manifest_with_session_id(tmp_path):
 uv run pytest tests/test_miner.py -v
 ```
 
-Expected: `ModuleNotFoundError: No module named 'goldfish.miner'`
+Expected: `ModuleNotFoundError: No module named 'goldfishh.miner'`
 
-- [ ] **Step 3: Create src/goldfish/miner.py**
+- [ ] **Step 3: Create src/goldfishh/miner.py**
 
 ```python
 import json
@@ -342,8 +342,8 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from goldfish.claude_md import DEFAULT_SETTINGS
-from goldfish.config import get_manifest, project_name, write_manifest
+from goldfishh.claude_md import DEFAULT_SETTINGS
+from goldfishh.config import get_manifest, project_name, write_manifest
 
 
 def _find_hook_cmd(settings: dict, event: str, script_name: str) -> str | None:
@@ -458,16 +458,16 @@ Expected: all pass (89 existing + new miner/config tests)
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/goldfish/miner.py tests/test_miner.py
+git add src/goldfishh/miner.py tests/test_miner.py
 git commit -m "feat: add miner.py — replay JSONL sessions through OMEGA hooks"
 ```
 
 ---
 
-## Task 3: cli.py — goldfish mine command
+## Task 3: cli.py — goldfishh mine command
 
 **Files:**
-- Modify: `src/goldfish/cli.py`
+- Modify: `src/goldfishh/cli.py`
 - Test: `tests/test_cli.py` (add one test)
 
 - [ ] **Step 1: Write the failing test**
@@ -484,9 +484,9 @@ def test_mine_command_reports_no_new_sessions(tmp_path):
             "Stop": [{"hooks": [{"command": "/python fast_hook.py assistant_capture"}]}],
         }
     }))
-    with patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)), \
-         patch("goldfish.cli.DEFAULT_SETTINGS", settings), \
-         patch("goldfish.cli.mine_project", return_value=0) as mock_mine:
+    with patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)), \
+         patch("goldfishh.cli.DEFAULT_SETTINGS", settings), \
+         patch("goldfishh.cli.mine_project", return_value=0) as mock_mine:
         result = runner.invoke(app, ["mine"])
     assert result.exit_code == 0
     assert "no new sessions" in result.output.lower()
@@ -499,10 +499,10 @@ Expected: FAIL — `No such command 'mine'`
 
 - [ ] **Step 2: Add the mine command to cli.py**
 
-In `src/goldfish/cli.py`, add the following import at the top (near the other goldfish imports):
+In `src/goldfishh/cli.py`, add the following import at the top (near the other goldfishh imports):
 
 ```python
-from goldfish.miner import mine_project
+from goldfishh.miner import mine_project
 ```
 
 Then add the command (after the `replay` command):
@@ -514,11 +514,11 @@ def mine() -> None:
     import json as _json
     cwd = os.getcwd()
     settings = _json.loads(DEFAULT_SETTINGS.read_text()) if DEFAULT_SETTINGS.exists() else {}
-    from goldfish.miner import _find_hook_cmd
+    from goldfishh.miner import _find_hook_cmd
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
     asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
     if not auto_cmd and not asst_cmd:
-        typer.echo("OMEGA hooks not registered — run: goldfish init")
+        typer.echo("OMEGA hooks not registered — run: goldfishh init")
         raise typer.Exit(1)
 
     typer.echo(f"Mining sessions from ~/.claude/projects/...")
@@ -529,7 +529,7 @@ def mine() -> None:
         typer.echo(f"Done. {n} session(s) mined into OMEGA memory.")
 ```
 
-Note: `DEFAULT_SETTINGS` is already imported from `goldfish.config` at the top of cli.py.
+Note: `DEFAULT_SETTINGS` is already imported from `goldfishh.config` at the top of cli.py.
 
 - [ ] **Step 3: Run the test to verify it passes**
 
@@ -550,8 +550,8 @@ Expected: all PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/cli.py tests/test_cli.py
-git commit -m "feat: add goldfish mine CLI command"
+git add src/goldfishh/cli.py tests/test_cli.py
+git commit -m "feat: add goldfishh mine CLI command"
 ```
 
 ---
@@ -559,7 +559,7 @@ git commit -m "feat: add goldfish mine CLI command"
 ## Task 4: init.py — call mine_project for existing projects
 
 **Files:**
-- Modify: `src/goldfish/init.py`
+- Modify: `src/goldfishh/init.py`
 - Test: `tests/test_init.py` (add one test)
 
 - [ ] **Step 1: Write the failing test**
@@ -569,12 +569,12 @@ Add at the bottom of `tests/test_init.py`:
 ```python
 def test_init_calls_mine_project_for_existing_project(tmp_path):
     """On re-run for an existing project, mine_project must be called."""
-    from goldfish.config import write_manifest
-    project_dir = tmp_path / "goldfish"
+    from goldfishh.config import write_manifest
+    project_dir = tmp_path / "goldfishh"
     project_dir.mkdir()
     vaults_root = tmp_path / "vaults"
     # Existing project: manifest already written with bootstrap_complete=True
-    write_manifest("goldfish", {
+    write_manifest("goldfishh", {
         "last_byte_offset": 0, "bootstrap_complete": True,
         "semble_indexed_at": "", "last_jsonl_file": "", "mined_sessions": [],
     }, vaults_root=vaults_root)
@@ -582,13 +582,13 @@ def test_init_calls_mine_project_for_existing_project(tmp_path):
     settings.write_text("{}")
     (project_dir / ".gitnexus").mkdir()
 
-    with patch("goldfish.init.check_dependency", return_value=True), \
-         patch("goldfish.init.shutil.which", return_value="/usr/bin/omega"), \
-         patch("goldfish.init.subprocess.run") as mock_run, \
-         patch("goldfish.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
-         patch("goldfish.config.VAULTS_ROOT", vaults_root), \
-         patch("goldfish.init.VAULTS_ROOT", vaults_root), \
-         patch("goldfish.init.mine_project") as mock_mine:
+    with patch("goldfishh.init.check_dependency", return_value=True), \
+         patch("goldfishh.init.shutil.which", return_value="/usr/bin/omega"), \
+         patch("goldfishh.init.subprocess.run") as mock_run, \
+         patch("goldfishh.init._goldfish_stable_path", return_value=tmp_path / "nonexistent"), \
+         patch("goldfishh.config.VAULTS_ROOT", vaults_root), \
+         patch("goldfishh.init.VAULTS_ROOT", vaults_root), \
+         patch("goldfishh.init.mine_project") as mock_mine:
         mock_run.return_value = MagicMock(returncode=0)
         mock_mine.return_value = 3
         run(cwd=str(project_dir), settings_path=settings, vaults_root=vaults_root)
@@ -602,10 +602,10 @@ Expected: FAIL — `AssertionError: Expected call`
 
 - [ ] **Step 2: Add the mine_project call to init.py**
 
-At the top of `src/goldfish/init.py`, add the import:
+At the top of `src/goldfishh/init.py`, add the import:
 
 ```python
-from goldfish.miner import mine_project
+from goldfishh.miner import mine_project
 ```
 
 In the `run()` function, find the vault block:
@@ -650,13 +650,13 @@ Expected: all PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/goldfish/init.py tests/test_init.py
+git add src/goldfishh/init.py tests/test_init.py
 git commit -m "feat: call mine_project on init for existing projects"
 ```
 
 ---
 
-## Task 5: README.md — update stale info and document goldfish mine
+## Task 5: README.md — update stale info and document goldfishh mine
 
 **Files:**
 - Modify: `README.md`
@@ -697,7 +697,7 @@ Change:
 ```
 to:
 ```
-| **Chonkie** | goldfish dependency | Splits multi-topic prompts into search queries |
+| **Chonkie** | goldfishh dependency | Splits multi-topic prompts into search queries |
 ```
 
 **d. Remove stale hook table entries (in "Hook lifecycle" section):**
@@ -708,19 +708,19 @@ Remove these two rows from the hook table:
 | `PostToolUse(Bash git commit*)` | Records commit note in OMEGA |
 ```
 
-**e. Add `goldfish mine` to Hook lifecycle table:**
+**e. Add `goldfishh mine` to Hook lifecycle table:**
 
-The table header/rows cover session events. Add `goldfish mine` usage note after the hook table:
+The table header/rows cover session events. Add `goldfishh mine` usage note after the hook table:
 
 ```markdown
-Run `goldfish mine` once after setup to seed OMEGA with history from past sessions.
+Run `goldfishh mine` once after setup to seed OMEGA with history from past sessions.
 ```
 
-**f. Add `goldfish mine` to CLI reference section:**
+**f. Add `goldfishh mine` to CLI reference section:**
 
-After `goldfish replay`, add:
+After `goldfishh replay`, add:
 ```
-goldfish mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
+goldfishh mine              Seed OMEGA from historical JSONL session logs (run once on onboarding)
 ```
 
 **g. Add Onboarding an existing project section:**
@@ -733,11 +733,11 @@ After the "Quick start" section and before the horizontal rule, add:
 If you have prior Claude Code sessions in this project, seed OMEGA from them:
 
 ```bash
-goldfish init          # sets up hooks for future sessions
-goldfish mine          # seeds OMEGA from all past sessions (run once, inside a Claude session)
+goldfishh init          # sets up hooks for future sessions
+goldfishh mine          # seeds OMEGA from all past sessions (run once, inside a Claude session)
 ```
 
-`goldfish mine` is also called automatically on subsequent `goldfish init` runs.
+`goldfishh mine` is also called automatically on subsequent `goldfishh init` runs.
 ```
 
 **h. Add `miner.py` to the Architecture module table:**
@@ -751,7 +751,7 @@ miner.py      replay historical JSONL → pipes user/assistant text to OMEGA's o
 
 ```bash
 # Quick sanity check — make sure no obvious formatting issues
-grep -n "goldfish mine" README.md
+grep -n "goldfishh mine" README.md
 grep -n "3.13" README.md
 grep -n "miner.py" README.md
 ```
@@ -762,7 +762,7 @@ Expected: each grep returns at least one line.
 
 ```bash
 git add README.md
-git commit -m "docs: update README — goldfish mine, fix stale counts and hook table"
+git commit -m "docs: update README — goldfishh mine, fix stale counts and hook table"
 ```
 
 ---
@@ -777,10 +777,10 @@ uv run pytest -v
 
 Expected: all tests PASS
 
-- [ ] **Run goldfish doctor**
+- [ ] **Run goldfishh doctor**
 
 ```bash
-uv run goldfish doctor
+uv run goldfishh doctor
 ```
 
 Expected: all checks pass (or same result as before — doctor doesn't check miner)
@@ -788,7 +788,7 @@ Expected: all checks pass (or same result as before — doctor doesn't check min
 - [ ] **Smoke test the mine command**
 
 ```bash
-uv run goldfish mine
+uv run goldfishh mine
 ```
 
 Expected: reports N sessions mined (or "No new sessions to mine" if already mined).

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
-from goldfish.cli import app
+from goldfishh.cli import app
 
 runner = CliRunner()
 
@@ -12,10 +12,10 @@ def test_status_shows_queue_depth(tmp_path):
     queue = tmp_path / "queue.jsonl"
     queue.write_text('{"type":"Stop"}\n{"type":"Stop"}\n')
     with (
-        patch("goldfish.cli.QUEUE_PATH", queue),
-        patch("goldfish.cli.project_name", return_value="myapp"),
+        patch("goldfishh.cli.QUEUE_PATH", queue),
+        patch("goldfishh.cli.project_name", return_value="myapp"),
         patch(
-            "goldfish.cli.get_manifest",
+            "goldfishh.cli.get_manifest",
             return_value={
                 "last_byte_offset": 100,
                 "bootstrap_complete": True,
@@ -30,10 +30,10 @@ def test_status_shows_queue_depth(tmp_path):
 
 def test_status_shows_bootstrap_complete(tmp_path):
     with (
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "empty.jsonl"),
-        patch("goldfish.cli.project_name", return_value="myapp"),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "empty.jsonl"),
+        patch("goldfishh.cli.project_name", return_value="myapp"),
         patch(
-            "goldfish.cli.get_manifest",
+            "goldfishh.cli.get_manifest",
             return_value={
                 "last_byte_offset": 0,
                 "bootstrap_complete": True,
@@ -48,10 +48,10 @@ def test_status_shows_bootstrap_complete(tmp_path):
 
 def test_status_shows_bootstrap_pending(tmp_path):
     with (
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "empty.jsonl"),
-        patch("goldfish.cli.project_name", return_value="newapp"),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "empty.jsonl"),
+        patch("goldfishh.cli.project_name", return_value="newapp"),
         patch(
-            "goldfish.cli.get_manifest",
+            "goldfishh.cli.get_manifest",
             return_value={
                 "last_byte_offset": 0,
                 "bootstrap_complete": False,
@@ -70,7 +70,7 @@ def test_doctor_all_healthy(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(
         json.dumps(
-            {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]}}
+            {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfishh hook", "async": True}]}]}}
         )
     )
     # Create ~/.claude.json with all three MCPs registered
@@ -82,13 +82,13 @@ def test_doctor_all_healthy(tmp_path):
     for d in ["Memory/Decisions", "Memory/Lessons", "Memory/Errors", "Tasks", "Specs", "_context"]:
         (vaults_root / project / d).mkdir(parents=True)
     with (
-        patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"),
-        patch("goldfish.cli.sp.run") as mock_run,
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.cli.shutil.which", return_value="/usr/bin/node"),
+        patch("goldfishh.cli.sp.run") as mock_run,
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
@@ -103,13 +103,13 @@ def test_doctor_flags_missing_node(tmp_path):
     # Provide minimal claude.json and vaults so only node check fails
     (tmp_path / ".claude.json").write_text(json.dumps({"mcpServers": {}}))
     with (
-        patch("goldfish.cli.shutil.which", return_value=None),
-        patch("goldfish.cli.sp.run") as mock_run,
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.cli.shutil.which", return_value=None),
+        patch("goldfishh.cli.sp.run") as mock_run,
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
@@ -133,14 +133,14 @@ def test_replay_processes_jsonl_events(tmp_path):
     jsonl_file = jsonl_dir / "session1.jsonl"
     jsonl_file.write_text("\n".join(json.dumps(e) for e in events) + "\n")
 
-    vaults_root = tmp_path / ".goldfish" / "vaults"
+    vaults_root = tmp_path / ".goldfishh" / "vaults"
     with (
-        patch("goldfish.cli.os.getcwd", return_value="/project/myapp"),
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.VAULTS_ROOT", vaults_root),
-        patch("goldfish.config.VAULTS_ROOT", vaults_root),
-        patch("goldfish.drain.VAULTS_ROOT", vaults_root),
-        patch("goldfish.drain._route") as mock_route,
+        patch("goldfishh.cli.os.getcwd", return_value="/project/myapp"),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.config.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.drain.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.drain._route") as mock_route,
     ):
         result = runner.invoke(app, ["replay"])
 
@@ -153,7 +153,7 @@ def test_replay_resumes_from_offset(tmp_path):
     """replay skips lines before last_byte_offset in the resume file."""
     import json as json_mod
 
-    from goldfish.config import get_manifest, write_manifest
+    from goldfishh.config import get_manifest, write_manifest
 
     project = "myapp"
     vaults_root = tmp_path / "vaults"
@@ -188,11 +188,11 @@ def test_replay_resumes_from_offset(tmp_path):
         routed_events.append(event)
 
     with (
-        patch("goldfish.cli.drain._route", side_effect=fake_route),
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.os.getcwd", return_value=fake_cwd),
-        patch("goldfish.cli.project_name", return_value=project),
-        patch("goldfish.cli.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.cli.drain._route", side_effect=fake_route),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.os.getcwd", return_value=fake_cwd),
+        patch("goldfishh.cli.project_name", return_value=project),
+        patch("goldfishh.cli.VAULTS_ROOT", vaults_root),
     ):
         result = runner.invoke(app, ["replay"])
 
@@ -213,8 +213,8 @@ def test_register_hooks_command(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(json.dumps({}))
     with (
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"),
     ):
         result = runner.invoke(app, ["register-hooks"])
     assert result.exit_code == 0
@@ -237,14 +237,14 @@ def test_doctor_checks_mcp_registration(tmp_path):
     (tmp_path / ".gitnexus").mkdir()
 
     with (
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.sp.run") as mock_run,
-        patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"),
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
-        patch("goldfish.cli.project_name", return_value="myapp"),
-        patch("goldfish.cli.VAULTS_ROOT", tmp_path / "vaults"),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.sp.run") as mock_run,
+        patch("goldfishh.cli.shutil.which", return_value="/usr/bin/node"),
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
+        patch("goldfishh.cli.project_name", return_value="myapp"),
+        patch("goldfishh.cli.VAULTS_ROOT", tmp_path / "vaults"),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
@@ -276,14 +276,14 @@ def test_doctor_checks_vault_structure(tmp_path):
     claude_json.write_text(json.dumps({"mcpServers": {"omega": {}, "semble": {}, "gitnexus": {}}}))
 
     with (
-        patch("goldfish.cli.Path.home", return_value=tmp_path),
-        patch("goldfish.cli.sp.run") as mock_run,
-        patch("goldfish.cli.shutil.which", return_value="/usr/bin/node"),
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
-        patch("goldfish.cli.project_name", return_value="myapp"),
-        patch("goldfish.cli.VAULTS_ROOT", vaults_root),
+        patch("goldfishh.cli.Path.home", return_value=tmp_path),
+        patch("goldfishh.cli.sp.run") as mock_run,
+        patch("goldfishh.cli.shutil.which", return_value="/usr/bin/node"),
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.QUEUE_PATH", tmp_path / "queue.jsonl"),
+        patch("goldfishh.cli.project_name", return_value="myapp"),
+        patch("goldfishh.cli.VAULTS_ROOT", vaults_root),
     ):
         mock_run.return_value = MagicMock(returncode=0)
         result = runner.invoke(app, ["doctor"])
@@ -305,9 +305,9 @@ def test_mine_command_reports_no_new_sessions(tmp_path):
         )
     )
     with (
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.mine_project", return_value=0) as mock_mine,
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.mine_project", return_value=0) as mock_mine,
     ):
         result = runner.invoke(app, ["mine"])
     assert result.exit_code == 0
@@ -321,9 +321,9 @@ def test_mine_command_fails_without_omega_hooks(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(json.dumps({"hooks": {}}))
     with (
-        patch("goldfish.cli.os.getcwd", return_value=str(tmp_path)),
-        patch("goldfish.cli.DEFAULT_SETTINGS", settings),
-        patch("goldfish.cli.mine_project") as mock_mine,
+        patch("goldfishh.cli.os.getcwd", return_value=str(tmp_path)),
+        patch("goldfishh.cli.DEFAULT_SETTINGS", settings),
+        patch("goldfishh.cli.mine_project") as mock_mine,
     ):
         result = runner.invoke(app, ["mine"])
     assert result.exit_code == 1

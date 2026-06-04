@@ -3,8 +3,8 @@ from pathlib import Path
 
 import tomli_w
 
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
-CONFIG_PATH = Path.home() / ".goldfish" / "config.toml"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
+CONFIG_PATH = Path.home() / ".goldfishh" / "config.toml"
 DEFAULT_SETTINGS = Path.home() / ".claude" / "settings.json"
 
 _MANIFEST_DEFAULTS = {

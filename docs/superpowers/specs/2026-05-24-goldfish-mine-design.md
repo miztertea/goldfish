@@ -1,4 +1,4 @@
-# goldfish mine — Design Spec
+# goldfishh mine — Design Spec
 
 **Date:** 2026-05-24  
 **Status:** Approved for implementation
@@ -7,31 +7,31 @@
 
 ## Problem
 
-OMEGA episodic memory has been capturing decisions and lessons automatically via Claude Code hooks since goldfish init. But all JSONL session logs that predate init are dark — OMEGA has never seen them. For users onboarding an existing project, every prior decision and lesson is invisible until it surfaces again organically.
+OMEGA episodic memory has been capturing decisions and lessons automatically via Claude Code hooks since goldfishh init. But all JSONL session logs that predate init are dark — OMEGA has never seen them. For users onboarding an existing project, every prior decision and lesson is invisible until it surfaces again organically.
 
-**The gap:** `goldfish init` sets up future capture but does nothing for the past.
+**The gap:** `goldfishh init` sets up future capture but does nothing for the past.
 
 ---
 
 ## Goal
 
-Add `goldfish mine` — a CLI command that replays historical Claude Code JSONL session logs through OMEGA's own hook scripts, seeding episodic memory with past decisions and lessons. It is also called automatically during `goldfish init` for existing projects.
+Add `goldfishh mine` — a CLI command that replays historical Claude Code JSONL session logs through OMEGA's own hook scripts, seeding episodic memory with past decisions and lessons. It is also called automatically during `goldfishh init` for existing projects.
 
 ---
 
 ## Design Principles
 
-1. **Zero classification logic in goldfish.** OMEGA's hook scripts (`auto_capture.py`, `assistant_capture.py`) already detect decisions, lessons, and errors. Replay through them — don't reimplement their logic.
+1. **Zero classification logic in goldfishh.** OMEGA's hook scripts (`auto_capture.py`, `assistant_capture.py`) already detect decisions, lessons, and errors. Replay through them — don't reimplement their logic.
 2. **No data inflation.** No files copied into the repo. JSONL logs stay in `~/.claude/projects/`.
 3. **OMEGA provides all safety.** Flood protection: 20 captures max (user), 10 caps (assistant) per session ID. Conservative regex filters noise. Dedup is handled by OMEGA's bridge.
-4. **Incremental.** Processed session IDs recorded in `.manifest.toml`. Re-running `goldfish mine` skips already-processed sessions.
-5. **Hook path discovery.** OMEGA hook command strings are already in `~/.claude/settings.json` (written by `goldfish init`). Parse them at runtime — no hardcoded paths.
+4. **Incremental.** Processed session IDs recorded in `.manifest.toml`. Re-running `goldfishh mine` skips already-processed sessions.
+5. **Hook path discovery.** OMEGA hook command strings are already in `~/.claude/settings.json` (written by `goldfishh init`). Parse them at runtime — no hardcoded paths.
 
 ---
 
 ## Architecture
 
-### New file: `src/goldfish/miner.py`
+### New file: `src/goldfishh/miner.py`
 
 ~45 lines. Single public function `mine_project(cwd, settings_path)`.
 
@@ -85,24 +85,24 @@ mined_sessions = ["abc123", "def456"]
 
 ## CLI
 
-### `goldfish mine`
+### `goldfishh mine`
 
 ```
-goldfish mine              Replay historical JSONL logs into OMEGA memory
+goldfishh mine              Replay historical JSONL logs into OMEGA memory
 ```
 
 - Prints progress: `Mining {n} sessions from {path}...`
 - Prints per-session: `  Session {stem}: {user_count} user, {asst_count} assistant messages fed`
 - Prints summary: `Done. {n} sessions mined.`
 - If sessions dir doesn't exist: `No session logs found for this project.` (exit 0)
-- If OMEGA hooks not found in settings.json: `OMEGA hooks not registered — run: goldfish init` (exit 1)
+- If OMEGA hooks not found in settings.json: `OMEGA hooks not registered — run: goldfishh init` (exit 1)
 
 ### init.py integration
 
 After vault scaffold succeeds (any run where `bootstrap_complete` was already true, i.e. existing project):
 
 ```python
-from goldfish.miner import mine_project
+from goldfishh.miner import mine_project
 n = mine_project(cwd)
 if n:
     typer.echo(f"Mined {n} historical sessions into OMEGA memory.")
@@ -116,11 +116,11 @@ For brand-new projects (`bootstrap_complete` was false before this run), skip mi
 
 | File | Change |
 |------|--------|
-| `src/goldfish/miner.py` | New — `mine_project()`, `_find_hook_cmd()`, `_extract_user_text()`, `_extract_assistant_text()`, `_pipe_to_hook()` |
-| `src/goldfish/cli.py` | Add `goldfish mine` command (~15 lines) |
-| `src/goldfish/init.py` | Call `mine_project(cwd)` for existing projects after scaffold |
-| `src/goldfish/config.py` | Handle `mined_sessions` field in manifest read/write |
-| `README.md` | Add `goldfish mine`; fix stale info (see below) |
+| `src/goldfishh/miner.py` | New — `mine_project()`, `_find_hook_cmd()`, `_extract_user_text()`, `_extract_assistant_text()`, `_pipe_to_hook()` |
+| `src/goldfishh/cli.py` | Add `goldfishh mine` command (~15 lines) |
+| `src/goldfishh/init.py` | Call `mine_project(cwd)` for existing projects after scaffold |
+| `src/goldfishh/config.py` | Handle `mined_sessions` field in manifest read/write |
+| `README.md` | Add `goldfishh mine`; fix stale info (see below) |
 
 ---
 
@@ -133,16 +133,16 @@ The current README has several stale references that should be corrected as part
 | Test count | "78 tests" | "89 tests" |
 | Line count | "~500 lines" | "~1000 lines" (946 pre-mine, ~990 after) |
 | Python version | "Python 3.11+" | "Python 3.13+" |
-| Chonkie | "transitive dep of Semble" | direct goldfish dependency |
+| Chonkie | "transitive dep of Semble" | direct goldfishh dependency |
 | Hook table | Lists PostToolUse(Write\|Edit), PostToolUse(Bash git commit*) | Remove — these handlers were removed in v1.0 |
-| CLI reference | Missing `goldfish mine` | Add |
+| CLI reference | Missing `goldfishh mine` | Add |
 | Architecture table | Missing `miner.py` | Add |
 
 Also add a new **"Onboarding an existing project"** section showing:
 
 ```bash
-goldfish init          # sets up hooks for future sessions
-goldfish mine          # seeds OMEGA from all past sessions (run once)
+goldfishh init          # sets up hooks for future sessions
+goldfishh mine          # seeds OMEGA from all past sessions (run once)
 ```
 
 ---
@@ -182,6 +182,6 @@ Given a real-shaped settings.json structure, verify `_find_hook_cmd` returns the
 ## Non-Goals
 
 - No re-mining: once a session ID is in `mined_sessions`, it is never reprocessed. If OMEGA is wiped and re-initialized, the user can delete `mined_sessions` from `.manifest.toml` to re-mine.
-- No `omega consolidate` or `omega compact` calls — those are post-processing commands OMEGA exposes directly; not goldfish's responsibility.
+- No `omega consolidate` or `omega compact` calls — those are post-processing commands OMEGA exposes directly; not goldfishh's responsibility.
 - No streaming progress bar — simple line-per-session output is sufficient.
 - No parallel processing — sessions are processed serially. The bottleneck is OMEGA's bridge, not file I/O.
