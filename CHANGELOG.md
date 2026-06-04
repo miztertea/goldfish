@@ -3,6 +3,32 @@
 All notable changes to goldfish are documented here.
 Generated automatically by [git-cliff](https://git-cliff.org).
 
+## [0.11.0] - 2026-06-04
+
+### Bug Fixes
+
+- Goldfishh vault branding, README paths, CLI docstrings
+- Split long import line in test_drain to pass ruff E501/I001
+- Apply ruff format to claude_md.py and test_claude_md.py
+- Update CI workflow — mypy path and smoke test CLI commands to goldfishh
+
+### Documentation
+
+- Add goldfishh public launch design spec
+- Add goldfishh public launch implementation plan
+- Update README — goldfishh branding, uvx install, platform support
+- Goldfishh branding in all docs, AGENTS.md, CONTRIBUTING.md
+
+### Features
+
+- Rename GOLDFISHH_SENTINEL, add old-sentinel migration in append_claude_md_block
+- Consumer-intent routing rule, goldfishh branding in CLAUDE.md block
+
+### Refactoring
+
+- Rename src/goldfish → src/goldfishh
+- Update all imports goldfish → goldfishh
+- Rename binary goldfishh, update vault path ~/.goldfishh
 ## [0.10.1] - 2026-06-04
 
 ### Bug Fixes
