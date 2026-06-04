@@ -132,37 +132,32 @@ jobs:
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
-      - name: Install git-cliff and compute version
-        if: steps.check.outputs.skip == 'false'
-        uses: orhun/git-cliff-action@v4
-        with:
-          config: cliff.toml
-          args: --bumped-version
-        env:
-          GITHUB_REPO: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-      - name: Capture version from git-cliff binary
-        if: steps.check.outputs.skip == 'false'
-        id: cliff
-        shell: bash
-        run: |
-          NEW_TAG=$(git-cliff --config cliff.toml --bumped-version 2>/dev/null || true)
-          if [ -z "${NEW_TAG}" ]; then
-            echo "No releasable commits — skipping release"
-            echo "version=" >> $GITHUB_OUTPUT
-          else
-            echo "version=${NEW_TAG}" >> $GITHUB_OUTPUT
-            echo "Computed next version: ${NEW_TAG}"
-          fi
       - uses: orhun/git-cliff-action@v4
-        if: steps.check.outputs.skip == 'false' && steps.cliff.outputs.version != ''
+        if: steps.check.outputs.skip == 'false'
         with:
           config: cliff.toml
           args: --bump -o CHANGELOG.md
         env:
           GITHUB_REPO: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract version from CHANGELOG
+        if: steps.check.outputs.skip == 'false'
+        id: cliff
+        shell: bash
+        run: |
+          # git-cliff --bump writes ## [X.Y.Z] for a real release,
+          # or ## [unreleased] when there are no bumpable commits.
+          # The template strips the leading 'v', so we add it back.
+          NEW_TAG=$(grep -m1 '^## \[' CHANGELOG.md \
+            | sed 's/^## \[/v/' | sed 's/\].*//' \
+            | grep -v '^vunreleased$' || true)
+          if [ -z "${NEW_TAG}" ]; then
+            echo "No releasable commits — skipping release"
+            echo "version=" >> $GITHUB_OUTPUT
+          else
+            echo "version=${NEW_TAG}" >> $GITHUB_OUTPUT
+            echo "Extracted version: ${NEW_TAG}"
+          fi
       - uses: orhun/git-cliff-action@v4
         if: steps.check.outputs.skip == 'false' && steps.cliff.outputs.version != ''
         with:
