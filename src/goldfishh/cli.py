@@ -102,7 +102,7 @@ def doctor() -> None:
             data = _json.loads(DEFAULT_SETTINGS.read_text(encoding="utf-8"))
             hooks = data.get("hooks", {})
             has_goldfish = any(
-                "goldfish" in str(h) and "hook" in str(h)
+                "goldfishh" in str(h) and "hook" in str(h)
                 for event_hooks in hooks.values()
                 for group in event_hooks
                 for h in group.get("hooks", [])
@@ -110,20 +110,20 @@ def doctor() -> None:
             if has_goldfish:
                 typer.echo("✓ Hooks registered in settings.json")
             else:
-                typer.echo("✗ Hooks not registered — run: goldfish init")
+                typer.echo("✗ Hooks not registered — run: goldfishh init")
                 ok = False
         except Exception:
-            typer.echo("✗ settings.json malformed — run: goldfish init")
+            typer.echo("✗ settings.json malformed — run: goldfishh init")
             ok = False
     else:
-        typer.echo("✗ ~/.claude/settings.json not found — run: goldfish init")
+        typer.echo("✗ ~/.claude/settings.json not found — run: goldfishh init")
         ok = False
 
     # Queue depth check
     if QUEUE_PATH.exists():
         depth = len(QUEUE_PATH.read_text(encoding="utf-8").splitlines())
         if depth > 100:
-            typer.echo(f"⚠ Queue depth {depth} — run: goldfish drain")
+            typer.echo(f"⚠ Queue depth {depth} — run: goldfishh drain")
         else:
             typer.echo(f"✓ Queue depth {depth}")
     else:
@@ -145,15 +145,15 @@ def doctor() -> None:
             for name in ("omega-memory", "semble", "gitnexus"):
                 status = "✓" if name in mcp else "✗"
                 if status == "✗":
-                    typer.echo(f"{status} {name} MCP  — run: goldfish init to register")
+                    typer.echo(f"{status} {name} MCP  — run: goldfishh init to register")
                     ok = False
                 else:
                     typer.echo(f"{status} {name} MCP")
         except Exception:
-            typer.echo("✗ ~/.claude.json malformed — run: goldfish init")
+            typer.echo("✗ ~/.claude.json malformed — run: goldfishh init")
             ok = False
     else:
-        typer.echo("  ~/.claude.json not found — run: goldfish init")
+        typer.echo("  ~/.claude.json not found — run: goldfishh init")
 
     # Vault health check
     project = project_name(cwd)
@@ -269,7 +269,7 @@ def mine() -> None:
     auto_cmd = _find_hook_cmd(settings, "UserPromptSubmit", "auto_capture")
     asst_cmd = _find_hook_cmd(settings, "Stop", "assistant_capture")
     if not auto_cmd and not asst_cmd:
-        typer.echo("OMEGA hooks not registered — run: goldfish init")
+        typer.echo("OMEGA hooks not registered — run: goldfishh init")
         raise typer.Exit(1)
 
     typer.echo("Mining sessions from ~/.claude/projects/...")

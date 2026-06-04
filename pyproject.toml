@@ -17,7 +17,7 @@ source = "vcs"
 fallback_version = "0.0.0"
 
 [project.scripts]
-goldfish = "goldfish.cli:app"
+goldfishh = "goldfishh.cli:app"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -42,7 +42,7 @@ select = ["E", "F", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 # init.py embeds long markdown strings — line length is intentional
-"src/goldfish/init.py" = ["E501"]
+"src/goldfishh/init.py" = ["E501"]
 
 [tool.mypy]
 ignore_missing_imports = true

@@ -22,7 +22,7 @@ def test_register_hooks_is_idempotent(tmp_path):
     register_hooks(settings_path=settings)
     data = json.loads(settings.read_text())
     stop_hooks = data["hooks"]["Stop"]
-    goldfish_entries = [h for h in stop_hooks[0]["hooks"] if "goldfish" in str(h)]
+    goldfish_entries = [h for h in stop_hooks[0]["hooks"] if "goldfishh" in str(h)]
     assert len(goldfish_entries) == 1
 
 
@@ -49,8 +49,8 @@ def test_register_hooks_uses_venv_bin_path(tmp_path):
 
     fake_venv_bin = tmp_path / "bin"
     fake_venv_bin.mkdir()
-    fake_goldfish = fake_venv_bin / "goldfish"
-    fake_goldfish.touch()
+    fake_goldfishh = fake_venv_bin / "goldfishh"
+    fake_goldfishh.touch()
 
     fake_executable = str(fake_venv_bin / "python")
 
@@ -66,7 +66,7 @@ def test_register_hooks_uses_venv_bin_path(tmp_path):
     stop_hooks = data["hooks"]["Stop"][0]["hooks"]
     assert len(stop_hooks) == 1
     command = stop_hooks[0]["command"]
-    assert str(fake_goldfish) in command
+    assert str(fake_goldfishh) in command
     assert command.endswith(" hook")
 
 
@@ -78,7 +78,7 @@ def test_register_hooks_updates_bare_command_to_full_path(tmp_path):
     )
     fake_venv_bin = tmp_path / "bin"
     fake_venv_bin.mkdir()
-    (fake_venv_bin / "goldfish").touch()
+    (fake_venv_bin / "goldfishh").touch()
     with (
         patch("goldfishh.claude_md.shutil.which", return_value=None),
         patch("goldfishh.claude_md.sys.executable", str(fake_venv_bin / "python")),
@@ -87,9 +87,9 @@ def test_register_hooks_updates_bare_command_to_full_path(tmp_path):
     data = json.loads(settings.read_text())
     stop_cmds = [h["command"] for h in data["hooks"]["Stop"][0]["hooks"]]
     assert len(stop_cmds) == 1
-    assert stop_cmds[0] != "goldfish hook"
+    assert stop_cmds[0] != "goldfishh hook"
     assert stop_cmds[0].endswith(" hook")
-    assert "goldfish" in stop_cmds[0]
+    assert "goldfishh" in stop_cmds[0]
 
 
 def test_register_hooks_registers_all_nine_events(tmp_path):
@@ -132,7 +132,7 @@ def test_register_hooks_preserves_non_goldfish_hooks(tmp_path):
     stop_hooks = data["hooks"]["Stop"][0]["hooks"]
     # GitNexus hook must still be present alongside the new goldfish hook
     assert gitnexus_hook in stop_hooks
-    assert any("goldfish" in h.get("command", "") and h.get("command", "").endswith(" hook") for h in stop_hooks)
+    assert any("goldfishh" in h.get("command", "") and h.get("command", "").endswith(" hook") for h in stop_hooks)
 
 
 def test_append_claude_md_block_updates_content_in_place(tmp_path):
@@ -187,7 +187,7 @@ def test_append_claude_md_block_eof_case(tmp_path):
 def test_detect_goldfish_bin_prefers_local_bin(tmp_path):
     from goldfishh.claude_md import _detect_goldfish_bin
 
-    local_bin = tmp_path / ".local" / "bin" / "goldfish"
+    local_bin = tmp_path / ".local" / "bin" / "goldfishh"
     local_bin.parent.mkdir(parents=True)
     local_bin.touch()
     with patch("goldfishh.claude_md.Path.home", return_value=tmp_path):
@@ -201,7 +201,7 @@ def test_detect_goldfish_bin_falls_back_to_which(tmp_path):
     # tmp_path/.local/bin/goldfish does NOT exist
     with (
         patch("goldfishh.claude_md.Path.home", return_value=tmp_path),
-        patch("goldfishh.claude_md.shutil.which", return_value="/usr/local/bin/goldfish"),
+        patch("goldfishh.claude_md.shutil.which", return_value="/usr/local/bin/goldfishh"),
     ):
         result = _detect_goldfish_bin()
-    assert result == "/usr/local/bin/goldfish"
+    assert result == "/usr/local/bin/goldfishh"

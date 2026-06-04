@@ -70,7 +70,7 @@ def test_doctor_all_healthy(tmp_path):
     settings = tmp_path / "settings.json"
     settings.write_text(
         json.dumps(
-            {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfish hook", "async": True}]}]}}
+            {"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "/path/goldfishh hook", "async": True}]}]}}
         )
     )
     # Create ~/.claude.json with all three MCPs registered

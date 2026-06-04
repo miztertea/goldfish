@@ -20,16 +20,16 @@ _ASYNC_HOOKS = [
 
 
 def _detect_goldfish_bin() -> str:
-    stable = Path.home() / ".local" / "bin" / "goldfish"
+    stable = Path.home() / ".local" / "bin" / "goldfishh"
     if stable.exists():
         return str(stable)
-    found = shutil.which("goldfish")
+    found = shutil.which("goldfishh")
     if found:
         return found
-    venv_bin = Path(sys.executable).parent / "goldfish"
+    venv_bin = Path(sys.executable).parent / "goldfishh"
     if venv_bin.exists():
         return str(venv_bin)
-    return "goldfish"
+    return "goldfishh"
 
 
 def _goldfish_hook_entry(bin_path: str, async_: bool = False) -> dict:
@@ -43,7 +43,7 @@ def _is_goldfish_hook(h: object) -> bool:
     if not isinstance(h, dict):
         return False
     cmd = h.get("command", "")
-    return isinstance(cmd, str) and "goldfish" in cmd and cmd.endswith(" hook")
+    return isinstance(cmd, str) and ("goldfishh" in cmd or "goldfish" in cmd) and cmd.endswith(" hook")
 
 
 def _upsert_hook(hooks: dict, event: str, bin_path: str, async_: bool) -> None:

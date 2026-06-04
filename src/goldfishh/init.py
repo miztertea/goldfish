@@ -15,11 +15,11 @@ from goldfishh.config import (
 from goldfishh.miner import mine_project
 from goldfishh.vault import scaffold
 
-_PACKAGE_SOURCE = "git+https://github.com/miztertea/goldfish"
+_PACKAGE_SOURCE = "goldfishh"
 
 
 def _goldfish_stable_path() -> Path:
-    return Path.home() / ".local" / "bin" / "goldfish"
+    return Path.home() / ".local" / "bin" / "goldfishh"
 
 
 _CLAUDE_MD_BLOCK = f"""{GOLDFISH_SENTINEL}
@@ -105,15 +105,15 @@ def run(
     # to avoid replacing a running binary on Windows (Access denied, os error 5).
     stable = _goldfish_stable_path()
     if stable.exists():
-        print("✓ goldfish installed (stable path)")
-    elif shutil.which("goldfish"):
-        print("✓ goldfish installed (found on PATH)")
+        print("✓ goldfishh installed (stable path)")
+    elif shutil.which("goldfishh"):
+        print("✓ goldfishh installed (found on PATH)")
     else:
-        r = subprocess.run(["uv", "tool", "install", "--from", _PACKAGE_SOURCE, "goldfishh"])
+        r = subprocess.run(["uv", "tool", "install", _PACKAGE_SOURCE])
         if r.returncode != 0:
-            print("  note: goldfish self-install failed; hook path may be unstable")
+            print("  note: goldfishh self-install failed; hook path may be unstable")
         else:
-            print("✓ goldfish installed at ~/.local/bin/goldfish")
+            print("✓ goldfishh installed at ~/.local/bin/goldfishh")
 
     project = project_name(cwd)
 
@@ -230,5 +230,5 @@ def run(
         append_claude_md_block(claude_md, _CLAUDE_MD_BLOCK)
         print("✓ CLAUDE.md updated")
 
-    print("\n✓ goldfish is ready.")
+    print("\n✓ goldfishh is ready.")
     print(f"  Vault: {vaults_root / project}")

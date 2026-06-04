@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-VAULTS_ROOT = Path.home() / ".goldfish" / "vaults"
+VAULTS_ROOT = Path.home() / ".goldfishh" / "vaults"
 
 _VAULT_DIRS = [
     "Memory/Decisions",
